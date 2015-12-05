@@ -1,8 +1,8 @@
-# What is Pado?
+## What is Pado?
 
 Pado is a comprehensive software platform for building, managing and servicing true cloud stores on top of data grid products while ensuring performance, linear scalability, data ubiquity, and ease of use.
 
-# Pado and Big Data - Grids within Grid
+## Pado and Big Data - Grids within Grid
 
 Pado is designed from the ground up to manage and service big data that can amount to 10’s and 100’s of terabytes.
 
@@ -10,13 +10,15 @@ Pado achieves this by federating one or more grids into one logical grid, which 
 
 ![Pado Login](/pado-javadoc/pado-login.png)
 
-# Simple API
+## Simple API
 
+...
 Pado.connect(locahost:20000"); // Connect
 IPado pado = Pado.login("app-id", "domain-name", "user-name", "password".toCharArray()); // Login
 ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "grid-path"); // Create business object
+...
 
-# Pado Features
+## Pado Features
 
 Pado provides the data ubiquity service by versioning data structures and dynamically loading business classes called IBiz. Any code changes made can be deployed to all of the grids that make up Pado by simply dropping them into the Pado cloud.
 
@@ -26,11 +28,11 @@ Pado is equipped with numerous data services: Apache Lucene, GemFire OQL, tempor
  
 Pado retrieves millions of data records in sub-second and delivers them in streamed result sets with pagination support.
 
-# Supported JDK Versions
+## Supported JDK Versions
 
 Pado requires JDK 1.7 to compile and runs on JDK 1.7 and 1.8.
 
-# Building Pado
+## Building Pado
 
 1. Download or clone Pado from GitHub: http://github.com/netcrest/pado
 2. Run "mvn install". 
@@ -39,7 +41,7 @@ The above command compiles all of Pado Maven modules and creates zip and tar dis
 
 IMPORTANT: Note that it does not overwrite the existing files in the deploy/ directory, preserving the changes that you may have made.
 
-# Installing Pivotal GemFire
+## Installing Pivotal GemFire
 
 In order to run Pado, you must install Pivotal GemFire, which is downloadable from the following Pivotal's web site:
 
@@ -48,10 +50,10 @@ In order to run Pado, you must install Pivotal GemFire, which is downloadable fr
 Pado supports GemFire 7.x and 8.x. Once installed, set the GEMFIRE environment variable to the GemFire installation root directory in bin_sh/setenv.sh as described below.
 
 
-# Running Pado in a build environment
+## Running Pado in a Build Environment
 
 Upon successful build, follow the steps below:
 
-   cd deploy/pado_<version>/bin_sh
-   <Edit setenv.sh and set JAVA_HOME, GEMFIRE>
+   cd deploy/pado_\<version\>/bin_sh
+   \<Edit setenv.sh and set JAVA_HOME, GEMFIRE\>
    ./start_site -locators
