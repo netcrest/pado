@@ -13,9 +13,9 @@ Pado achieves this by federating one or more grids into one logical grid, which 
 ## Simple API
 
 ```
-Pado.connect(locahost:20000"); // Connect
+Pado.connect("locahost:20000"); // Connect
 IPado pado = Pado.login("app-id", "domain-name", "user-name", "password".toCharArray()); // Login
-ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "grid-path"); // Create business object
+ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "grid/path"); // Create IBiz
 ```
 
 ## Pado Features
@@ -43,7 +43,7 @@ IMPORTANT: Note that it does not overwrite the existing files in the deploy/ dir
 
 ## Installing Pivotal GemFire
 
-In order to run Pado, you must install Pivotal GemFire, which is downloadable from the following Pivotal's web site:
+In order to run Pado, you must install Pivotal GemFire, which is downloadable from the following Pivotal web site:
 
    https://network.pivotal.io/products/pivotal-gemfire
 
@@ -52,10 +52,29 @@ Pado supports GemFire 7.x and 8.x. Once installed, set the GEMFIRE environment v
 
 ## Running Pado in a Build Environment
 
-Upon successful build, follow the steps below:
+Upon successful build, run the default grid called "mygrid" as follows:
 
 ```
-   cd deploy/pado_\<version\>/bin_sh
-   \<Edit setenv.sh and set JAVA_HOME, GEMFIRE\>
-   ./start_site -locators
+cd deploy/pado_<version>/bin_sh
+<Edit setenv.sh and set JAVA_HOME, GEMFIRE>
+./start_site -locators
+```
+
+Load mock data into mygrid as follows:
+
+```
+cd client
+./temporal -all
+```
+
+Run PadoShell to view data in mygrid:
+
+```
+cd ..
+./pado -dir ..
+/mygrid> login
+/mygrid> grid -s
+/mygrid> ls -lR
+/mygrid> less account
+/mygrid> quit
 ```
