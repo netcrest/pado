@@ -1,0 +1,37 @@
+# Maven build folders
+target/
+
+# Ant build folders
+build/
+dist/
+lib/
+user.build.properties
+
+# MacOSX files
+.DS_Store
+
+# NetBeans user configuration files
+nbactions*.xml
+/nbproject/private/
+*/nbproject/private/
+
+# IntelliJ projects
+*.iws
+.idea/*
+
+# Eclipse projects
+.classpath
+.project
+.settings/
+.metadata
+
+# Profiler results
+*.hprof
+
+# Generated files
+tmp/
+
+# Configurable build files
+bilder.py
+bilder.pyc
+bild.log
