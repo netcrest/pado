@@ -12,11 +12,11 @@ Pado achieves this by federating one or more grids into one logical grid, which 
 
 ## Simple API
 
-...
+```
 Pado.connect(locahost:20000"); // Connect
 IPado pado = Pado.login("app-id", "domain-name", "user-name", "password".toCharArray()); // Login
 ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "grid-path"); // Create business object
-...
+```
 
 ## Pado Features
 
@@ -54,6 +54,8 @@ Pado supports GemFire 7.x and 8.x. Once installed, set the GEMFIRE environment v
 
 Upon successful build, follow the steps below:
 
+```
    cd deploy/pado_\<version\>/bin_sh
    \<Edit setenv.sh and set JAVA_HOME, GEMFIRE\>
    ./start_site -locators
+```
