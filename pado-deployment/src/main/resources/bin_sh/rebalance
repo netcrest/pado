@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   rebalance [-commit] [-quiet] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Rebalances all paths of the specified grid and site."
+   echo ""
+   echo "  This command executes the PadoShell command 'rebalance'. You must have"
+   echo "  properly configured the login information if login is required."
+   echo ""
+   echo "      -commit  Commits rebalance. This option must be specified to"
+   echo "               actually rebalance the servers. If it is not specified"
+   echo "               then it only simulates rebalancing."
+   echo "      -quiet   Quiet mode. Suppresses verbose and prompts. This option"
+   echo "               is meaningful only if specified with '-commit'."
+   echo "      -grid    Rebalances the servers in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site    Rebalances the servers in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: rebalance -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+if [ "$COMMIT" == "true" ]; then
+   if [ "$QUIET" == "false" ]; then
+      INNER_LOOP=true
+      while [ "$INNER_LOOP" == "true" ]; do
+         echo "You are about to rebalance the entire site $SITE of grid $GRID."
+         echo "This may take some time and affect grid performance depending"
+         echo "on the data volume in the grid. Do you want to continue?"
+         read -p "Enter 'c' to continue, 'q' to quit: " INPUT
+         case $INPUT in
+            [Cc]* ) INNER_LOOP=false;;
+            [Qq]* ) echo "Aborted."; INNER_LOOP=false; exit;;
+         esac
+      done
+   fi
+   echo ""
+   echo "Rebalancing committed and started... Please wait."
+   ./pado -e "login; rebalance -all $GRID -commit"
+else
+   echo "Simulating rebalance... Please wait."
+   ./pado -e "login; rebalance -all $GRID"
+fi
+
+
+echo ""
+if [ "$COMMIT" == "true" ]; then
+   echo "Rebalancing committed and completed. "
+else
+   echo "Rebalancing simulated. To carry out actual rebalancing, specify the '-commit' option."
+fi
+echo ""

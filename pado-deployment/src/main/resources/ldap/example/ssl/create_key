@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh
+
+HOST_NAME=`hostname`
+
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "  create_key [-alias <alias>] [-?]"
+   echo ""
+   echo "  Generates a private RSA certificate with the specified alias into"
+   echo "  the following server keystore file:"
+   echo "     $SERVER_KEYSTORE_FILE_PATH."
+   echo "  And imports the trusted key into the following trusted keystore files:"
+   echo "     $TRUSTED_KEYSTORE_FILE_PATH"
+   echo "     $PADO_KEYSTORE_FILE_PATH"
+   echo ""
+   echo "  If the '-alias' option is not specified then the host name ($HOST_NAME)"
+   echo "  of this OS is assigned."
+   echo ""
+   echo "  -alias <alias>   Alias name used for key alias. Default: $HOST_NAME"
+   echo ""
+   echo "   Default: ./create_key -alias $HOST_NAME"
+   echo ""
+   exit
+elif [ "$1" == "-alias" ]; then
+   ALIAS=$2
+elif [ "$1" != "" ]; then
+   echo "Invalid option: $1. Aborted."
+   echo ""
+   exit
+fi
+
+if [ "$ALIAS" == "" ]; then
+   ALIAS=$HOST_NAME
+fi
+
+# Generate certificate
+echo "Generating key for alias=$ALIAS..."
+keytool -genkey -keyalg "RSA" -dname "cn=$ALIAS, ou=Pado, o=NewCo, c=US" -alias $ALIAS -keystore $SERVER_KEYSTORE_FILE_PATH -storepass $SERVER_KEYSTORE_PASSWD -validity 100000
+
+
+# Import certificate
+keytool -export -keystore $SERVER_KEYSTORE_FILE_PATH -alias $ALIAS -file $ALIAS.cer -storepass $SERVER_KEYSTORE_PASSWD
+echo "Importing certificate (alias=$ALIAS) to $TRUSTED_KEYSTORE_FILE_PATH..."
+keytool -import -file $ALIAS.cer -alias $ALIAS -keystore $TRUSTED_KEYSTORE_FILE_PATH -storepass $TRUSTED_KEYSTORE_PASSWD
+echo "Importing certificate (alias=$ALIAS) to $PADO_KEYSTORE_FILE_PATH..."
+keytool -import -file $ALIAS.cer -alias $ALIAS -keystore $PADO_KEYSTORE_FILE_PATH -storepass $PADO_KEYSTORE_PASSWD
+rm $ALIAS.cer
+
+echo "Certificate Entries: (alias=$ALIAS)"
+echo "   $PADO_KEYSTORE_FILE_PATH: `keytool -list -keystore $PADO_KEYSTORE_FILE_PATH -storepass $PADO_KEYSTORE_PASSWD | grep $ALIAS`"
+echo "   $TRUSTED_KEYSTORE_FILE_PATH: `keytool -list -keystore $TRUSTED_KEYSTORE_FILE_PATH -storepass $TRUSTED_KEYSTORE_PASSWD | grep $ALIAS`"
+echo ""

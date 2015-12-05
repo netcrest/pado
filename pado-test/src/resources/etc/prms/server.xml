@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+
+	<disk-store name="cache-store">
+		<disk-dirs>
+			<disk-dir>${DISK_STORE_DIR}/cache</disk-dir>
+		</disk-dirs>
+	</disk-store>
+
+	<region-attributes id="persistent-partition"
+		data-policy="persistent-partition" disk-store-name="cache-store">
+		<partition-attributes redundant-copies="0"
+			total-num-buckets="40">
+		</partition-attributes>
+	</region-attributes>
+	
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+</cache>

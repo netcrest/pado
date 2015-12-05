@@ -1,0 +1,44 @@
+1. Register KeyType jar files - all KeyType objects are automatically
+   registered using the simple class name as the key names.
+2. Specify "__auto" - Optionally specify the "__auto" key to include
+   all classes using regular expressions.
+3. Use ${<key name>} to reference an already defined key.
+4. Specify "__root" to include the KeyType or Bean class that will resolve the JSON
+   string representation. "__root" is required if "__auto" is not specified". 
+   "__root" overrides "__auto".
+
+{
+  "TestKey": {
+    "__root": "com.netcrest.pado.test.junit.data.jsonlite.data.TestKey",
+    "JsonLite": "${TestKey}",
+    "Object": "com.netcrest.pado.test.junit.data.jsonlite.data.Foo"
+  },
+  "TradeKey": {
+    "__root": "net.jpmchase.jpmis.acce.domain.TradeKey"
+  },
+  
+  "ScenarioInputs": {
+    "__root": "com.example.jl.ScenarioInputs",
+    "__auto": "com.example.jl.*"
+  },
+  
+  "ScenarioInputs2": {
+    "__root": "com.example.jl.ScenarioInputs",
+    "__all": "com.example.jl.*, com.example2.jl.*",
+    "TestKey": "TestKey"
+  },
+  
+  "AssetLocation": {
+    "__root": "com.example.jl.AssetLocation"
+  },
+  
+  "__auto": "com.example.jl.*"
+  
+  "com.netcrest.pado.temporal.test.data": {
+    "BankId": {
+      "KeyReference": {
+        ReferencePath: "account",
+        ReferenceDepth: 1
+      }
+    }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="grid5" location="ny">
+	
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="grid5">
+				<grid id="grid5" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+	</app-list>
+	
+	<path-list>
+		<path name="shared">
+			<path name="ref" refid="partition"/>
+			<path name="master" refid="partition"/>
+		</path>
+	</path-list>
+	
+	<gemfire root-region-path="/operations"
+		locators="localhost:25000"
+		init-delay="0"
+		grid-info-update-delay="0"
+		grid-info-update-interval="10000">
+		<gemfire-parent id="grid0" root-region-path="/pado" locators="localhost:20000"></gemfire-parent>
+		<gemfire-client locators="localhost:25000"></gemfire-client>
+	</gemfire>
+
+</pado>

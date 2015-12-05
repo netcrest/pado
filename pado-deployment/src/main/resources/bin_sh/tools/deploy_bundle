@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo ""
+   echo "Usage:"
+   echo "   ./deploy_bundle [-grid <gridId>] [-conf] [-lib] [-db] [-all] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo "   Deploys the specified bundle to all of servers in the specified grid and site."
+   echo "   It first creates the specified bundles using the 'bundle_grid' command,"
+   echo "   copies them to all other servers and then unzip them in the Pado home"
+   echo "   directory ($PADO_HOME)."
+   echo ""
+   echo "   Note that you may need to restart the grid in order to apply the changes"
+   echo "   made in the the deployment files."
+   echo ""
+   echo "      -grid Deploys the specified grid ID. Default: $GRID_DEFAULT"
+   echo "      -conf Deploys only the conf bundle. Default bundle."
+   echo "      -lib  Deploys only the lib bundle."
+   echo "      -db   Deploys only the db bundle."
+   echo "      -all  Deploys th all bundle."
+   echo ""
+   echo "   Default: ./deploy_bundle -conf -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+if [ ! -d $PADO_HOME/bin_sh/grids/$GRID ]; then
+   echo ""
+   echo "Error: $PADO_HOME/bin_sh/grids/$GRID not found. Unable to bundle configuration files."
+   echo ""
+   exit
+fi
+if [ ! -d $PADO_HOME/etc/$GRID ]; then
+   echo ""
+   echo "Error: $PADO_HOME/etc/$GRID not found. Unable to bundle configuration files."
+   echo ""
+   exit
+fi
+
+if [ ! -d $PADO_BUNDLE_DIR ]; then
+  mkdir -p $PADO_BUNDLE_DIR
+fi
+
+BUNDLE_OPT=
+if [ "$ALL" == "true" ]; then
+   BUNDLE_OPT="-all -nodata"
+else
+   if [ "$CONF" == "true" ]; then
+      BUNDLE_OPT="$BUNDLE_OPT -conf"
+   fi
+   if [ "$LIB" == "true" ]; then
+      BUNDLE_OPT="$BUNDLE_OPT -lib"
+   fi
+   if [ "$DB" == "true" ]; then
+      BUNDLE_OPT="$BUNDLE_OPT -db"
+   fi
+fi
+
+if [ "$BUNDLE_OPT" == "" ]; then
+   CONF=true
+   BUNDLE_OPT=-conf
+fi
+
+# Create bundle(s)
+./bundle_grid -quiet $BUNDLE_OPT -grid $GRID -site $GRID
+
+# Set bundle files paths
+BUNDLE_ALL_PATH=$PADO_HOME/bundle/${GRID_ID}-all_nodata.zip
+BUNDLE_CONF_PATH=$PADO_HOME/bundle/${GRID_ID}-conf.zip
+BUNDLE_LIB_PATH=$PADO_HOME/bundle/${GRID_ID}-lib.zip
+BUNDLE_DB_PATH=$PADO_HOME/bundle/${GRID_ID}-db.zip
+
+# Deploy bundles
+pushd .. > /dev/null 2>&1
+SERVER_HOSTS=`getServerHosts`
+popd  > /dev/null 2>&1
+
+if [ "$ALL" == "true" ]; then
+   for i in $SERVER_HOSTS; do
+      HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+      if [ $HOST_NAME == `hostname` ]; then
+         continue
+      fi
+      ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "mkdir -p $PADO_BUNDLE_DIR"
+      scp -q -o stricthostkeychecking=no $BUNDLE_ALL_PATH $SSH_USER@$i:$BUNDLE_ALL_PATH
+      ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "unzip -o -d $PADO_HOME $BUNDLE_ALL_PATH"
+      echo "Deployed to all servers:"
+      echo "   $BUNDLE_ALL_PATH."
+   done
+else
+   for i in $SERVER_HOSTS; do
+      HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+      if [ $HOST_NAME == `hostname` ]; then
+         continue
+      fi
+      ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "mkdir -p $PADO_BUNDLE_DIR"
+      if [ "$CONF" == "true" ]; then
+         scp -q -o stricthostkeychecking=no $BUNDLE_CONF_PATH $SSH_USER@$i:$BUNDLE_CONF_PATH
+         ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "unzip -o -d $PADO_HOME $BUNDLE_CONF_PATH"
+      fi
+      if [ "$LIB" == "true" ]; then
+         scp -q -o stricthostkeychecking=no $BUNDLE_LIB_PATH $SSH_USER@$i:$BUNDLE_LIB_PATH
+         ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "unzip -o -d $PADO_HOME $BUNDLE_LIB_PATH"
+      fi
+      if [ "$DB" == "true" ]; then
+         scp -q -o stricthostkeychecking=no $BUNDLE_DB_PATH $SSH_USER@$i:$BUNDLE_DB_PATH
+         ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "unzip -o -d $PADO_HOME $BUNDLE_DB_PATH"
+      fi
+   done
+   echo "Deployed to all servers:"
+   if [ "$CONF" == "true" ]; then
+      echo "   $BUNDLE_CONF_PATH."
+   fi
+   if [ "$LIB" == "true" ]; then
+      echo "   $BUNDLE_LIB_PATH."
+   fi
+   if [ "$DB" == "true" ]; then
+      echo "   $BUNDLE_DB_PATH."
+   fi
+fi
+echo ""

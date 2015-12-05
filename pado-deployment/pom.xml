@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.netcrest.pado</groupId>
+		<artifactId>pado-parent</artifactId>
+		<version>0.4.0-B1</version>
+	</parent>
+	<artifactId>pado-deployment</artifactId>
+	<packaging>pom</packaging>
+	<name>pado-deployment</name>
+
+	<dependencies>
+		<!-- Pado modules -->
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>gemfire-dqueue</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-biz</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-gemfire</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-gemfire-v7</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-test</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-tools</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>package shared config</id>
+						<goals>
+							<goal>attached</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/assembly-descriptor.xml</descriptor>
+							</descriptors>
+							<finalName>pado_${project.version}</finalName>
+							<outputDirectory>target/assembly</outputDirectory>
+							<tarLongFileMode>gnu</tarLongFileMode>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Unzip the build in the deploy directory for testing -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<configuration>
+							<target>
+								<untar compression="gzip"
+									src="${project.basedir}/target/assembly/pado_${project.version}.tar.gz"
+									dest="${project.basedir}/../deploy" overwrite="false" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<!-- Exclude javadoc if property is set -->
+	<profiles>
+		<profile>
+			<id>javadoc</id>
+			<activation>
+				<property>
+					<name>!javadoc.skip</name>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.netcrest.pado</groupId>
+					<artifactId>pado-javadoc</artifactId>
+					<classifier>javadoc</classifier>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+
+</project>
+

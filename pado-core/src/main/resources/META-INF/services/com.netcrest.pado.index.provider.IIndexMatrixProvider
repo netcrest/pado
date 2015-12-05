@@ -1,0 +1,5 @@
+com.netcrest.pado.index.provider.IndexMatrixOQLProvider
+com.netcrest.pado.index.provider.IndexMatrixServerProvider
+com.netcrest.pado.index.provider.IndexMatrixTemporalProvider
+com.netcrest.pado.index.provider.IndexMatrixTemporalEntryProvider
+com.netcrest.pado.index.provider.lucene.IndexMatrixLuceneTemporalProvider

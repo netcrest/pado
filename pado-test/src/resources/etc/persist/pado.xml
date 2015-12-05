@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="persist" location="us">
+
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="persist">
+				<grid id="persist" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="persist">
+				<grid id="persist" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>persist example</description>
+			</grid-list>
+		</app>
+	</app-list>
+
+	<path-list>
+		<path name="account" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="account_detail" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="bank" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="portfolio" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="position" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="trade" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="temporal" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+	</path-list>
+
+	<gemfire root-region-path="/persist" locators="localhost:20000">
+		<gemfire-client locators="localhost:20000"></gemfire-client>
+	</gemfire>
+
+</pado>

@@ -1,0 +1,98 @@
+#!/bin/bash
+ 
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+ 
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+# Check for script help
+if [ "$1" == "-?" ]; then
+        echo "Usage:"
+        echo "   ./copy_site fromFilePath [-todir <toDirPath>] [-r] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-debug] [-?]"
+        echo "   Copy <fromFilePath> to all servers in the same path."
+        echo "   IMPORTANT: Wild cards such as * must be enclosed in"
+        echo "   double quotes."
+        echo ""
+        echo "      -todir <toDirPath> Copy file(s) to this remote directory. If"
+        echo "                         this is not specified, then the file(s) are"
+        echo "                         copy to the same directory as the current"
+        echo "                         directory."
+        echo "      -r                 Copy recursively."
+        echo "      -debug             Print copy commands but do not execute them."
+        echo ""
+        echo "   Default: ./copy_site <from-file> -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+        echo ""
+        exit
+fi
+ 
+# Check if file path specified
+if [ "$1" == "" ]; then
+        echo ""
+        echo "Must specify the file path"
+        echo ""
+        exit
+fi
+ 
+if [ "$TO_DIR" == "" ]; then
+        TO_DIR=$PWD
+else
+        TO_DIR=$(echo $(cd $(dirname $TO_DIR); pwd)/$(basename $TO_DIR))
+fi
+ 
+INPUT="$1"
+ 
+if [ "$DEBUG" == "true" ]; then
+        echo ""
+        echo "Debug mode (-debug). The following commands are"
+        echo "for display only. Files are not copied."
+        echo ""
+fi
+ 
+pushd .. > /dev/null 2>&1
+SERVER_HOSTS=`getServerHosts`
+popd
+for i in $SERVER_HOSTS
+do
+        HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+        if [ $HOST_NAME == `hostname` ]; then
+                continue
+        fi
+ 
+        # absolute path
+        if [[ $1 == /* ]]; then
+                echo scp $SSH_USER@$i:$1
+                if [ "$DEBUG" == "true" ]; then
+                        echo scp -q -o stricthostkeychecking=no $RECURSIVE $1 $SSH_USER@$i:$1
+                else
+                        scp -q -o stricthostkeychecking=no $RECURSIVE $1 $SSH_USER@$i:$1
+                fi
+        else
+                # relative path
+                echo scp $INPUT $SSH_USER@$i:$TO_DIR
+                if [ "$DEBUG" == "true" ]; then
+                        echo scp -q -o stricthostkeychecking=no  $RECURSIVE $INPUT $SSH_USER@$i:$TO_DIR
+                else
+                        scp -q -o stricthostkeychecking=no  $RECURSIVE $INPUT $SSH_USER@$i:$TO_DIR
+                fi
+        fi
+done
+ 
+echo ""

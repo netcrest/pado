@@ -1,0 +1,44 @@
+login
+
+# Create tmp/temporal and list all paths
+echo
+echo Creating tmp/temporal...
+mkpath -p tmp/temporal
+refresh
+ls -lR
+
+# Import data
+echo
+echo Importing data from ${PADO_HOME}/data/test/TestInstallation.csv...
+import ${PADO_HOME}/data/test/TestInstallation.csv
+
+# Query the grid and display results
+echo
+echo Reading data from tmp/temporal...
+less -refresh tmp/temporal
+
+# List all paths to show entry counts
+echo
+echo Grid paths after import
+echo (tmp/temporal entry count should not be 0):
+echo
+refresh
+ls -lR
+
+echo
+echo Removing tmp/temporal...
+rmpath -rf tmp/temporal
+refresh
+echo
+
+# List all paths to show that tmp/temporal has been removed
+echo
+echo Grid paths after the removal of tmp/temporal
+echo (tmp/temporal should not exist):
+echo
+ls -lR
+
+# Echo complete
+echo
+echo Test complete.
+echo

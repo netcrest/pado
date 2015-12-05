@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="optimus" location="us">
+	
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="optimus">
+				<grid id="optimus" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="optimus">
+			<grid-list id="test grid list" default-grid-id="optimus">
+				<grid id="optimus" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>optimus example</description>
+			</grid-list>
+		</app>
+	</app-list>
+	
+	<path-list>
+		
+	</path-list>
+	
+	<gemfire root-region-path="/optimus"
+		locators="localhost:20000">
+		<gemfire-client locators="localhost:20000"></gemfire-client>
+	</gemfire>
+
+</pado>

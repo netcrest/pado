@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+
+	<!-- NOTE: The only difference between server.xml and server_gateway.xml 
+		is serial gateway configuration which is defined only in server_gateway.xml -->
+
+	<!-- NOTE: Parallel gateway senders are required in all members that have 
+		wan-enabled partitioned regions. Serial gateway senders are not required 
+		in all members but only the ones that will take the sender responsibility. 
+		Only one instance of serial gateway sender is active at all time. -->
+
+	<!-- us (1), uk (2), jp (3) -->
+	<gateway-sender id="${SITE}-parallel-1"
+		remote-distributed-system-id="${REMOTE_SYSTEM_ID_1}" parallel="true"
+		manual-start="false" maximum-queue-memory="50" batch-size="10"
+		batch-time-interval="1000" enable-persistence="true" disk-store-name="gateway-store">
+	</gateway-sender>
+	<gateway-sender id="${SITE}-parallel-2"
+		remote-distributed-system-id="${REMOTE_SYSTEM_ID_2}" parallel="true"
+		manual-start="false" maximum-queue-memory="50" batch-size="10"
+		batch-time-interval="1000" enable-persistence="true" disk-store-name="gateway-store">
+	</gateway-sender>
+	<gateway-sender id="${SITE}-parallel-1.1"
+		remote-distributed-system-id="${REMOTE_SYSTEM_ID_1}" parallel="true"
+		manual-start="false" maximum-queue-memory="50" batch-size="10"
+		batch-time-interval="1000" enable-persistence="true" disk-store-name="gateway-store">
+	</gateway-sender>
+	<gateway-sender id="${SITE}-parallel-2.1"
+		remote-distributed-system-id="${REMOTE_SYSTEM_ID_2}" parallel="true"
+		manual-start="false" maximum-queue-memory="50" batch-size="10"
+		batch-time-interval="1000" enable-persistence="true" disk-store-name="gateway-store">
+	</gateway-sender>
+	<gateway-sender id="${SITE}-serial-1"
+		remote-distributed-system-id="${REMOTE_SYSTEM_ID_1}" parallel="false"
+		manual-start="false" maximum-queue-memory="50" batch-size="10"
+		batch-time-interval="1000">
+	</gateway-sender>
+	<gateway-sender id="${SITE}-serial-2"
+		remote-distributed-system-id="${REMOTE_SYSTEM_ID_2}" parallel="false"
+		manual-start="false" maximum-queue-memory="50" batch-size="10"
+		batch-time-interval="1000">
+	</gateway-sender>
+	<gateway-receiver />
+
+	<disk-store name="cache-store" max-oplog-size="1024"
+		time-interval="60000" queue-size="50">
+		<disk-dirs>
+			<disk-dir>${DISK_STORE_DIR}/cache</disk-dir>
+		</disk-dirs>
+	</disk-store>
+	<disk-store name="gateway-store" max-oplog-size="1024"
+		time-interval="60000" queue-size="50">
+		<disk-dirs>
+			<disk-dir>${DISK_STORE_DIR}/gateway</disk-dir>
+		</disk-dirs>
+	</disk-store>
+	<pdx disk-store-name="cache-store" persistent="true"
+		read-serialized="true" />
+
+	<!-- Temporal regions must be partitioned regions -->
+	<region-attributes id="persistent-partition"
+		data-policy="persistent-partition">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="20">
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="account-wan" data-policy="persistent-partition"
+		disk-store-name="cache-store" gateway-sender-ids="${SITE}-parallel-1,${SITE}-parallel-2">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="20">
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="account-colocated-wan"
+		data-policy="persistent-partition" disk-store-name="cache-store"
+		gateway-sender-ids="${SITE}-parallel-1,${SITE}-parallel-2">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="20" colocated-with="/mygrid/account">
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="parallel-wan" data-policy="persistent-partition"
+		disk-store-name="cache-store" gateway-sender-ids="${SITE}-parallel-1.1,${SITE}-parallel-2.1">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="20">
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="serial-wan" data-policy="persistent-replicate"
+		disk-store-name="cache-store" gateway-sender-ids="${SITE}-serial-1,${SITE}-serial-2">
+	</region-attributes>
+	<region-attributes id="replicate" data-policy="replicate">
+	</region-attributes>
+
+	<resource-manager critical-heap-percentage="95"
+		eviction-heap-percentage="80" />
+
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+
+
+</cache>
+

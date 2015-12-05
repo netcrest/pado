@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+
+	<async-event-queue id="lucene-queue" persistent="true"
+		batch-size="10000" batch-time-interval="5000" disk-store-name="disk-store"
+		parallel="true">
+		<async-event-listener>
+			<class-name>com.netcrest.pado.index.gemfire.lucene.TemporalAsyncEventListenerImpl</class-name>
+		</async-event-listener>
+	</async-event-queue>
+	<disk-store name="disk-store" max-oplog-size="1024"
+		time-interval="60000" queue-size="50">
+		<disk-dirs>
+			<disk-dir>store</disk-dir>
+		</disk-dirs>
+	</disk-store>
+	<pdx disk-store-name="disk-store" persistent="true"
+		read-serialized="true" />
+
+	<!-- Temporal regions must be partitioned regions -->
+	<region-attributes id="temporal" data-policy="partition" async-event-queue-ids="lucene-queue">
+	</region-attributes>
+
+	<!-- mygrid -->
+	<region name="optimus">
+
+		<!-- The "account" region is a temporal region. Note that due to a GemFire 
+			limitation, every temporal region must separately register IdentityKeyPartitionResolver, 
+			PartitionListenerImpl and TemporalCacheListener. Do NOT use refid to register 
+			them. Note that if TemporalCacheListener is not registered, it is automatically 
+			registered by Pado during startup only if the grid path is configured with 
+			the "temporal" attribute set in pado.xml. -->
+		<region name="account">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="pool">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="position">
+			<region-attributes refid="temporal">
+				<partition-attributes colocated-with="/optimus/account"
+					redundant-copies="1" total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="requirement">
+			<region-attributes refid="temporal">
+				<partition-attributes colocated-with="/optimus/account"
+					redundant-copies="1" total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="node">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="member">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="hierarchy">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="node_map">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="config">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="instrument">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/optimus/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+
+	</region>
+
+	<!--resource-manager critical-heap-percentage="90" / -->
+	<resource-manager critical-heap-percentage="90"
+		eviction-heap-percentage="70" />
+
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+
+
+</cache>
+

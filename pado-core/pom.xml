@@ -1,0 +1,86 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.netcrest.pado</groupId>
+		<artifactId>pado-parent</artifactId>
+		<version>0.4.0-B1</version>
+	</parent>
+
+	<artifactId>pado-core</artifactId>
+	<name>pado-core</name>
+	<description>Pado core classes</description>
+
+	<properties>
+		<maven.build.timestamp.format>MM-dd-yyyy hh:mm:ss a Z</maven.build.timestamp.format>
+		<build.date>${maven.build.timestamp}</build.date>
+	</properties>
+
+	<repositories>
+		<!-- JNLP repository -->
+		<repository>
+			<id>freehep-releases</id>
+			<url>http://java.freehep.org/maven2/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<!-- Pado modules -->
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>gemfire-dqueue</artifactId>
+			<version>${pado.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-common</artifactId>
+			<version>${pado.version}</version>
+		</dependency>
+
+		<!-- Jar reflection -->
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.5</version>
+		</dependency>
+
+		<!-- JNLP -->
+		<dependency>
+			<groupId>javax.jnlp</groupId>
+			<artifactId>jnlp</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<!-- Ant -->
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant</artifactId>
+			<version>1.9.6</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Project-Name>pado</Project-Name>
+							<Repository-Tag>pado_${project.version}</Repository-Tag>
+							<Build-Date>${build.date}</Build-Date>
+							<Main-Class>com.netcrest.pado.PadoVersion</Main-Class>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

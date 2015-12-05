@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./kill_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-locators] [-?]"
+   echo ""
+   echo "   Kills servers in the specified site in the specified grid."
+   echo "   The kill command is faster than the stop command"
+   echo "   but at the expense of possible loss or corruption"
+   echo "   of data."
+   echo ""
+   echo "      -grid      Kills the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Kills the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -locators  Kills locators in addition to servers."
+   echo ""
+   echo "   Default: ./kill_site -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+LOCATOR_ID_PREFIX=locator-${GRID}-${SITE}
+SERVER_ID_PREFIX=server-${GRID}-${SITE}
+
+LOCATOR_HOSTS=`getLocatorHosts`
+SERVER_HOSTS=`getServerHosts`
+ALL_HOSTS="$LOCATOR_HOSTS $SERVER_HOSTS"
+unique_words "$ALL_HOSTS" ALL_UNIQUE_HOSTS
+
+for i in $ALL_UNIQUE_HOSTS; do
+   echo "-----------------------------------------------------"
+   echo "Kill host: $i, grid: $GRID, site: $SITE"
+   #servers=`ssh -q -n $SSH_USER@$i "$JAVA_HOME/bin/jps -v | grep pado.home.dir=${PADO_HOME} | grep ${SERVER_ID_PREFIX}" | grep java | awk '{print $1}'`
+   servers=`ssh -q -n $SSH_USER@$i "ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${SERVER_ID_PREFIX}" | grep java | awk '{print $1}'`
+   spids=""
+   for j in $servers; do
+      spids="$j $spids" 
+   done
+
+   lpids=""
+   apids=""
+   if [ "$LOCATORS" == "true" ]; then
+      #locators=`ssh -q -n $SSH_USER@$i "$JAVA_HOME/bin/jps -v | grep pado.home.dir=${PADO_HOME} | grep ${LOCATOR_ID_PREFIX}" | grep java | awk '{print $1}'`
+      locators=`ssh -q -n $SSH_USER@$i "ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${LOCATOR_ID_PREFIX}" | grep java | awk '{print $1}'`
+      for j in $locators; do
+         lpids="$j $lpids" 
+      done
+   fi
+
+   # kill the pids
+   if [ "$spids" != "" ]; then
+      ssh -q -n $SSH_USER@$i "kill -9 $spids;" > /dev/null 2>&1
+   fi
+   echo "Killed servers: $spids"
+   if [ "$LOCATORS" == "true" ]; then
+      if [ "$lpids" != "" ]; then
+         ssh -q -n $SSH_USER@$i "kill -9 $lpids;" > /dev/null 2>&1
+      fi
+      echo "Killed locators: $lpids"
+   fi
+
+   echo "-----------------------------------------------------"
+done
+disown -a -r
+                              

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="mygrid-uk" location="uk">
+	
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="mygrid-uk">
+				<grid id="mygrid-uk" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="mygrid-us">
+				<grid id="mygrid-us" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<grid id="mygrid-uk" routing-weight="1">
+					<description>Backup site</description>
+				</grid>
+				<description>Hot-hot sites</description>
+			</grid-list>
+		</app>
+	</app-list>
+	
+	<path-list>
+		<path name="portfolio" temporal-enabled="true" key-class-name="String">
+		</path>
+		<path name="position" temporal-enabled="true" key-class-name="String" 
+			value-class-name="com.netcrest.pado.temporal.test.data.MBMPositionImpl">
+		</path>
+		<path name="temporal" temporal-enabled="true" key-class-name="String">
+		</path>
+	</path-list>
+	
+	<gemfire root-region-path="/mygrid"
+		locators="localhost:20100" shared-pool-name="mygrid-uk-pool-shared">
+		<gemfire-parent id="mygrid-us" root-region-path="/mygrid" locators="localhost:20000"></gemfire-parent>
+		<gemfire-client locators="localhost:20100"></gemfire-client>
+	</gemfire>
+
+</pado>

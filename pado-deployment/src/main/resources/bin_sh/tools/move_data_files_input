@@ -1,0 +1,173 @@
+#!/bin/bash 
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+ 
+# Check for script help
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   ./move_data_files_input fromDirPath"
+   echo "                       -todir toDirPath"
+   echo "                       [-prefix filePrefix]"
+   echo "                       [-hosts list of hosts]"
+   echo "                       [-servers list of servers]"
+   echo "                       [-site $SITES_OPT]"
+   echo "                       [-debug] [-?]"
+   echo "   Moves files in fromDirPath to toDirPath."
+   echo ""
+   echo "      -todir  Directory to which the files are moved."
+   echo "      -prefix If specified, then all file names beginning with the"
+   echo "              prefix are moved from fromDirPath to toDirPath." 
+   echo "              If unspecified then all files in  fromDirPath are moved"
+   echo "              to toDirPath."
+   echo "      -hosts  Hosts that are part of the site."
+   echo "      -servers  space separated server names (id)."
+   echo "      -debug Print copy commands but do not execute them."
+   echo "   Default: ./move_data_files_input fromDirPath -todir toDirPath -hosts hosts -servers servers"
+   echo ""
+exit
+fi
+ 
+# Check if file path specified
+if [ "$1" == "" ]; then
+   echo ""
+   echo "Must specify <fromDirPath>"
+   echo ""
+   exit
+fi
+
+# Check host names
+if [ "$HOST_NAMES" == "" ]; then
+   echo ""
+   echo "Must specify the -hosts option"
+   echo ""
+   exit
+fi
+# Check host names
+if [ "$SERVER_NAMES" == "" ]; then
+   echo ""
+   echo "Must specify the -servers option"
+   echo ""
+   exit
+fi
+
+if [ "$DEBUG" == "true" ]; then
+   echo ""
+   echo "Debug mode (-debug). The following commands are"
+   echo "for display only. Files are not copied."
+fi
+
+# Set TO_DIR to DATA_LOADER_NAS_PATH if undefined.
+if [ "$TO_DIR" == "" ]; then
+   # Set DATA_LOADER_NAS_PATH if undefined. It should be 
+   # defined in <site>_env.sh.
+   if [ "$DATA_LOADER_NAS_PATH" == "" ]; then
+      DATA_LOADER_NAS_PATH=$BASE_DIR/data/split/nas
+   fi
+   TO_DIR=$DATA_LOADER_NAS_PATH
+fi
+
+FROM_DIR="$1"
+FILE_PREFIX=$PREFIX
+
+#set up file names 
+NUM_FILES=0
+for file in ${FROM_DIR}/${FILE_PREFIX}*
+do
+   FILE_ARRAY[NUM_FILES]=$file
+   let NUM_FILES=NUM_FILES+1
+done
+echo NUM_FILES=$NUM_FILES
+echo FILE_ARRAY=${FILE_ARRAY[@]}
+
+#set up server names
+NUM_SERVERS=0
+for i in $SERVER_NAMES; do
+   SERVER_NAME_ARRAY[NUM_SERVERS]=$i
+   let NUM_SERVERS=NUM_SERVERS+1
+done
+echo SERVER_NAME_ARRAY=${SERVER_NAME_ARRAY[@]}
+
+
+#set up host names
+NUM_HOSTS=0
+for i in $HOST_NAMES; do
+	HOST_NAME_ARRAY[NUM_HOST]=$i
+	let NUM_HOST=NUM_HOST+1
+done
+echo HOST_NAME_ARRAY=${HOST_NAME_ARRAY[@]}
+
+let NUM_SERVERS_PER_HOST=NUM_SERVERS/NUM_HOSTS
+#let NUM_SERVERS=NUM_SERVERS_PER_HOST*NUM_HOSTS
+
+#determine number of files per server 
+let NUM_FILES_PER_SERVER=NUM_FILES/NUM_SERVERS
+let REMAINDER="$NUM_FILES%$NUM_SERVERS"
+if [ "$REMAINDER" != "0" ]; then
+   let NUM_FILES_PER_SERVER=NUM_FILES_PER_SERVER+1
+fi
+if [ "$NUM_FILES_PER_SERVER" == "0" ]; then
+   let NUM_FILES_PER_SERVER=1
+fi
+echo NUM_SERVERS=$NUM_SERVERS
+echo NUM_FILES_PER_SERVER=$NUM_FILES_PER_SERVER
+
+ 
+
+SERVER_INDEX=0
+FILE_INDEX=0
+SERVER_NUM=0
+for i in ${HOST_NAME_ARRAY[@]}
+do
+  	SERVER_NAME=${SERVER_NAME_ARRAY[$SERVER_INDEX]}
+      	MOVE_TO_DIR=$TO_DIR/$i/$SERVER_NAME/ 
+      	echo "SERVER_NAME=$SERVER_NAME host name=$i move_TO_DIR=$MOVE_TO_DIR"  
+     	if [ ! -d "${TO_DIR}/${i}" ];then
+		echo "creating dir  $TO_DIR/$i"
+		mkdir $TO_DIR/$i
+     	fi
+     	if [ ! -d "${MOVE_TO_DIR}" ];then
+		echo "creating dir $MOVE_TO_DIR"
+		mkdir $MOVE_TO_DIR
+     	fi
+     	for (( c=1; c<=${NUM_FILES_PER_SERVER}; c++ ))
+   	do
+   		echo "in loop $c"
+		if [ "$DEBUG" == "true" ]; then
+			echo "mv -v ${FILE_ARRAY[$FILE_INDEX]}* ${MOVE_TO_DIR}"
+		else
+			mv ${FILE_ARRAY[$FILE_INDEX]}* ${MOVE_TO_DIR}
+			echo "mv -v ${FILE_ARRAY[$FILE_INDEX]}* ${MOVE_TO_DIR}"
+		fi
+      		let FILE_INDEX=FILE_INDEX+1
+      		if [ "$FILE_INDEX" -ge "$NUM_FILES" ]; then
+			break 2;
+      		fi
+   	done
+  let SERVER_INDEX=SERVER_INDEX+1
+done
+
+
+
+echo "File deployment complete."
+echo ""

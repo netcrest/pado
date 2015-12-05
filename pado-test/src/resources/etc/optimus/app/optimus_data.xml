@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 6.6//EN"
+  "http://www.gemstone.com/dtd/cache6_6.dtd">
+
+<cache>
+	<!-- Default pool for index matrix -->
+	<pool name="index" read-timeout="60000">
+		<locator port="20000" host="localhost" />
+	</pool>
+
+	<region name="optimus">
+		<region name="account">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="pool">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+
+		<region name="position">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="requirement">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="node">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="member">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="hierarchy">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="node_map">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+			<region name="config">
+				<region-attributes scope="local" data-policy="empty"
+					pool-name="pado">
+				</region-attributes>
+			</region>
+			<region name="instrument">
+				<region-attributes scope="local" data-policy="empty"
+					pool-name="pado">
+				</region-attributes>
+			</region>
+		</region>
+	</region>
+
+
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

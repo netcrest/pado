@@ -1,0 +1,457 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+	<!-- All GPDB bound region events. -->
+	<async-event-queue id="gpdb-all" persistent="true"
+		batch-size="5000" batch-time-interval="5000" disk-store-name="disk-store"
+		parallel="true">
+		<async-event-listener>
+			<class-name>com.jpm.cib.gpb.optimus.gpdb.GpdbSynchronizer</class-name>
+			<parameter name="file">
+				<string>../../etc/gpdb-all.properties</string>
+			</parameter>
+		</async-event-listener>
+	</async-event-queue>
+
+	<cache-server port="${SERVER_PORT}" bind-address="${SERVER_BIND_ADDRESS}"
+		hostname-for-clients="${CLIENT_BIND_ADDRESS}" />
+
+	<disk-store name="disk-store" max-oplog-size="4096"
+		time-interval="15000" queue-size="1000" auto-compact="false"
+		write-buffer-size="10485760">
+		<disk-dirs>
+			<disk-dir>${DISK_STORE_DIR}</disk-dir>
+		</disk-dirs>
+	</disk-store>
+
+	<region-attributes id="replicated" data-policy="persistent-replicate" disk-store-name="disk-store">
+	</region-attributes>
+	<region-attributes id="partitioned" data-policy="persistent-partition" disk-store-name="disk-store">
+	</region-attributes>
+	<region-attributes id="partitioned-gpdb" data-policy="partition" async-event-queue-ids="gpdb-all">
+	</region-attributes>
+
+	<region name="optimus">
+		<region name="margin_node">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="associatedMrgnNodeSk" expression="get('associatedMrgnNodeSk')" from-clause="/optimus/margin_node" type="hash"/>
+		    <index name="mrgnSourceElementId" expression="get('mrgnSourceElementId')" from-clause="/optimus/margin_node" type="hash"/>
+		    <index name="mrgnNodeSk" expression="get('mrgnNodeSk')" from-clause="/optimus/margin_node" type="hash"/>
+		    <index name="mrgnNodeTyp" expression="get('mrgnNodeTyp')" from-clause="/optimus/margin_node" type="hash"/>
+		</region>
+		<region name="margin_node_hierarchy">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="mrgnNodeSk" expression="get('mrgnNodeSk')" from-clause="/optimus/margin_node_hierarchy" type="hash"/>
+		</region>
+		<region name="margin_node_group_member">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="mrgnNodeSk" expression="get('mrgnNodeSk')" from-clause="/optimus/margin_node_group_member" type="hash"/>
+		</region>
+		<region name="margin_node_map">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="mrgnNodeSk" expression="get('mrgnNodeSk')" from-clause="/optimus/margin_node_map" type="hash"/>
+		    <index name="mrgnSourceElementIdTyp" expression="get('mrgnSourceElementIdTyp')" from-clause="/optimus/margin_node_map" type="hash"/>                        
+		</region>
+		<region name="margin_node_role">
+			    <region-attributes refid="replicated">
+			    </region-attributes>
+			    <index name="mrgnNodeGrpMemberSk" expression="get('mrgnNodeGrpMemberSk')" from-clause="/optimus/margin_node_role" type="hash"/>
+		</region>
+		<region name="requirement_config">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+				<index name="mrgnNodeSk" expression="get('mrgnNodeSk')" from-clause="/optimus/requirement_config" type="hash"/>
+				<index name="requirementSk" expression="get('requirementSk')" from-clause="/optimus/requirement_config" type="hash"/>
+		</region>
+		<region name="requirement_process">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+				<index name="requirementSk" expression="get('requirementSk')" from-clause="/optimus/requirement_process" type="hash"/>
+				<index name="requirementProcessSk" expression="get('requirementProcessSk')" from-clause="/optimus/requirement_process" type="hash"/>
+		</region>
+		<region name="rule_definition">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		   <index name="eligRuleSk" expression="get('eligRuleSk')" from-clause="/optimus/rule_definition" type="hash"/>
+		   <index name="ruleId" expression="get('ruleId')" from-clause="/optimus/rule_definition" type="hash"/>
+		   <index name="contractNumber" expression="get('contractNumber')" from-clause="/optimus/rule_definition" type="hash"/>
+		</region>
+		<region name="collateral_account">
+			    <region-attributes refid="replicated">
+			    </region-attributes>
+		</region>
+		<region name="collateral_account_detail">
+			    <region-attributes refid="replicated">
+			    </region-attributes>
+			    <index name="colAcctSk" expression="get('colAcctSk')" from-clause="/optimus/collateral_account_detail" type="hash"/>
+			    <index name="acctNbr" expression="get('acctNbr')" from-clause="/optimus/collateral_account_detail" type="hash"/>
+		</region>
+		<region name="collateral_pool">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="poolSk" expression="get('poolSk')" from-clause="/optimus/collateral_pool" type="hash"/>
+		    <index name="requirementSk" expression="get('requirementSk')" from-clause="/optimus/collateral_pool" type="hash"/>
+		    <index name="otcReferenceId" expression="get('otcReferenceId')" from-clause="/optimus/collateral_pool" type="hash"/>
+		    <index name="poolTyp" expression="get('poolTyp')" from-clause="/optimus/collateral_pool" type="hash"/>
+		    <index name="securedMrgnNodeSk" expression="get('securedMrgnNodeSk')" from-clause="/optimus/collateral_pool" type="hash"/>
+		</region>
+		<region name="collateral_position">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="poolSk" expression="get('poolSk')" from-clause="/optimus/collateral_position" type="hash"/>
+		</region> 
+		<region name="pool_eligibility_rule">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="poolSk" expression="get('poolSk')" from-clause="/optimus/pool_eligibility_rule" type="hash"/>
+		    <index name="ruleSk" expression="get('ruleSk')" from-clause="/optimus/pool_eligibility_rule" type="hash"/>
+		    <index name="contractNumber" expression="get('contractNumber')" from-clause="/optimus/rule_definition" type="hash"/>
+		</region>
+		<region name="instrument">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="instrumentId" expression="get('instrumentId')" from-clause="/optimus/instrument" type="hash"/>
+		    <index name="instrumentSk" expression="get('instrumentSk')" from-clause="/optimus/instrument" type="hash"/>
+		</region>
+		<region name="instrument_price">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="netcall">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="netCallSk" expression="get('netCallSk')" from-clause="/optimus/netcall" type="hash"/>
+		    <index name="requirementProcessSk" expression="get('requirementProcessSk')" from-clause="/optimus/netcall" type="hash"/>
+		</region>
+		<region name="netcall_detail">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="netCallSk" expression="get('netCallDetailSk')" from-clause="/optimus/netcall_detail" type="hash"/>
+		</region> 
+		<region name="economics_liquidity_profile">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="mfoLiqProfileId" expression="get('mfoLiqProfileId')" from-clause="/optimus/economics_liquidity_profile" type="hash"/>
+		</region>
+		<region name="economics_liquidity_eligibility">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="mfoLiqProfileId" expression="get('mfoLiqProfileId')" from-clause="/optimus/economics_liquidity_eligibility" type="hash"/>
+		</region>
+		<region name="economics_requirement">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="economics_transaction_cost">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="economics_client_profile">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="legalEntityUcn" expression="get('legalEntityUcn')" from-clause="/optimus/economics_client_profile" type="hash"/>
+		</region>
+		<region name="securities_lending">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="securities_lending_hist">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="fx_rate">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="fx_rate_ref">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		    <index name="curveName" expression="get('curveName')" from-clause="/optimus/fx_rate_ref" type="hash"/>
+		    <index name="fromCcy" expression="get('fromCcy')" from-clause="/optimus/fx_rate_ref" type="hash"/>
+		    <index name="toCcy" expression="get('toCcy')" from-clause="/optimus/fx_rate_ref" type="hash"/>
+		    <index name="cobDate" expression="get('cobDate')" from-clause="/optimus/fx_rate_ref" type="hash"/>
+		</region>        
+		<region name="depot_code">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>    
+		<region name="bucketed_securities_lending">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="reference_data">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>    
+
+		<!-- ================================================== -->
+		<!-- GPDB-bound regions -->
+		<!-- ================================================== -->
+		<region name="gpdb">
+			<region name="agreement">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="call">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="client">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="collateral_position">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="economics_client_profile">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="economics_liquidity_eligibility">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="economics_liquidity_profile">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="economics_requirement">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="economics_transaction">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="eligibility_profile">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="instrument">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="instrument_price">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="life_cycle_transaction">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="pool">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+			<region name="requirement">
+				<region-attributes refid="partitioned-gpdb">
+					<entry-time-to-live>
+						<!-- 86400 seconds (1 day) -->
+						<expiration-attributes timeout="86400"
+							action="destroy" />
+					</entry-time-to-live>
+					<partition-attributes total-num-buckets="113"
+						redundant-copies="1" colocated-with="/optimus/gpdb/agreement">
+					</partition-attributes>
+				</region-attributes>
+			</region>
+		</region>
+		<region name="chain_processing_status">
+			<region-attributes refid="replicated">
+			</region-attributes>
+		</region>
+		
+		<!-- ================================================== -->
+		<!-- File Sequence Dependency Services -->
+		<!-- ================================================== -->
+		<region name="fileProcessing">
+		    <region-attributes refid="replicated">
+				<cache-listener>
+						<class-name>
+							com.jpm.cib.gpb.optimus.gpdb.daag.go.listener.StitchListener
+						</class-name>
+					</cache-listener>
+		    </region-attributes>
+		</region>
+	  
+		<!-- ================================================== -->
+		<!-- MFO Services -->
+		<!-- ================================================== -->
+		  <region name="scenario">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="mfoaudit">
+		    <region-attributes refid="replicated">
+		    </region-attributes>
+		</region>
+		<region name="mforequest">
+		    <region-attributes refid="partitioned">
+		    </region-attributes>
+		</region>    
+	</region>
+
+	<initializer>
+		<class-name>com.jpm.cib.gpb.optimus.gpdb.GemfireOptimusInitializer</class-name>
+		<parameter name="daag.init">
+			<declarable>
+				<!-- Initialize VM as Daag -->
+				<class-name>com.jpmorgan.ams.daag.gemfire.cache.GemfireDaagServerInitializer</class-name>
+
+				<!-- Sets the delay in msec before performing initialization. A delay 
+					maybe required when the cache server is has not been fully initialized upon 
+					entering this initializer. The default is 0 msec. -->
+				<parameter name="initDelay">
+					<string>5000</string>
+				</parameter>
+
+				<!-- Registers GoClasses -->
+				<!-- Sets the impl prefix for the underlying data grid product. All IGo 
+					implementation classes must have the standard IGo package and class naming 
+					conventions.For example, "com.jpmorgan.ams.foo.go.IFooGo" has the GemFire 
+					server implementation class named "com.jpmorgan.ams.foo.go.impl.gemfire.FooGoImpl. 
+					The default "go.impl.prefix" value is "gemfire". -->
+				<parameter name="go.impl.prefix">
+					<string>gemfire</string>
+				</parameter>
+				<!-- Sets the library directories in which the GoClass jar files are 
+					kept. The default value is "../../lib/go -->
+				<parameter name="go.dir">
+					<string>../../lib/go</string>
+				</parameter>
+				<!-- Sets filter in regular expression for jar files read from the "go.dir". 
+					The default value is ".*.jar" -->
+				<parameter name="go.jar.filter">
+					<string>.*.jar</string>
+				</parameter>
+				<!-- Sets the prefix of the package names to search in the jar files. 
+					The default package name, i.e., no package name, is not supported. The default 
+					value is "com" -->
+				<parameter name="go.package.prefixes">
+					<string>com</string>
+				</parameter>
+			</declarable>
+		</parameter>
+	</initializer>
+</cache>
+

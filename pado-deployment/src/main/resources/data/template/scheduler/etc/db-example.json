@@ -1,0 +1,25 @@
+{
+	"Driver": "com.mysql.jdbc.Driver",
+	"Url": "jdbc:mysql://localhost/db_name",
+	"User": "dpark",
+	"Password": "tBSqSAyNY6khgW1sWe9Ipg==",
+	"Delimiter": ",",
+	"Null": "'\\N'",
+	"GridId": "mygrid",
+	"Paths": [
+		{
+			"Path": "grid_path",
+			"Columns": "Column1,Column2,Column3,Column4"
+			"Query": "select * from table_name",
+			"Day": "Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday",
+			"Time": "05:00:00, 12:00:00, 23:59:59"
+		},
+		{
+			"Path": "grid_paths2",
+			"Columns": "Column1,Column2,Column3,Column4"
+			"Query": "select * from table_name2",
+			"Day": "Sunday",
+			"Time": "12:00:00"
+		}
+	]
+}

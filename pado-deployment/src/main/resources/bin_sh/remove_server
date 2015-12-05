@@ -1,0 +1,189 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   remove_server [-num <server number>] [-rebalance] [-quiet] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Removes a server in the specified grid and site. This command remotely stops and"
+   echo "  removes a server by removing the corresponding entry in the following file in"
+   echo "  all servers:"
+   echo "     ${REMOTE_BASE_DIR}/bin_sh/grids/${GRID}/server_${SITE}.sh"
+   echo ""
+   echo "  Note that this script does not uninstall the removed server. Software will"
+   echo "  remain installed."
+   echo ""
+   echo "      -num <server number> Server number 1-99"
+   echo "                 If this option is specified then the specified server number"
+   echo "                 entry is non-interactively removed."
+   echo "      -rebalance Rebalances the grid after the specified server has been removed."
+   echo "                 If this option is not specified then the 'rebalance' command should"
+   echo "                 be explicitly executed in order to prevent data loss."
+   echo "      -quiet     Quiet mode. Suppresses verbose and prompts. This option"
+   echo "                 is meaningful only if specified with '-num'."
+   echo "      -grid      Removes the server in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Removes the server in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: remove_server -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+#   array[5] IsGateway
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+# Display the current configuration
+./show_servers
+
+if [ "$SERVER_NUM_SPECIFIED" == "true" ]; then
+   # Remove the leading zero set by argenv.sh
+   if [[ $SERVER_NUM == 0* ]]; then
+      SERVER_NUM=${SERVER_NUM:1};
+   fi
+   SN=
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SN=${array[0]}
+      if [ "$SN" == "" ]; then
+         continue;
+      elif [ "$SN" == "$SERVER_NUM" ]; then
+         SERVER_HOST=${array[1]}
+         SERVER_PORT=${array[2]}
+         DEBUG_PORT=${array[3]}
+         JMX_PORT=${array[4]}
+         IS_GATEWAY=${array[5]}
+
+         if [ "$QUIET" == "false" ]; then
+            echo "The following server will be removed:"
+            echo " Server number: $SERVER_NUM"
+            echo "Server address: $SERVER_HOST"
+            echo "   Server port: $SERVER_PORT"
+            echo "    Debug port: $DEBUG_PORT"
+            echo "      JMX port: $JMX_PORT"
+            echo "       Gateway: $IS_GATEWAY"
+            INNER_LOOP=true
+            while [ "$INNER_LOOP" == "true" ]; do
+               read -p "Enter 'c' to continue, 'q' to quit: " INPUT
+               case $INPUT in
+                  [Cc]* ) REDO=false; INNER_LOOP=false;;
+                  [Qq]* ) echo "Aborted."; INNER_LOOP=false; exit;;
+               esac
+            done
+         fi
+         break;
+      fi
+   done
+   if [ "$SN" != "$SERVER_NUM" ]; then
+      echo "Error: The specified server number $SERVER_NUM does not exists. Aborted."
+      echo ""
+      exit
+   fi
+ 
+else
+
+   # Prompt for server removal
+   SERVER_NUM=
+   REDO=true
+   while [ "$REDO" == "true" ]; do
+      INNER_LOOP=true
+      while [ "$INNER_LOOP" == "true" ]; do
+         read -p "Server number to remove: " INPUT
+         # trim string
+         INPUT=`echo "$INPUT" | xargs`
+         if [ "$INPUT" != "" ]; then
+            SERVER_NUM=$INPUT
+         fi 
+         line="${LineArray[$SERVER_NUM]}"
+         array=($line)
+         SERVER_NUM=${array[0]}
+         if [ "$SERVER_NUM" == "" ]; then
+            echo "Invalid server number."
+         else
+            INNER_LOOP=false   
+         fi
+      done
+   
+      SERVER_HOST=${array[1]}
+      SERVER_PORT=${array[2]}
+      DEBUG_PORT=${array[3]}
+      JMX_PORT=${array[4]}
+      IS_GATEWAY=${array[5]}
+      echo "The following server will be removed:"
+      echo " Server number: $SERVER_NUM"
+      echo "Server address: $SERVER_HOST"
+      echo "   Server port: $SERVER_PORT"
+      echo "    Debug port: $DEBUG_PORT"
+      echo "      JMX port: $JMX_PORT"
+      echo "       Gateway: $IS_GATEWAY"
+      INNER_LOOP=true
+      while [ "$INNER_LOOP" == "true" ]; do
+         read -p "Enter 'c' to continue, 'r' to re-enter, 'q' to quit: " INPUT
+         case $INPUT in
+            [Cc]* ) REDO=false; INNER_LOOP=false;;
+            [Rr]* ) REDO=true; INNER_LOOP=false;;
+            [Qq]* ) echo "Aborted."; INNER_LOOP=false; exit;;
+         esac
+      done
+   done
+
+fi
+
+# Stop the server to be removed.
+./stop_server -num $SERVER_NUM
+
+# Update the server_<site>.sh file.
+if [ "`uname`" == "Darwin" ]; then
+   sed -i '.bak' -e '/^ *[^#]*'${SERVER_NUM}.*${SERVER_HOST}' / d' $GRIDS_DIR/$GRID/server_${SITE}.sh
+else
+   sed -i -e '/^ *[^#]*'${SERVER_NUM}.*${SERVER_HOST}' / d' $GRIDS_DIR/$GRID/server_${SITE}.sh
+fi
+
+# Copy the updates server_<site>.sh file to all other remaining servers.
+SERVER_HOSTS=`getServerHosts`
+for i in $SERVER_HOSTS
+do
+   HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+   if [ $HOST_NAME == `hostname` ]; then
+      continue
+   fi
+   scp -q -o stricthostkeychecking=no $GRIDS_DIR/$GRID/server_${SITE}.sh $SSH_USER@$i:$REMOTE_BASE_DIR/bin_sh/grids/$GRID/
+done
+./show_servers
+echo "Successfully removed server number $SERVER_NUM."
+if [ "$REBALANCE" != "" ]; then
+   ./rebalance -commit -quiet -grid $GRID -site $SITE
+else
+   echo ""
+   echo "CAUTION: Rebalancing is not performed."
+   echo "         Make sure to rebalance the grid. Data loss may occur otherwise!"
+   echo ""
+fi

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="optimus" location="us">
+
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="optimus">
+				<grid id="optimus" routing-weight="1">
+					<description>Optimus parent</description>
+				</grid>
+				<grid id="mock" routing-weight="1">
+					<description>Contains mock portfolio data</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="optimus">
+			<grid-list id="optimus grid list" default-grid-id="optimus">
+				<grid id="optimus" routing-weight="1">
+					<description>Optimus parent</description>
+				</grid>
+				<grid id="mock" routing-weight="1">
+					<description>Contains mock portfolio data</description>
+				</grid>
+				<description>optimus example</description>
+			</grid-list>
+		</app>
+	</app-list>
+
+	<path-list>
+		<path name="margin_node" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Margin node objects</description>
+		</path>
+		<path name="margin_node_hierarchy" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains hierarchy information of MarginNode objects</description>
+		</path>
+		<path name="margin_node_group_member" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains margin node group member objects</description>
+		</path>
+		<path name="margin_node_map" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains margin node map information</description>
+		</path>
+		<path name="margin_node_role" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains margin node role information</description>
+		</path>
+		<path name="requirement_config" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains requirement configuration objects</description>
+		</path>
+		<path name="requirement_process" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains requirement process information</description>
+		</path>
+		<path name="rule_definition" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains rule definitions</description>
+		</path>
+		<path name="collateral_account" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains collateral accounts</description>
+		</path>
+		<path name="collateral_pool" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains collateral pool objects</description>
+		</path>
+		<path name="pool_eligibility_rule" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains collateral pool eligibility information</description>
+		</path>
+		<path name="instrument" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains reference data instruments</description>
+		</path>
+		<path name="instrument_price" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains instrument prices</description>
+		</path>
+		<path name="netcall" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains net-call amounts</description>
+		</path>
+		<path name="netcall_detail" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains net-call details</description>
+		</path>
+		
+		<!-- MFO specifics -->
+		<path name="scenario" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true" 
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains MFO scenarios</description>
+		</path>
+		<path name="mfoaudit" access-type="private" data-type="local"
+			grids="optimus" temporal-enabled="true"
+			router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<description>Contains MFO auditing information</description>
+		</path>
+	</path-list>
+
+	<gemfire root-region-path="/optimus" locators="localhost:20000"
+		is-parent="true" init-delay="5000" grid-info-update-delay="0"
+		grid-info-update-interval="600000">
+		<gemfire-client locators="localhost:20000"
+			pool-multiuser-authentication-enabled="false"></gemfire-client>
+	</gemfire>
+
+</pado>

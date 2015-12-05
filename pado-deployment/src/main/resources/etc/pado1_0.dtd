@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT pado (app-list?, path-list?, gemfire?, startup?)>
+<!ATTLIST pado
+  id                                   CDATA #REQUIRED
+  location                             CDATA #REQUIRED
+>
+
+<!ELEMENT app-list (app*, description?)>
+<!ATTLIST app-list
+  id                                   CDATA #IMPLIED
+>
+
+<!ELEMENT app (grid-list, ibiz-list?, description?)>
+<!ATTLIST app
+  id                                   CDATA #REQUIRED
+> 
+
+<!-- grid-list is a list of allowed grid IDs that are permitted in pado.
+     If the default-grid-id attribute is not specified then it is automatically
+     assigned to the the first grid id in the list. If the list empty then it
+     is assigned to one of the parent grid IDs.
+-->
+<!ELEMENT grid-list (grid*, description?)>
+<!ATTLIST grid-list
+  id                                   CDATA #IMPLIED
+  default-grid-id                      CDATA #IMPLIED
+>    
+
+<!-- path-list defines a collection of all grid paths to be created and/or
+     configured during startup.
+id  Unique ID that represents the path list. Optional
+build-lucene-index - true to build Lucene indexes upon completion of 
+        path configuration. Default: false
+-->
+<!ELEMENT path-list (path*, description?)>
+<!ATTLIST path-list
+  id                                   CDATA #IMPLIED
+  build-lucene-index                   (true | false) "false"
+>
+
+<!-- path defines a single grid path name space that uniquely identifies a
+dataset managed by the underlying data grid. path can be nested to create
+a hierarchical name space.
+Attributes:
+inherit - If inherit is "true" then it inherits parent attribute values for
+       all undefined attributes. The default is true. 
+data-type - If "partition", then the dataset is partitioned across all grids
+       that define the same path. If "replicate", then the dataset is replicated as a whole
+       to all grids that define the same path. If "local" then the
+       data is written to only one of the grids. The default is "local".
+grids - List of grid IDs that this path spans across. For data=type="partition",
+        If any of the listed grids is not reachable then the partitioned path 
+        is not accessible by clients. An appropriate exception will be thrown.
+        For other data types, IBiz operations are limited to the grids list 
+        by this attribute. If this attribute is not set, then by default, all 
+        of the grids are allowed.
+temporal-enabled - true to enable temporal data. The default is false.
+lucene-enabled - true to enable Lucene indexes for the path.
+       The default is false.
+lucene-verbose - If true, Lucene index status is logged upon dynamically 
+       creating new indexes.
+key-class-name - If key-class-name is specified then only objects of that
+       class type are allowed as keys. If temporal is true then
+       this class automatically becomes IdentityKey of ITemporalKey.
+value-class-name - If value-class-name is specified then only objects of
+       that class type are allowed as objects. If temporal is true and this
+       class does not implement ITemporalData then this class automatically 
+       becomes Value of the wrapper class TemporalData.
+router-class-name - This class overrides the default cost-based router.
+refid - The reference ID of the path defined by the underlying data grid. 
+       For example, the id attribute value of GemFire "region-attributes".
+-->
+<!ELEMENT path (path*, description?)>
+<!ATTLIST path
+  name                                 CDATA #REQUIRED
+  inherit                              (true | false) "true"
+  data-type                            (local | replicate | partition) #IMPLIED 
+  access-type                          (private | public) #IMPLIED
+  grids                                CDATA #IMPLIED
+  temporal-enabled                     (true | false) "false"
+  lucene-enabled                       (true | false) "false"
+  lucene-verbose                       (true | false) "false"
+  key-class-name                       CDATA #IMPLIED
+  value-class-name                     CDATA #IMPLIED
+  router-class-name                    CDATA #IMPLIED
+  refid                                CDATA #IMPLIED
+>
+
+<!ELEMENT ibiz-list (ibiz*, description?)>
+<!ATTLIST ibiz-list
+  id                                   CDATA #IMPLIED
+> 
+
+<!ELEMENT grid (description?)>
+<!ATTLIST grid
+  id                                   CDATA #REQUIRED
+  routing-weight                       (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10) "5"
+>
+
+<!ELEMENT ibiz (description?)>
+<!ATTLIST ibiz
+  class-name                           CDATA #REQUIRED
+>
+
+<!-- GemFire -->
+<!-- gemfire defines GemFire specific parameters which include both grid 
+and client configuration information.
+Attributes:
+locators - Comma separated list of site locators. Each grid may have one
+       or more sites. The locators must be specified in the comma separated 
+       format: host1:port1,host2:port2.
+is-parent - If true then the specified grid is a parent grid that may host 
+       child grids. If false then the specified grid is only a child grid. 
+       Note that all grids including parent grids are child grids. Default: false.
+init-delay - Initialization delay in msec. GemFire may invoke the Pado 
+       initializer before fully initializing the distributed system due to 
+       the nature of GemFire’s lazy initialization mechanism which applications
+       do not have control. This attributes is provided to handle such
+       situations by delaying the Pado initializer from launching prematurely.
+grid-info-update-ddelay - GridInfo update delay in msec. Pado generates 
+       heartbeats in the form of GridInfo objects between child and parent
+       grids. If one of the grids has time-consuming initialization sequences,
+       then this attribute may be required to postpone generating the initial 
+       heartbeat. Note that the default value is conservatively set to
+       10,000 msec, but in most cases, this value should be set to 0 msec.
+       Default: 10000.
+grid-info-update-interval - GridInfo heartbeat interval in msec. All grids
+      generate heartbeats regardless whether they belong to a parent. When a 
+      parent grid starts, it listens on each child grid’s heartbeats and 
+      records their status. Because grids tend to run in an extended period of
+      time with the same configuration, in most cases, the frequency of
+      heartbeats can be relaxed to minutes. For debugging purposes, this value
+      can be lowered but in normally it should be set to a large value. 
+      Default: 60000
+root-region-path - The full path of the root region. If this attribute is not
+      specified, then the grid ID becomes the root region path. All grid
+      specific regions must be created as sub-regions to the root region.
+      Default: <grid-id>.
+router-region-total-num-buckets -  Total number of buckets for the router
+     partitioned region. This value is set to a number of internal partitioned
+     regions that provide grid services. It must be set to at least the same
+     number of GemFire cache servers that make up the distributed system.
+     Default: 113.
+pool-name - Pool name for child grids and clients. This pool name is bound to
+     RegionService, i.e., multi-user mode. If undefined, then it is assigned
+     to <grid-id>-pool.
+shared-pool-name - Shared pool name for child grids and clients. A shared pool
+     is not bound to RegionService such that multiple users can share the 
+     regions that are configured with it. If undefined then it is assigned in
+     the following order:
+        1. index-matrix-pool-name
+        2. <gemfire-client> shared-pool-name
+        3. <grid-id>-shared
+index-matrix-pool-name - Index Matrix pool name for child grids and clients.
+     In most cases, this value is same as shared-pool-name. To isolate index
+     matrix load, its own pool can be dedicated. If it is undefined, then it
+     is assigned in the following order:
+        1. shared-pool-name
+        2. <gemfire-client> index-matrix-name
+        3.<grid-id>-shared
+-->
+<!ELEMENT gemfire (gemfire-parent*, gemfire-client?, dqueue*, description?)>
+<!ATTLIST gemfire
+  locators                             CDATA #IMPLIED
+  is-parent                            (true | false) "false"
+  init-delay                           CDATA "5000"
+  grid-info-update-delay               CDATA "10000"
+  grid-info-update-interval            CDATA "60000"
+  root-region-path                     CDATA #IMPLIED
+  router-region-total-num-buckets      CDATA "113"
+  pool-name                            CDATA #IMPLIED
+  shared-pool-name                     CDATA #IMPLIED
+  index-matrix-pool-name               CDATA #IMPLIED
+>
+
+<!-- gemfire-parent defines a parent to which this grid to join. If this 
+element is specified then this grid runs as an orphan grid.
+-->
+<!ELEMENT gemfire-parent (description?)>
+
+<!ATTLIST gemfire-parent
+  id                                   CDATA #REQUIRED
+  locators                             CDATA #REQUIRED
+  root-region-path                     CDATA #IMPLIED
+  pool-name                            CDATA #IMPLIED
+>
+
+<!-- gemfire-client defines this grid's connection information for clients.
+-->
+<!ELEMENT gemfire-client (description?)>
+<!ATTLIST gemfire-client
+  locators                             CDATA #IMPLIED
+  pool-name                            CDATA #IMPLIED
+  shared-pool-name                     CDATA #IMPLIED
+  index-matrix-pool-name               CDATA #IMPLIED
+  pool-single-hop-enabled              (false | true) "false"
+  pool-multiuser-authentication-enabled (false | true) "false"
+>
+
+<!-- dqueue defines a distributed queue accessible by IDQueueBiz. Note that
+dqueue may or may not be supported by the underlying data grid product.
+Attributes:
+name - Unique name that identifies the DQueue. Required.
+type - If client, then clients poll messages. If server then the grid dispatches
+       messages to the server-side listeners. Default: client
+preserve-order - true to preserver order of messages received. Default: false
+total-num-buckets - total number of buckets
+batch-size - Maximum number of entries in each batch delivered the server-side
+       listener.
+batch-time-interval-in-msec - Batch time interval in millisecond.
+colocated-wtih - Colocated-with region full path.
+--> 
+<!ELEMENT dqueue (listener?, filter?, description?)>
+<!ATTLIST dqueue
+  name                                 CDATA #REQUIRED
+  type                                 (client | server) "client"
+  preserve-order                       (false | true) "false"
+  total-num-buckets                    CDATA #IMPLIED
+  batch-size                           CDATA #IMPLIED
+  batch-time-interval-in-msec          CDATA #IMPLIED
+  colocated-with                       CDATA #IMPLIED
+>
+
+<!-- listener
+-->
+<!ELEMENT listener (bean?, description?)>
+
+<!-- Startup bean that gets invoked during server startup. A startup bean
+is invoked after the Pado server has completely been initialized.
+-->
+<!ELEMENT startup (bean?, description?)>
+
+<!-- bean
+-->
+<!ELEMENT bean (property*, description?)>
+<!ATTLIST bean
+  class-name                           CDATA #REQUIRED
+>
+
+<!ELEMENT property (description?)>
+<!ATTLIST property
+  key                                  CDATA #REQUIRED
+  value                                CDATA #REQUIRED
+>
+
+<!ELEMENT filter (bean?, description?)>
+
+<!ELEMENT description (#PCDATA)>

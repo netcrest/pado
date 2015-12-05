@@ -1,0 +1,642 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+
+	<region-attributes id="partitioned" data-policy="partition">
+	</region-attributes>
+
+	<region-attributes id="replicated" data-policy="replicate">
+	</region-attributes>
+
+	<region name="optimus">
+		<region name="margin_node">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/portfolio.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/portfolio.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/portfolio.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="margin_node_hierarchy">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/margin_node">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/margin_node_hierarchy.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/margin_node_hierarchy.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/margin_node_hierarchy.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="margin_node_group_member">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/margin_node">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/margin_node_group_member.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/margin_node_group_member.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/margin_node_group_member.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="margin_node_map">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/margin_node">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/margin_node_map.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/margin_node_map.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/margin_node_map.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="margin_node_role">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/margin_node">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/margin_node_role.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/margin_node_role.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/margin_node_role.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="requirement_config">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/margin_node">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/requirement_config.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/requirement_config.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/requirement_config.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="requirement_process">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/requirement_process.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/requirement_process.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/requirement_process.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="rule_definition">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/rule_definition.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/rule_definition.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/rule_definition.entrySet" expression="e1.key.WrittenTime" type="range"/>
+			<index name="eligRuleSk" from-clause="/optimus/pool_eligibility_rule.entrySet" expression="e1.value.value.get('poolEligSk')" type="hash"/>
+		</region>
+		<region name="collateral_account">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/collateral_account.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/collateral_account.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/collateral_account.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="collateral_account_detail">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/collateral_account_detail.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/collateral_account_detail.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/collateral_account_detail.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="collateral_pool">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/collateral_pool.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/collateral_pool.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/collateral_pool.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="collateral_position">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/collateral_position.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/collateral_position.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/collateral_position.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="pool_eligibility_rule">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/pool_eligibility_rule.entrySet e1" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/pool_eligibility_rule.entrySet e1" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/pool_eligibility_rule.entrySet e1" expression="e1.key.WrittenTime" type="range"/>
+			<index name="eligRuleSk" from-clause="/optimus/rule_definition.entrySet e1" expression="e1.value.value.get('eligRuleSk')" type="hash"/>
+		</region>
+		<region name="instrument">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="instrument_price">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/instrument">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/instrument_price.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/instrument_price.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/instrument_price.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="netcall">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/netcall.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/netcall.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/netcall.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="netcall_detail">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20" colocated-with="/optimus/netcall">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/netcall_detail.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/netcall_detail.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/netcall_detail.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="economics_client_profile">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/economics_client_profile.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/economics_client_profile.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/economics_client_profile.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="economics_liquidity_eligibility">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/economics_liquidity_eligibility.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/economics_liquidity_eligibility.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/economics_client_profile.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="economics_liquidity_profile">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/economics_liquidity_profile.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/economics_liquidity_profile.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/economics_liquidity_profile.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="economics_requirement">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/economics_requirement.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/economics_requirement.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/economics_requirement.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="economics_transaction_cost">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/economics_transaction_cost.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/economics_transaction_cost.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/economics_transaction_cost.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="file_processing">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/file_processing.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/file_processing.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/file_processing.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="fx_rate">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/fx_rate.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/fx_rate.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/fx_rate.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		<region name="fx_rate_ref">
+			<region-attributes refid="partitioned">
+				<partition-attributes redundant-copies="0"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+			<index name="StartValidTime" from-clause="/optimus/fx_rate_ref.entrySet" expression="e1.key.StartValidTime" type="range"/>
+			<index name="EndValidTime" from-clause="/optimus/fx_rate_ref.entrySet" expression="e1.key.EndValidTime" type="range"/>
+			<index name="WrittenTime" from-clause="/optimus/fx_rate_ref.entrySet" expression="e1.key.WrittenTime" type="range"/>
+		</region>
+		
+
+		<!-- MFO -->
+		<region name="mforequest">
+			<region-attributes refid="partitioned" />
+		</region>
+		<region name="scenario">
+			<region-attributes refid="partitioned" />
+		</region>
+		<region name="mfoaudit">
+			<region-attributes refid="partitioned" />
+		</region>
+		
+	</region>
+
+	<!--resource-manager critical-heap-percentage="90" / -->
+	<!-- <resource-manager critical-heap-percentage="90"
+		eviction-heap-percentage="70" /> -->
+
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+</cache>
+

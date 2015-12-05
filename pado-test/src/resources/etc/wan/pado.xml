@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="wan" location="us">
+
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="wan">
+				<grid id="wan" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="wan">
+				<grid id="wan" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>wan example</description>
+			</grid-list>
+		</app>
+	</app-list>
+
+	<path-list>
+		<path name="account" refid="account-wan" temporal-enabled="true"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="account_detail" refid="account-colocated-wan" temporal-enabled="true"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="bank" refid="account-colocated-wan" temporal-enabled="true"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="portfolio" refid="account-colocated-wan" temporal-enabled="true"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="position" refid="account-colocated-wan" temporal-enabled="true"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="temporal" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		
+		<path name="trade" refid="persistent-partition" temporal-enabled="true" />
+		<path name="nontemporal" refid="persistent-partition" />
+		<path name="test1" refid="persistent-partition" />
+		<path name="test2" refid="persistent-partition" />
+		<path name="test3" refid="persistent-partition" />
+		<path name="echo" refid="persistent-partition" />
+		<path name="echo2" refid="persistent-partition" />
+		<path name="authorization" refid="persistent-partition" />
+		<path name="customer" refid="persistent-partition" />
+		<path name="test" refid="replicate">
+			<path name="replicated" refid="replicate"/>
+			<path name="partitioned" refid="persistent-partition"/>
+		</path>
+	</path-list>
+	
+	<gemfire root-region-path="/mygrid">
+	</gemfire>
+
+</pado>

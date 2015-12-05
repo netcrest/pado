@@ -1,0 +1,143 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+popd  > /dev/null 2>&1
+ 
+# Check for script help
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   ./deploy_data_files fromDirPath"
+   echo "                       [-prefix filePrefix]"
+   echo "                       [-site $SITES_OPT]"
+   echo "                       [-debug] [-?]"
+   echo "   Deploys files in fromDirPath to servers. Each server receives zero"
+   echo "   or more unique files in their data file directory, which is by default"
+   echo "   in their working directory, i.e., run/<server-dir>/data."
+   echo ""
+   echo "      -prefix If specified, then all file names beginning with the"
+   echo "              prefix are moved from fromDirPath to toDirPath."
+   echo "              If unspecified then all files in fromDirPath are moved"
+   echo "              to toDirPath."
+   echo "      -debug Print copy commands but do not execute them."
+   echo "   Default: ./deploy_data_files fromDirPath -site $SITE_DEFAULT"
+   echo ""
+exit
+fi
+ 
+# Check if file path specified
+if [ "$1" == "" ]; then
+   echo ""
+   echo "Must specify the file path"
+   echo ""
+   exit
+fi
+#if [ "$TO_DIR" == "" ]; then
+#   TO_DIR=$PWD
+#else
+#   TO_DIR=$(echo $(cd $(dirname $TO_DIR); pwd)/$(basename $TO_DIR))
+#fi
+ 
+INPUT="$1"
+ 
+if [ "$DEBUG" == "true" ]; then
+   echo ""
+   echo "Debug mode (-debug). The following commands are"
+   echo "for display only. Files are not copied."
+fi
+ 
+pushd .. > /dev/null 2>&1
+SERVER_HOSTS=`getServerHosts`
+popd
+NUM_HOSTS=0
+for i in $SERVER_HOSTS; do
+   let NUM_HOSTS=NUM_HOSTS+1
+done
+let NUM_SERVERS_PER_HOST=NUM_SERVERS/NUM_HOSTS
+let NUM_SERVERS=NUM_SERVERS_PER_HOST*NUM_HOSTS
+ 
+#
+# Determine the total number of files
+#
+FILE_PREFIX=$PREFIX
+NUM_FILES=0
+for file in ${INPUT}/${FILE_PREFIX}*
+do
+   FILE_ARRAY[NUM_FILES]=$file
+   let NUM_FILES=NUM_FILES+1
+done
+# echo "array size = ${#FILE_ARRAY[@]}"
+ 
+#
+# Determine the number of files per server.
+#
+if [[ ${FILE_ARRAY[$INDEX]} == *\** ]]; then
+   echo ""
+   echo "No files found."
+   echo ""
+   exit
+fi
+#echo NUM_FILES=$NUM_FILES
+ 
+let NUM_FILES_PER_SERVER=NUM_FILES/NUM_SERVERS
+let REMAINDER="$NUM_FILES%$NUM_SERVERS"
+if [ "$REMAINDER" != "0" ]; then
+   let NUM_FILES_PER_SERVER=NUM_FILES_PER_SERVER+1
+fi
+if [ "$NUM_FILES_PER_SERVER" == "0" ]; then
+   let NUM_FILES_PER_SERVER=1
+fi
+# echo NUM_FILES_PER_SERVER=$NUM_FILES_PER_SERVER
+ 
+echo ""
+echo "Deploying $NUM_FILES files to $NUM_SERVERS servers."
+echo "Each server receives $NUM_FILES_PER_SERVER or less files."
+echo ""
+ 
+INDEX=0
+SERVER_NUM=0
+for i in $SERVER_HOSTS
+do
+   for (( x=1; x<=${NUM_SERVERS_PER_HOST}; x++ ))
+   do
+      HOST_NAME=`ssh -q -n $i "hostname"`
+      let SERVER_NUM=SERVER_NUM+1
+      if [ $SERVER_NUM -lt 10 ]; then
+         SERVER_NUM=0$SERVER_NUM
+      fi
+      for (( c=1; c<=${NUM_FILES_PER_SERVER}; c++ ))
+      do
+         TO_DIR=$RUN_DIR/${SITE}${SERVER_NUM}/data
+         echo scp -q -o stricthostkeychecking=no $RECURSIVE ${FILE_ARRAY[$INDEX]} $SSH_USER@$i:$TO_DIR
+         if [ "$DEBUG" != "true" ]; then
+            scp -q -o stricthostkeychecking=no $RECURSIVE ${FILE_ARRAY[$INDEX]} $SSH_USER@$i:$TO_DIR
+         fi
+         let INDEX=INDEX+1
+         if [ "$INDEX" -ge "$NUM_FILES" ]; then
+            break;
+         fi
+      done
+   done
+done
+echo ""
+echo "File deployment complete."
+echo ""

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+
+<cache>
+
+	<!-- refid="partition" referenced in pado.xml -->
+	<region-attributes id="partition" data-policy="partition">
+		<partition-attributes total-num-buckets="20"
+			redundant-copies="1" />
+	</region-attributes>
+
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+
+</cache>

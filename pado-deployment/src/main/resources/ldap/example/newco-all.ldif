@@ -1,0 +1,190 @@
+version: 1
+
+dn: dc=newco,dc=com
+objectclass: top
+objectclass: domain
+dc: newco
+
+dn: ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Pado
+
+dn: ou=groups,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=grid3,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Grid3
+sn: Grid3
+uid: grid3
+userPassword:: e3NzaGF9VXo4QzVnd1JHSGxHT1hmdGZJd0dUQUVKdlBtNWdIdUVHT0tCVGc9P
+ Q==
+
+dn: uid=test2,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Test2
+sn: Test2
+uid: test2
+userPassword:: e3NzaGF9c294bmZZOE5aYmh5TmxwSFhpby8xcVdDUTNqVE9MekhsanpHNXc9P
+ Q==
+
+dn: uid=admin,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Administrator
+sn: Administrator
+uid: admin
+userPassword:: e3NzaGF9QU5UdWhtUGRvWk9QK0IyeXB3dkh1U2xYaWRUdkV3Y1VEYU9tWlE9P
+ Q==
+
+dn: uid=grid2,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Grid2
+sn: Grid2
+uid: grid2
+userPassword:: e3NzaGF9VXo4QzVnd1JHSGxHT1hmdGZJd0dUQUVKdlBtNWdIdUVHT0tCVGc9P
+ Q==
+
+dn: uid=test4,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Test4
+sn: Test4
+uid: test4
+userPassword:: e3NzaGF9Z2p3RHVVZjNaRTIvalNZZHhoVnhUL1h1RWNydHIrbTNQQmx3VEE9P
+ Q==
+
+dn: uid=grid4,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Grid4
+sn: Grid4
+uid: grid4
+userPassword:: e3NzaGF9VXo4QzVnd1JHSGxHT1hmdGZJd0dUQUVKdlBtNWdIdUVHT0tCVGc9P
+ Q==
+
+dn: uid=mygrid,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: My Grid
+sn: MyGrid
+uid: mygrid
+userPassword:: e3NzaGF9VXo4QzVnd1JHSGxHT1hmdGZJd0dUQUVKdlBtNWdIdUVHT0tCVGc9P
+ Q==
+
+dn: uid=grid5,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Grid5
+sn: Grid5
+uid: grid5
+userPassword:: e3NzaGF9VXo4QzVnd1JHSGxHT1hmdGZJd0dUQUVKdlBtNWdIdUVHT0tCVGc9P
+ Q==
+
+dn: uid=grid1,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Grid1
+sn: Grid1
+uid: grid1
+userPassword:: e3NzaGF9cUlCQ1p6TGxoN2lnanNyWFhzaHJPcW1sc3Z1QW82ZUp5WWY5Z2c9P
+ Q==
+
+dn: uid=test3,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Test3
+sn: Test3
+uid: test3
+userPassword:: e3NzaGF9WTU5eE1vSkFrclA5RjgwSHU1ZmlmVGQyemN4dzZxT2hMdkgyeEE9P
+ Q==
+
+dn: uid=test1,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Test1
+sn: Test1
+uid: test1
+userPassword:: e3NzaGF9SWtFVUF3SlZ2dWF2clI4enp0bmtNeHB5eno5SDNnYTd2aWs0RWc9P
+ Q==
+
+dn: cn=Developers,ou=groups,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: Developers
+member: uid=test1,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=test2,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=test3,ou=people,ou=Pado,dc=newco,dc=com
+description: Pado users
+
+dn: uid=grid0,ou=people,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Grid0
+sn: Grid0
+uid: grid0
+userPassword:: e3NzaGF9VXo4QzVnd1JHSGxHT1hmdGZJd0dUQUVKdlBtNWdIdUVHT0tCVGc9P
+ Q==
+
+dn: cn=Accounting,ou=groups,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: Accounting
+member: uid=test4,ou=people,ou=Pado,dc=newco,dc=com
+description: Warehouse operators may have access to all trunks (including wa
+ rehouse) and all warehouse-related operations.
+
+dn: cn=Admin,ou=groups,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: Admin
+member: uid=admin,ou=people,ou=Pado,dc=newco,dc=com
+description: Admin has access to all operations
+
+dn: cn=Grids,ou=groups,ou=Pado,dc=newco,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: Grids
+member: uid=grid1,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=grid2,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=grid3,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=grid4,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=grid5,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=grid0,ou=people,ou=Pado,dc=newco,dc=com
+member: uid=mygrid,ou=people,ou=Pado,dc=newco,dc=com
+description: Grid-to-grid members

@@ -1,0 +1,334 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+TOOLS_DIR=`pwd`
+PADO_DIR_SHORT_NAME=$(basename $PADO_HOME)
+
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   install_pado <pado-distribution-file-path> [-debug] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Installs the specified Pado distribution. It first stops this grid and"
+   echo "  backs up the existing grid installation by renaming its root directory"
+   echo "  to ${PADO_DIR_SHORT_NAME}.v<timestamp> where <timestamp> is the current"
+   echo "  time. This utility tool allows a quick way to install the new Pado"
+   echo "  release to all participating servers in this grid. The servers are"
+   echo "  defined in bin_sh/grids/$GRID_ID/bind_<site>. It updates the following files"
+   echo "  in the newly installed Pado release with this grid's files:"
+   echo ""
+   echo "      bin_sh/all_env.sh"
+   echo "      bin_sh/setenv.sh"
+   echo "      bin_sh/grids/*"
+   echo "      etc/pado.properties"
+   echo "      etc/*"
+   echo "      plugins/<app jars only>"
+   echo "      security/*"
+   echo ""
+   echo "      -debug   If specified then install_pado does not acutally carry out"
+   echo "               the installation commands but simply prints them."
+   echo "      -site    Installs Pado in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: install_pado ... -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+if [ "$1" == "" ]; then
+   echo "Invalid command. Please specify the Pado distribution file path."
+   echo "Use '-?' to see the usage."
+   echo ""
+   exit
+fi
+
+# New pado distribution to be installed. Example: pado_0.1.0-B3.zip
+PADO_ZIP=$1
+
+if [ ! -f "$PADO_ZIP" ]; then
+   echo "Invalid Pado distribution file path."
+   echo "Use '-?' to see the usage."
+   echo ""
+   exit
+fi
+
+# Backup directory, e.g., pado.v<timestamp>. The existing pado directory is renamed to
+# this direcory name.
+BACKUP_DIR_SHORT_NAME=${PADO_DIR_SHORT_NAME}.v$(date +"%Y%m%d%H%M%S")
+
+# Get TOP_DIR
+pushd $PADO_HOME/.. > /dev/null 2>&1
+TOP_DIR=`pwd`
+popd > /dev/null 2>&1
+
+if [ ! -f "$PADO_ZIP" ]; then
+   echo "Invalid Pado distribution file path."
+   echo "Use '-?' to see the usage."
+   echo ""
+   exit
+fi
+
+echo $TOP_DIR/$BACKUP_DIR_SHORT_NAME
+if [ -d "$TOP_DIR/$BACKUP_DIR_SHORT_NAME" ] || [ -f "$TOP_DIR/$BACKUP_DIR_SHORT_NAME" ]; then
+   echo "The backup directory exists: $TOP_DIR/$BACKUP_DIR_SHORT_NAME"
+   echo "Please rename or remove the directory."
+   echo ""
+   exit
+fi
+
+FILENAME=$(basename "$PADO_ZIP")
+FILEEXTENSION="${FILENAME##*.}"
+PADO_ZIP_DIR_NAME="${FILENAME%.*}"
+
+echo ""
+echo "PADO Installation on the Existing Grid"
+echo "--------------------------------------"
+echo ""
+echo "This command performs a Pado installation only on this site"
+echo "($SITE) as follows:"
+echo "   - Stop this site ($SITE)"
+echo "   - Unzip $PADO_ZIP in $TOP_DIR"
+echo "        $TOP_DIR/$PADO_ZIP_DIR_NAME"
+echo "   - Copy all grid configuration files"
+echo "        from $PADO_HOME"
+echo "        to   $TOP_DIR/$PADO_ZIP_DIR_NAME"
+echo "   - Rename $PADO_HOME to $TOP_DIR/$BACKUP_DIR_SHORT_NAME"
+echo "   - Rename $TOP_DIR/$PADO_ZIP_DIR_NAME to $PADO_HOME"
+echo "   - Create a tar ball of $PADO_HOME"
+echo "        ${PADO_HOME}.tar.gz"
+echo "   - Install the tar ball in all participating grid servers"
+echo "        - First, backup (rename) each server's Pado directory"
+echo "        - Untar the tar ball in each server"
+echo ""
+echo "IMPORTANT:"
+echo "   Note that the data directory will not be copied into the new installation"
+echo "   installation directory due to the large file sizes. You must manually"
+echo "   copy or move them into the new installation directory."
+echo ""
+if [ "$DEBUG" == "true" ]; then
+   echo "You are running this command in the *DEBUG* mode. If you continue,"
+   echo "installation will not occur and only the installation commands"
+   echo "will be displayed."
+   echo ""
+fi
+echo "Do you want to continue?"
+echo "('continue' + Enter to continue installation, other keys to quit)"
+read INPUT
+
+if [ "$INPUT" != "continue" ]; then
+   echo "Pado installation aborted."
+   echo ""
+   exit
+fi
+
+# First, stop the grid
+pushd $PADO_HOME/bin_sh > /dev/null 2>&1
+if [ "$DEBUG" == "true" ]; then
+   echo ./stop_site -locators -site $SITE
+else
+   ./stop_site -locators -site $SITE
+fi
+popd > /dev/null 2>&1
+
+# Change directory to the top directory, i.e., parent to $PADO_HOME
+pushd $TOP_DIR > /dev/null 2>&1
+
+# Unzip the Pado distribution
+if [ "$DEBUG" == "true" ]; then
+   echo unzip $PADO_ZIP
+else
+   unzip $PADO_ZIP
+fi 
+
+# Copy all necessary files from this dir to the pado zip dir
+# Note that the data directory is not copied. It must be done manually due
+# to the sheer size of the data files.
+if [ "$DEBUG" == "true" ]; then
+   echo cp $PADO_DIR_SHORT_NAME/bin_sh/all_env.sh $PADO_ZIP_DIR_NAME/bin_sh/
+   echo cp $PADO_DIR_SHORT_NAME/bin_sh/setenv.sh $PADO_ZIP_DIR_NAME/bin_sh/
+   echo cp -rf $PADO_DIR_SHORT_NAME/bin_sh/grids $PADO_ZIP_DIR_NAME/bin_sh/
+   echo cp -rf $PADO_DIR_SHORT_NAME/etc $PADO_ZIP_DIR_NAME/
+
+   # Copy the bak plugins first then overwrite its contents with the
+   # the new release so that this grid's custom jars can be kept.
+   echo mv $PADO_ZIP_DIR_NAME/plugins $PADO_ZIP_DIR_NAME/plugins_new
+   echo cp -rf $PADO_DIR_SHORT_NAME/plugins $PADO_ZIP_DIR_NAME/
+   echo cp -rf $PADO_ZIP_DIR_NAME/plugins_new/* $PADO_ZIP_DIR_NAME/plugins/
+   echo rm -rf $PADO_ZIP_DIR_NAME/plugins_new
+   echo cp -rf $PADO_DIR_SHORT_NAME/security $PADO_ZIP_DIR_NAME/
+else
+   cp $PADO_DIR_SHORT_NAME/bin_sh/all_env.sh $PADO_ZIP_DIR_NAME/bin_sh/
+   cp $PADO_DIR_SHORT_NAME/bin_sh/setenv.sh $PADO_ZIP_DIR_NAME/bin_sh/
+   cp -rf $PADO_DIR_SHORT_NAME/bin_sh/grids $PADO_ZIP_DIR_NAME/bin_sh/
+   cp -rf $PADO_DIR_SHORT_NAME/etc $PADO_ZIP_DIR_NAME/
+
+   # Copy the bak plugins first then overwrite its contents with the
+   # the new release so that this grid's custom jars can be kept.
+   mv $PADO_ZIP_DIR_NAME/plugins $PADO_ZIP_DIR_NAME/plugins_new
+   cp -rf $PADO_DIR_SHORT_NAME/plugins $PADO_ZIP_DIR_NAME/
+   cp -rf $PADO_ZIP_DIR_NAME/plugins_new/* $PADO_ZIP_DIR_NAME/plugins/
+   rm -rf $PADO_ZIP_DIR_NAME/plugins_new
+   cp -rf $PADO_DIR_SHORT_NAME/security $PADO_ZIP_DIR_NAME/
+fi
+
+# Copy the classes directory if exists.
+if [ -d $PADO_DIR_SHORT_NAME/classes ]; then
+   if [ "$DEBUG" == "true" ]; then
+      echo cp -rf $PADO_DIR_SHORT_NAME/classes $PADO_ZIP_DIR_NAME
+   else
+      cp -rf $PADO_DIR_SHORT_NAME/classes $PADO_ZIP_DIR_NAME
+   fi
+fi
+
+# Copy all app library files if the lib/app directory exists.
+if [ -d $PADO_DIR_SHORT_NAME/lib/app ]; then
+   if [ "$DEBUG" == "true" ]; then
+      echo cp -rf $PADO_DIR_SHORT_NAME/lib/app $PADO_ZIP_DIR_NAME/lib/
+   else
+      cp -rf $PADO_DIR_SHORT_NAME/lib/app $PADO_ZIP_DIR_NAME/lib/
+   fi
+fi
+
+# Copy all db library files if the db directory exists.
+if [ -d $PADO_DIR_SHORT_NAME/db ]; then
+   if [ "$DEBUG" == "true" ]; then
+      echo cp -rf $PADO_DIR_SHORT_NAME/db $PADO_ZIP_DIR_NAME
+   else
+      cp -rf $PADO_DIR_SHORT_NAME/db $PADO_ZIP_DIR_NAME
+   fi
+fi
+
+# Copy all wsdl library files if the wsdl directory exists.
+if [ -d $PADO_DIR_SHORT_NAME/wsdl ]; then
+   if [ "$DEBUG" == "true" ]; then
+      echo cp -rf $PADO_DIR_SHORT_NAME/wsdl $PADO_ZIP_DIR_NAME
+   else
+      cp -rf $PADO_DIR_SHORT_NAME/wsdl $PADO_ZIP_DIR_NAME
+   fi
+fi
+
+# Copy all ldap keystore files from the example directory if the ldap directory exists.
+if [ -d $PADO_DIR_SHORT_NAME/ldap/example/ssl ]; then
+   if [ "$DEBUG" == "true" ]; then
+      echo mkdir -p  $PADO_DIR_SHORT_NAME/ldap/example/ssl
+      echo cp -rf $PADO_DIR_SHORT_NAME/ldap/example/ssl $PADO_ZIP_DIR_NAME
+   else
+      mkdir -p  $PADO_DIR_SHORT_NAME/ldap/example/ssl
+      cp -rf $PADO_DIR_SHORT_NAME/ldap/example/ssl/* $PADO_ZIP_DIR_NAME/ldap/example/ssl/
+   fi
+fi
+
+# Move pado pado_bak
+if [ "$DEBUG" == "true" ]; then
+   echo mv $PADO_DIR_SHORT_NAME $BACKUP_DIR_SHORT_NAME
+else
+   mv $PADO_DIR_SHORT_NAME $BACKUP_DIR_SHORT_NAME
+fi
+
+# Rename the Pado distribution file to this grid's directory name
+if [ "$PADO_ZIP_DIR_NAME" != "$PADO_DIR_SHORT_NAME" ]; then
+   if [ "$DEBUG" == "true" ]; then
+       echo mv $PADO_ZIP_DIR_NAME $PADO_DIR_SHORT_NAME
+   else
+       mv $PADO_ZIP_DIR_NAME $PADO_DIR_SHORT_NAME
+   fi
+fi 
+
+# tar the new installation so that we can distribute it to this
+# grid's servers
+if [ "$DEBUG" == "true" ]; then
+   echo pushd $TOP_DIR
+   echo tar czf ${PADO_DIR_SHORT_NAME}.tar.gz $PADO_DIR_SHORT_NAME
+   echo popd
+else
+   pushd $TOP_DIR > /dev/null 2>&1
+   tar czf ${PADO_DIR_SHORT_NAME}.tar.gz $PADO_DIR_SHORT_NAME
+   popd > /dev/null 2>&1
+fi
+
+# Back to tools/
+popd > /dev/null 2>&1
+
+# Deploy the tar file to all servers
+if [ "$DEBUG" == "true" ]; then
+   echo ./exec -site $SITE mkdir -p $TOP_DIR
+   echo ./exec -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME} $TOP_DIR/$BACKUP_DIR_SHORT_NAME
+
+   pushd .. > /dev/null 2>&1
+   SERVER_HOSTS=`getServerHosts`
+   popd > /dev/null 2>&1
+   for i in $SERVER_HOSTS
+   do
+      HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+      if [ $HOST_NAME == `hostname` ]; then
+         continue
+      fi
+      echo "scp -q -o stricthostkeychecking=no $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz $SSH_USER@$i:$REMOTE_TOP_DIR"
+   done
+
+   echo ./exec -site $SITE tar --directory=$TOP_DIR -xzf $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz
+   echo ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/run $TOP_DIR/${PADO_DIR_SHORT_NAME}
+   echo ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/script $TOP_DIR/${PADO_DIR_SHORT_NAME}
+else
+   ./exec -site $SITE mkdir -p $TOP_DIR
+   ./exec -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME} $TOP_DIR/$BACKUP_DIR_SHORT_NAME
+   
+   pushd .. > /dev/null 2>&1
+   SERVER_HOSTS=`getServerHosts`
+   popd > /dev/null 2>&1
+   for i in $SERVER_HOSTS
+   do
+      HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+      if [ $HOST_NAME == `hostname` ]; then
+         continue
+      fi
+      scp -q -o stricthostkeychecking=no $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz $SSH_USER@$i:$REMOTE_TOP_DIR
+   done
+
+   ./exec -site $SITE tar --directory=$TOP_DIR -xzf $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz
+   ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/run $TOP_DIR/${PADO_DIR_SHORT_NAME}
+   ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/script $TOP_DIR/${PADO_DIR_SHORT_NAME}
+fi
+
+
+echo "- Installation complete. All participating servers for this site"
+echo "  ($SITE) have been updated with the new installation."
+echo "- The existing installation has been renamed to $BACKUP_DIR_SHORT_NAME."
+echo "- You are in the newly installed Pado directory."
+echo ""
+echo "IMPORTANT:"
+echo "   Note that the data directory has not been copied into the new"
+echo "   installation directory due to the large sizes of data files."
+echo "   You will need to manually move the data files" 
+echo "      from $TOP_DIR/$BACKUP_DIR_SHORT_NAME/data"
+echo "      to   $TOP_DIR/$PADO_DIR_SHORT_NAME/data"
+echo ""
+if [ "$DEBUG" != "true" ]; then
+   echo "   Although it appears to be in"
+   echo "      $PADO_HOME/bin_sh/tools,"
+   echo "   you are currently in"
+   echo "      $TOP_DIR/$BACKUP_DIR_SHORT_NAME/bin_sh/tools."
+   echo "   Make sure to change directory as follows:"
+   echo "      cd $PADO_HOME/bin_sh/tools"
+   echo ""
+fi
+exit

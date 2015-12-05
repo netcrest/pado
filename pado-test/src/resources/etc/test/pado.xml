@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="grid0" location="us">
+   <app-list>
+      <app id="app1">
+         <grid-list id="app1 grid list" default-grid-id="grid1">
+            <grid id="grid0" routing-weight="10"></grid>
+            <grid id="grid1" routing-weight="1"></grid>
+            <grid id="grid2" routing-weight="2"></grid>
+            <grid id="grid3" routing-weight="5"></grid>
+            <grid id="grid4" routing-weight="5"></grid>
+            <description>Allowed grids for app1</description>
+         </grid-list>
+      </app>
+   </app-list>
+   <path-list>
+      <path name="authorization" access-type="public">
+         <description>authorization contains user authorization information</description>
+      </path>
+      <path name="customer" access-type="public">
+         <description>customer contains customer profile information</description>
+      </path>
+   </path-list>
+   
+   <gemfire root-region-path="pado" locators="localhost:20000" 
+      is-parent="true" 
+      init-delay="5000"
+      grid-info-update-delay="0"
+      grid-info-update-interval="10000">
+      <gemfire-client locators="localhost:20000" pool-multiuser-authentication-enabled="true"></gemfire-client>
+   </gemfire>
+</pado>

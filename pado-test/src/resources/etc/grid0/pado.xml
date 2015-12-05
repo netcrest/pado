@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="grid0" location="us">
+	<app-list>
+
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="grid1">
+				<grid id="grid0" routing-weight="10">
+					<description>pado (parent) has the heaviest weight. A parent
+						typically does not manage data.</description>
+				</grid>
+				<grid id="grid1">
+					<description>grid1 has normal routing weight for the sys app.</description>
+				</grid>
+				<grid id="grid2">
+					<description>grid2 has normal routing weight for the sys app.</description>
+				</grid>
+				<grid id="grid3">
+					<description>grid3 has normal routing weight for the sys app.</description>
+				</grid>
+				<grid id="grid4">
+					<description>grid4 has normal routing weight for the sys app.</description>
+				</grid>
+				<grid id="grid5">
+					<description>grid5 has normal routing weight for the sys app.</description>
+				</grid>
+				<description>Allowed grids for app1</description>
+			</grid-list>
+		</app>
+
+		<app id="app1">
+			<grid-list id="app1 grid list" default-grid-id="grid1">
+				<grid id="grid0" routing-weight="10"></grid>
+				<grid id="grid1" routing-weight="1"></grid>
+				<grid id="grid2" routing-weight="2"></grid>
+				<grid id="grid3" routing-weight="5"></grid>
+				<grid id="grid4" routing-weight="5"></grid>
+				<description>Allowed grids for app1</description>
+			</grid-list>
+		</app>
+		<app id="app2">
+			<grid-list id="app2 grid list" default-grid-id="grid2">
+				<grid id="grid0" routing-weight="10"></grid>
+				<grid id="grid1" routing-weight="1"></grid>
+				<grid id="grid2" routing-weight="2"></grid>
+				<grid id="grid3" routing-weight="5"></grid>
+				<grid id="grid4" routing-weight="5"></grid>
+				<description>Allowed grids for app2</description>
+			</grid-list>
+		</app>
+		<app id="app3">
+			<grid-list id="app3 grid list" default-grid-id="grid1">
+				<grid id="grid0" routing-weight="10"></grid>
+				<grid id="grid1" routing-weight="1"></grid>
+				<grid id="grid2" routing-weight="2"></grid>
+				<grid id="grid3" routing-weight="5"></grid>
+				<grid id="grid4" routing-weight="5"></grid>
+				<description>Allowed grids for app3</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="grid1">
+				<grid id="grid0" routing-weight="10"></grid>
+				<grid id="grid1" routing-weight="1"></grid>
+				<grid id="grid2" routing-weight="2"></grid>
+				<grid id="grid3" routing-weight="5"></grid>
+				<grid id="grid4" routing-weight="5"></grid>
+				<grid id="grid5" routing-weight="5"></grid>
+				<description>Allowed grids for test.</description>
+			</grid-list>
+			<description>The test app is for running Pado test suites.</description>
+		</app>
+		<app id="equity">
+			<grid-list id="equity group">
+				<grid id="grid1" routing-weight="2"></grid>
+				<grid id="grid2" routing-weight="1"></grid>
+				<description>Allowed grids for equity</description>
+			</grid-list>
+		</app>
+
+		<app id="pado">
+			<grid-list id="pado grid list" default-grid-id="grid1">
+				<grid id="grid0" routing-weight="10"></grid>
+				<grid id="grid1" routing-weight="1"></grid>
+				<grid id="grid2" routing-weight="2"></grid>
+				<grid id="grid3" routing-weight="5"></grid>
+				<grid id="grid4" routing-weight="5"></grid>
+				<grid id="grid5" routing-weight="5"></grid>
+				<description>Allowed grids for the app, pado.</description>
+			</grid-list>
+			<description>The pado app is for running pado specific IBiz classes.</description>
+		</app>
+
+		<app id="demo">
+			<grid-list id="demo grid list" default-grid-id="grid1">
+				<grid id="grid0" routing-weight="10">
+					<description>pado (parent) has the heaviest weight. A parent
+						typically does not manage data.</description>
+				</grid>
+				<grid id="grid1" routing-weight="1">
+					<description>grid1 has the lightest weight for the demo app.</description>
+				</grid>
+				<grid id="grid2" routing-weight="2">
+					<description>grid2 has a lighter weight for accessing Equity data.</description>
+				</grid>
+				<grid id="grid3" routing-weight="5">
+					<description>grid3 has normal routing weight for the demo app.</description>
+				</grid>
+				<grid id="grid4" routing-weight="5">
+					<description>grid4 has normal routing weight for the demo app.</description>
+				</grid>
+				<description>Allowed grids for app1</description>
+			</grid-list>
+		</app>
+	</app-list>
+	<path-list>
+		<!-- path by default inherits attribute settings -->
+		<path name="shared" access-type="public" data-type="local"
+			router-class-name="com.netcrest.pado.internal.impl.DefaultGridRouter">
+			<path name="position" data-type="partition" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.temporal.test.data.Position"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter"
+				grids="grid1 grid2">
+				<description>shared/position contains security risk exposure
+					data in bi-temporal form. This data is partitioned across multiple
+					grids.</description>
+			</path>
+			<path name="portfolio" data-type="partition" temporal-enabled="true"
+				key-class-name="int" value-class-name="com.netcrest.pado.temporal.test.data.Portfolio"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter"
+				grids="grid1 grid2">
+				<description>shared/portfolio contains portfolio objects
+					in bi-temporal form and establishes entity relationships with
+					shared/position.
+					This data is partitioned across multiple
+					grids.</description>
+			</path>
+			<path name="raw" data-type="partition"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter">
+				<description>shared/raw is contains non-temporal partitioned data</description>
+			</path>
+			<path name="ref" data-type="local"
+				router-class-name="com.netcrest.pado.internal.impl.CostBasedGridRouter">
+				<description>shared/ref contains global reference data accessible by
+					public.
+					For customer specific private data, please contact Data Keeper.</description>
+			</path>
+			<path name="master" data-type="local"
+				router-class-name="com.netcrest.pado.internal.impl.LocationBasedGridRouter">
+				<description>shared/master contains security master data maintained
+					by the
+					data management group. Please contact Joe Smith for support.</description>
+			</path>
+			<description>The shared grid path is for public use. It contains data
+				made
+				available by vertical silos within the firm.</description>
+		</path>
+		<path name="level2" access-type="private">
+			<description>level2 is private data owned and managed by the Equity
+				group. To access, please contact Dow Jones.</description>
+		</path>
+		<path name="authorization" access-type="public">
+			<description>authorization contains user authorization information</description>
+		</path>
+		<path name="customer" access-type="public">
+			<description>customer contains customer profile information</description>
+		</path>
+		<path name="test" data-type="local" access-type="public">
+			<path name="replicated" inherit="true">
+			</path>
+			<path name="partitioned" inherit="true">
+			</path>
+			<description>The test path is for running Pado test cases.</description>
+		</path>
+	</path-list>
+
+	<gemfire root-region-path="/pado" is-parent="true">
+		<gemfire-client pool-multiuser-authentication-enabled="false"></gemfire-client>
+	</gemfire>
+</pado>

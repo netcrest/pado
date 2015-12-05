@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+
+<cache>
+
+	
+	<!-- grid1 -->
+	<region name="risk">
+	</region>
+
+	<!-- grid2 -->
+	<region name="equity">
+	</region>
+
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

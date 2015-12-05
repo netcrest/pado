@@ -1,0 +1,141 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./setup_ssh [-test] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo " Authorizes ssh auto-login for unauthorized hosts found in the server" 
+   echo " file:"
+   echo "     ${GRIDS_DIR}/${GRID}/server_${SITE}.sh"
+   echo ""
+   echo " It first attempts to generate RSA keys for the unauthorized hosts."
+   echo ""
+   echo "   -test  Tests ssh password-less login by making ssh sessions to"
+   echo "          all servers. This option is for testing ssh sessions only."
+   echo "          It does not perform ssh setup."
+   echo ""
+   echo " Default: ./setup_ssh"
+   echo ""
+   echo " NOTES: This command may prompt for password and and RSA key inputs"
+   echo "        for unauthorized hosts multiple times."
+   echo ""
+   exit
+fi
+
+HOST_NAME=`hostname`
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+   echo "Generating RSA key for this host $HOST_NAME:"
+   echo "   Accept the default values by hitting 'Enter'."
+   ssh-keygen -t rsa
+fi
+if [ ! -f ~/.ssh/authorized_keys ]; then
+   cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+fi
+
+# Extract all hosts from the server file
+HOSTS=
+
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+#   array[5] IsGateway
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+do
+   line="${LineArray[$i]}"
+   array=($line)
+   SERVER_NUM=${array[0]}
+   if [ "$SERVER_NUM" == "" ]; then
+      continue;
+   fi
+   SERVER_HOST=${array[1]}
+   if [ "$SERVER_HOST" == "localhost" ]; then
+      SERVER_HOST=$HOST_NAME
+   fi
+   HOSTS="$HOSTS $SERVER_HOST"
+done
+unique_words "$HOSTS" HOSTS
+HOSTS=`trimString "$HOSTS"`
+
+if [ "$TEST" == "true" ]; then
+   echo "ssh password-less login test started:"
+   for i in $HOSTS; do
+      ssh -q $i "pwd" > /dev/null 2>&1
+      echo "   $i ssh tested."
+   done
+   echo "ssh test complete."
+   echo ""
+   exit
+fi
+
+# Determine the hosts that need to authorize
+SSH_HOSTS=""
+for i in $HOSTS; do
+   FOUND=`grep -i ${USER}@$i ~/.ssh/authorized_keys`
+   if [ "$FOUND" == "" ]; then
+      SSH_HOSTS="$SSH_HOSTS $i"
+   fi
+done
+
+if [ "$SSH_HOSTS" == "" ]; then
+   echo "All hosts are already authorized."
+   echo ""
+   exit
+fi
+
+# Generate keys for the hosts that are not authorized.
+# (This assumes those hosts do not have the key generated.)
+for i in $SSH_HOSTS; do
+   echo "Generating RSA key: $i"
+   echo "   Accept the default values by hitting 'Enter' for all"
+   echo "   key generation questions. If the RSA key already exists"
+   echo "   then it will prompt for overwrite. Do not overwrite"
+   echo "   existing RSA keys by entering 'n'."
+   ssh -q $i "ssh-keygen -t rsa"
+   echo "Key generated: $i"
+   echo ""
+done
+
+# Append remote RSA keys to authorized_keys
+for i in $SSH_HOSTS; do
+   echo "Appending authorized_keys: $i"
+   ssh -q -n $i "cat ~/.ssh/id_rsa.pub" >> ~/.ssh/authorized_keys
+   echo "authorized_keys appended: $i"
+   echo  ""
+done
+
+# Copy authorized_keys to the new authorized hosts
+for i in $SSH_HOSTS; do
+   echo "Copying authorized_keys: $i"
+   scp -q ~/.ssh/authorized_keys $i:~/.ssh/
+   echo "authorized_keys copied: $i"
+   echo ""
+done
+
+echo "Authorization complete."
+echo ""

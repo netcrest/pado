@@ -1,0 +1,98 @@
+<assembly>
+	<formats>
+		<format>zip</format>
+		<format>tar.gz</format>
+	</formats>
+	<includeBaseDirectory>true</includeBaseDirectory>
+	<baseDirectory>pado_${pado.version}</baseDirectory>
+	<dependencySets>
+		<!-- <dependencySet> <useProjectArtifact>false</useProjectArtifact> <includes> 
+			<include>com.netcrest.pado:pado-javadoc</include> </includes> <outputDirectory>doc</outputDirectory> 
+			</dependencySet> -->
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<excludes>
+				<exclude>com.netcrest.pado:pado-biz</exclude>
+				<exclude>com.netcrest.pado:pado-biz-gemfire</exclude>
+				<exclude>com.netcrest.pado:pado-test</exclude>
+				<exclude>com.gemstone.gemfire:gemfire</exclude>
+				<exclude>antlr*</exclude>
+				<exclude>commons-io*</exclude>
+				<exclude>dom4j*</exclude>
+				<exclude>hamcrest*</exclude>
+				<exclude>jackson*</exclude>
+				<exclude>jansi*</exclude>
+				<exclude>log4j*</exclude>
+				<exclude>xml-apis*</exclude>
+				<exclude>xom*</exclude>
+			</excludes>
+			<outputDirectory>lib/</outputDirectory>
+		</dependencySet>
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<includes>
+				<include>com.netcrest.pado:pado-biz</include>
+				<include>com.netcrest.pado:pado-biz-gemfire</include>
+				<include>com.netcrest.pado:pado-test</include>
+			</includes>
+			<outputDirectory>/plugins</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/resources</directory>
+			<excludes>
+				<exclude>bin_sh/**</exclude>
+				<exclude>doc/**</exclude>
+				<exclude>etc/create_dtd_java</exclude>
+			</excludes>
+			<outputDirectory>
+			</outputDirectory>
+		</fileSet>
+
+		<!-- Executable permissions - TODO: The following has no effect. -->
+		<fileSet>
+			<directory>src/main/resources/bin_sh</directory>
+			<outputDirectory>/bin_sh</outputDirectory>
+			<includes>
+				<include>**</include>
+			</includes>
+			<fileMode>0755</fileMode>
+			<directoryMode>0755</directoryMode>
+		</fileSet>
+		
+		<fileSet>
+			<directory>..</directory>
+			<includes>
+				<include>license/**</include>
+				<include>LICENSE.txt</include>
+				<include>NOTICE</include>
+				<include>RELEASE_NOTES.txt</include>
+			</includes>
+			<outputDirectory>.</outputDirectory>
+		</fileSet>
+
+		<!-- Create the required empty directories -->
+		<fileSet>
+			<directory>./</directory>
+			<outputDirectory>/bundle</outputDirectory>
+			<excludes>
+				<exclude>*/**</exclude>
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>./</directory>
+			<outputDirectory>/log</outputDirectory>
+			<excludes>
+				<exclude>*/**</exclude>
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>./</directory>
+			<outputDirectory>/stats</outputDirectory>
+			<excludes>
+				<exclude>*/**</exclude>
+			</excludes>
+		</fileSet>
+	</fileSets>
+</assembly>

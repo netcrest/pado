@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo ""
+   echo "Usage:"
+   echo "   ./bundle_grid [-grid <gridId>] [-all] [-conf] [-lib] [-data|-nodata] [-db] [-quiet] [-?]"
+   echo "   Bundles the configuration, library, data and db files of the specified grid ID"
+   echo "   into the bundle directory ($PADO_BUNDLE_DIR). If no options are specified then"
+   echo "   it creates bundles for all types."
+   echo ""
+   echo "      -grid   Bundles the specified grid ID. Default: $GRID_DEFAULT"
+   echo "      -all    Bundles files of all types."
+   echo "      -conf   Bundles only configuration files."
+   echo "      -lib    Bundles only library files."
+   echo "      -data   Bundles only data files."
+   echo "      -nodata Do not bundle data files for the \"all\" bundle."
+   echo "      -db     Bundles only Pado DB files."
+   echo "      -quiet  Quiet mode. Suppresses verbose."
+   echo ""
+   echo "   Default: ./bundle_grid -grid $GRID_DEFAULT"
+   echo ""
+   exit
+fi
+
+if [ ! -d $PADO_HOME/bin_sh/grids/$GRID ]; then
+   echo ""
+   echo "Error: $PADO_HOME/bin_sh/grids/$GRID not found. Unable to bundle configuration files."
+   echo ""
+   exit
+fi
+if [ ! -d $PADO_HOME/etc/$GRID ]; then
+   echo ""
+   echo "Error: $PADO_HOME/etc/$GRID not found. Unable to bundle configuration files."
+   echo ""
+   exit
+fi
+
+if [ ! -d $PADO_BUNDLE_DIR ]; then
+  mkdir -p $PADO_BUNDLE_DIR
+fi
+
+# If none of the options is specified then set all options
+if [ "$ALL" == "" ] && [ "$CONF" == "" ] && [ "$LIB" == "" ] && [ "$DATA" == "" ] && [ "$DB" == "" ]; then 
+   ALL=true
+   CONF=true
+   LIB=true
+   DATA=true
+   DB=true
+fi
+
+# Set bundle files paths
+if [ "$NO_DATA" == "true" ]; then
+   BUNDLE_ALL_PATH=$PADO_HOME/bundle/${GRID_ID}-all_nodata.zip
+else
+   BUNDLE_ALL_PATH=$PADO_HOME/bundle/${GRID_ID}-all.zip
+fi
+BUNDLE_CONF_PATH=$PADO_HOME/bundle/${GRID_ID}-conf.zip
+BUNDLE_LIB_PATH=$PADO_HOME/bundle/${GRID_ID}-lib.zip
+BUNDLE_DATA_PATH=$PADO_HOME/bundle/${GRID_ID}-data.zip
+BUNDLE_DB_PATH=$PADO_HOME/bundle/${GRID_ID}-db.zip
+
+# Zip the files
+CONF_FILES="bin_sh/all_env.sh bin_sh/setenv.sh bin_sh/grids/$GRID_ID etc/pado.properties etc/$GRID_ID security"
+LIB_FILES="lib/app plugins -x plugins/pado-*.jar plugins/tmp/* plugins/.*"
+DATA_FILES="data/schema data/processed data/scheduler/etc data/scheduler/schema data/scheduler/processed"
+pushd $PADO_HOME > /dev/null 2>&1
+mkdir -p $DATA_FILES
+popd > /dev/null 2>&1
+
+DB_FILES="db/keytype db/vp"
+ALL_FILES="$CONF_FILES $DB_FILES $LIB_FILES"
+if [ "$NO_DATA" == "false" ]; then
+   ALL_FILES="$ALL_FILES $DATA_FILES" 
+fi
+
+if [ "$QUIET" == "true" ]; then
+   ZIP_QUIET_OPT=-q
+else
+   ZIP_QUIET_OPT=
+fi
+pushd $PADO_HOME > /dev/null 2>&1
+if [ "$ALL" == "true" ]; then
+   if [ -f $BUNDLE_ALL_PATH ]; then
+      rm $BUNDLE_ALL_PATH
+   fi
+   zip $ZIP_QUIET_OPT -r $BUNDLE_ALL_PATH $ALL_FILES
+fi
+if [ "$CONF" == "true" ]; then
+   if [ -f $BUNDLE_CONF_PATH ]; then
+      rm $BUNDLE_CONF_PATH
+   fi
+   zip $ZIP_QUIET_OPT -r $BUNDLE_CONF_PATH $CONF_FILES
+fi
+if [ "$LIB" == "true" ]; then
+   if [ -f $BUNDLE_LIB_PATH ]; then
+      rm $BUNDLE_LIB_PATH
+   fi
+   zip $ZIP_QUIET_OPT -r $BUNDLE_LIB_PATH $LIB_FILES
+fi
+if [ "$DATA" == "true" ]; then
+   if [ -f $BUNDLE_DATA_PATH ]; then
+      rm $BUNDLE_DATA_PATH
+   fi
+   zip $ZIP_QUIET_OPT -r $BUNDLE_DATA_PATH $DATA_FILES
+fi
+if [ "$DB" == "true" ]; then
+   if [ -f $BUNDLE_DB_PATH ]; then
+      rm $BUNDLE_DB_PATH
+   fi
+   zip $ZIP_QUIET_OPT -r $BUNDLE_DB_PATH $DB_FILES
+fi
+popd > /dev/null 2>&1
+
+if [ "$QUIET" == "false" ]; then
+   echo ""
+   echo "Grid files successfully bundled. To deploy the bundle(s), unzip the"
+   echo "following file(s) inside the target Pado home directory:"
+   echo ""
+   if [ "$ALL" == "true" ]; then
+      echo "   $BUNDLE_ALL_PATH"
+   fi
+   if [ "$CONF" == "true" ]; then
+      echo "   $BUNDLE_CONF_PATH"
+   fi
+   if [ "$LIB" == "true" ]; then
+      echo "   $BUNDLE_LIB_PATH"
+   fi
+   if [ "$DATA" == "true" ]; then
+      echo "   $BUNDLE_DATA_PATH"
+   fi
+   if [ "$DB" == "true" ]; then
+      echo "   $BUNDLE_DB_PATH"
+   fi
+fi
+echo ""

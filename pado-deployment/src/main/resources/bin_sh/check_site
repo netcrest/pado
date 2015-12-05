@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./check_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "       Displays running status of all locators and servers"
+   echo "       in the specified grid."
+   echo ""
+   echo "      -grid      Displays servers in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Displays servers in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: ./check_site -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+
+LOCATOR_HOSTS=`getLocatorHosts`
+NUM_LOCATORS=0
+for i in $LOCATOR_HOSTS; do
+   let NUM_LOCATORS=NUM_LOCATORS+1
+done
+
+LOCATOR_ID=locator-${GRID}-${SITE}
+SERVER_ID=server-${GRID}-${SITE}
+
+SERVER_HOSTS=`getServerHosts`
+ALL_HOSTS="$LOCATOR_HOSTS $SERVER_HOSTS"
+unique_words "$ALL_HOSTS" ALL_UNIQUE_HOSTS
+max_len_word "$ALL_UNIQUE_HOSTS" MAX_LEN_HOST
+max_len_word "$LOCATOR_ID"01 MAX_LEN_LOCATOR_ID
+
+echo
+NODE="Node"
+NODE_LINE="----"
+append_spaces $MAX_LEN_HOST $NODE NODE_HEADER
+echo "$NODE_HEADER   Servers  Locators"
+append_spaces $MAX_LEN_HOST $NODE_LINE NODE_HEADER
+echo "$NODE_HEADER   -------  --------"
+for i in $ALL_UNIQUE_HOSTS; do
+#   LOCATORS=`ssh -q -n $SSH_USER@$i "$JAVA_HOME/bin/jps -v | grep pado.home.dir=${PADO_HOME} | grep pado.vm.id=${LOCATOR_ID}" | grep -v grep | wc -l; > /dev/null 2>&1`
+#   SERVERS=`ssh -q -n $SSH_USER@$i "$JAVA_HOME/bin/jps -v | grep pado.home.dir=${PADO_HOME} | grep pado.vm.id=${SERVER_ID}" | grep -v grep | wc -l; > /dev/null 2>&1`
+   LOCATORS=`ssh -q -n $SSH_USER@$i "ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${LOCATOR_ID}" | grep java | wc -l; > /dev/null 2>&1`
+   SERVERS=`ssh -q -n $SSH_USER@$i "ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${SERVER_ID}" | grep java | wc -l; > /dev/null 2>&1`
+
+   append_spaces $MAX_LEN_HOST $i HOST_NAME
+
+   if [ "$OS_NAME" == "Darwin" ]; then
+      echo "$HOST_NAME  $SERVERS  $LOCATORS"
+   else
+      echo "$HOST_NAME   $SERVERS        $LOCATORS"
+   fi
+done
+
+LOCATOR_PREFIX=locator-${GRID}-${SITE}
+SERVER_PREFIX=server-${GRID}-${SITE}
+
+#
+# Display formatted headers
+#
+MAX_LEN_NUM=3
+echo ""
+NUM="Num"
+NUM_LINE="---"
+NODE="Node"
+NODE_LINE="----"
+NAME="Name"
+NAME_LINE="----"
+append_spaces $MAX_LEN_NUM $NUM NUM_HEADER
+append_spaces $MAX_LEN_HOST $NODE NODE_HEADER
+append_spaces $MAX_LEN_LOCATOR_ID $NAME NAME_HEADER
+echo "$NUM_HEADER $NODE_HEADER $NAME_HEADER PID"
+append_spaces $MAX_LEN_NUM $NUM_LINE NUM_HEADER
+append_spaces $MAX_LEN_HOST $NODE_LINE NODE_HEADER
+append_spaces $MAX_LEN_LOCATOR_ID $NAME_LINE NAME_HEADER
+echo "$NUM_HEADER $NODE_HEADER $NAME_HEADER ---"
+
+# Display locators
+# LocatorArray elements:
+#    array[0] LocatorNumber
+#    array[1] LocatorHost
+#    array[2] LocatorPort
+#    array[3] JmxRmiPort
+#    array[4] JmxHttpPort
+setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
+
+for (( i = 1; i < ${#LineArray[@]}; i++ ))
+do
+   line="${LineArray[$i]}"
+   array=($line)
+   LOCATOR_NUM=${array[0]}
+   LOCATOR_HOST=${array[1]}
+   if [ $LOCATOR_NUM -lt 10 ]; then
+      LOCATOR_NUM=0$LOCATOR_NUM
+   fi
+   LOCATOR_ID=${LOCATOR_PREFIX}${LOCATOR_NUM}
+   LOCATOR_PID=`ssh -q -n $SSH_USER@$LOCATOR_HOST "ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${LOCATOR_ID}" | grep java | awk '{print $1}'`
+   if [ "$LOCATOR_PID" != "" ]; then
+      append_spaces $MAX_LEN_NUM $LOCATOR_NUM FORMATTED_LOCATOR_NUM
+      append_spaces $MAX_LEN_HOST $LOCATOR_HOST FORMATTED_HOST_NAME
+      append_spaces $MAX_LEN_LOCATOR_ID $LOCATOR_ID FORMATTED_LOCATOR_ID
+      echo "$FORMATTED_LOCATOR_NUM $FORMATTED_HOST_NAME $FORMATTED_LOCATOR_ID $LOCATOR_PID"
+   fi
+done
+
+# Display servers
+SERVER_NUM=0
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+#   array[5] IsGateWay
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+for (( i = 1; i <= ${LAST_SERVER_NUM}; i++ ))
+do
+   line="${LineArray[$i]}"
+   array=($line)
+   SERVER_NUM=${array[0]}
+   if [ "$SERVER_NUM" == "" ]; then
+      continue
+   fi
+   SERVER_HOST=${array[1]}
+   if [ $SERVER_NUM -lt 10 ]; then
+      SERVER_NUM=0$SERVER_NUM
+   fi
+   SERVER_ID=${SERVER_PREFIX}${SERVER_NUM}
+   SERVER_PID=`ssh -q -n $SSH_USER@$SERVER_HOST "ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${SERVER_ID}" | grep java | awk '{print $1}'`
+   if [ "$SERVER_PID" != "" ]; then
+      append_spaces $MAX_LEN_NUM $SERVER_NUM FORMATTED_SERVER_NUM
+      append_spaces $MAX_LEN_HOST $SERVER_HOST FORMATTED_HOST_NAME
+      append_spaces $MAX_LEN_LOCATOR_ID $SERVER_ID FORMATTED_SERVER_ID
+      echo "$FORMATTED_SERVER_NUM $FORMATTED_HOST_NAME $FORMATTED_SERVER_ID $SERVER_PID"
+   fi
+done
+
+echo
+disown -a -r
+

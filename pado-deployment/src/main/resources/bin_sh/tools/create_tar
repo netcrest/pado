@@ -1,0 +1,70 @@
+#/bin/bash
+ 
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+ 
+. ./setenv.sh > /dev/null 2>&1
+#
+#
+# Tar all but data, log, stats
+#
+FILES_TO_TAR="bin_sh bin_win build.xml db doc etc ldap lib plugins README.txt RELEASE_NOTES.txt security src"
+ 
+#
+# Determeint $TAR_BALL_PATH
+#
+ROOT_DIR_NAME=$(basename $BASE_DIR)
+TAR_BALL_NAME=$ROOT_DIR_NAME.tar.gz
+TAR_BALL_PATH=$BASE_DIR/bundle/$TAR_BALL_NAME
+ 
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   create_tar [-?]"
+   echo ""
+   echo "  Creates a tar ball of the Pado installation that excludes data, log, and stats."
+   echo "  Tar ball path:"
+   echo "     $TAR_BALL_PATH"
+   echo ""
+   echo "   Default: create_tar"
+   echo ""
+   exit
+fi
+ 
+#
+# Make bundle directory where the tar ball is created.
+#
+if [ ! -d $DIR ]; then
+   mkdir $BASE_DIR/bundle
+fi
+ 
+#
+# Create a list of all files to tar
+#
+for i in $FILES_TO_TAR
+do
+   TAR_FILE_LIST="$TAR_FILE_LIST $ROOT_DIR_NAME/$i"
+done
+ 
+#
+# Create a tar ball from one level above the base directory.
+#
+pushd $BASE_DIR/.. > /dev/null 2>&1
+tar czf $TAR_BALL_PATH $TAR_FILE_LIST
+echo ""
+echo "Pado tarball distribution created (Note that it excludes data, log, and stats):"
+echo "   $TAR_BALL_PATH"
+echo ""
+popd > /dev/null 2>&1

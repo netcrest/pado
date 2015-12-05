@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+
+<cache>
+	<pool name="grid2-pool-shared-equity" idle-timeout="60000" read-timeout="60000"
+		multiuser-authentication="false" subscription-enabled="true"
+		pr-single-hop-enabled="true">
+		<locator port="22000" host="localhost" />
+	</pool>
+	<region name="equity">
+		<region name="order">
+			<region name="pojo">
+				<region-attributes scope="local" pool-name="grid2-pool-shared-equity">
+				</region-attributes>
+			</region>
+			<region name="keymap">
+				<region-attributes scope="local" pool-name="grid2-pool-shared-equity">
+				</region-attributes>
+			</region>
+		</region>
+		<region name="level2">
+			<region name="pojo">
+				<region-attributes scope="local" pool-name="grid2-pool-shared-equity">
+				</region-attributes>
+			</region>
+			<region name="keymap">
+				<region-attributes scope="local" pool-name="grid2-pool-shared-equity">
+				</region-attributes>
+			</region>
+		</region>
+	</region>
+
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

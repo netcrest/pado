@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 6.6//EN"
+  "http://www.gemstone.com/dtd/cache6_6.dtd">
+
+<cache>
+<!-- Default pool for index matrix -->
+<!--
+	<pool name="index" read-timeout="60000">
+		<locator port="20000" host="192.168.1.11" />
+	</pool>
+-->
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

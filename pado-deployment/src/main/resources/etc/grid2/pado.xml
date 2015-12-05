@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="grid2" location="us">
+
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="grid2">
+				<grid id="grid2" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+	</app-list>
+	<path-list>
+		<path name="test" access-type="public" data-type="local">
+			<path name="replicated" />
+			<path name="partitioned" refid="partition" />
+		</path>
+		<path name="echo" refid="partition" />
+		<path name="echo2" refid="partition" />
+		<path name="authorization" refid="partition" />
+		<path name="customer" refid="partition" />
+		<path name="order" access-type="public" data-type="local">
+			<path name="pojo" refid="partition" />
+			<path name="keymap" refid="partition" />
+		</path>
+		<path name="company" access-type="public" data-type="local">
+			<path name="pojo" refid="partition" />
+			<path name="keymap" refid="partition" />
+		</path>
+		<path name="level2" access-type="private" data-type="local">
+			<path name="pojo" refid="partition" />
+			<path name="keymap" refid="partition" />
+			<description>level2 is private data owned and managed by the Equity
+				group. To access, please contact Dow Jones.</description>
+		</path>
+		<path name="shared" access-type="public" data-type="local"
+			router-class-name="com.netcrest.pado.internal.impl.DefaultGridRouter">
+			<path name="position" data-type="partition" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.temporal.test.Position"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter">
+				<description>shared/position contains security risk exposure
+					data in
+					bi-temporal form. This data is partitioned across multiple
+					grids.</description>
+			</path>
+			<path name="portfolio" data-type="partition" temporal-enabled="true"
+				key-class-name="int" value-class-name="com.netcrest.pado.temporal.test.Portfolio"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter">
+
+				<description>shared/portfolio contains portfolio objects
+					in
+					bi-temporal form and establishes entity relationships with
+					shared/position.
+					This data is partitioned across multiple
+					grids.</description>
+			</path>
+			<path name="raw" refid="partition" />
+			<path name="ref" refid="partition" />
+			<path name="master" refid="partition" />
+			<path name="temporal" temporal-enabled="true" />
+			<description>The shared grid path is for public use. It contains data
+				made
+				available by vertical silos within the firm.</description>
+		</path>
+
+	</path-list>
+
+	<gemfire root-region-path="/equity" shared-pool-name="grid2-pool-shared">
+		<gemfire-parent id="grid0" root-region-path="/pado"
+			locators="localhost:20000"></gemfire-parent>
+	</gemfire>
+
+</pado>

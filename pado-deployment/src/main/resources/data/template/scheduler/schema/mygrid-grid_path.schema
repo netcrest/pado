@@ -1,0 +1,94 @@
+GridPath=grid_path
+
+# If IsKeyColumns is true then the CSV file contains key columns in addition
+# to value columns. If false, then the CSV file contains only the value columns.
+# Default: false
+IsKeyColumns=false
+
+# KeyClass defines the class of the key objects that are inserted
+# in the underlying data grid path. If temporal, then this class
+# is wrapped in ITemporalKey as the identity key.
+KeyClass=java.lang.String
+# ValueClass defines the class of the value objects that are inserted
+# in the underlying data grid path. If temporal, then this class is
+# wrapped in ITemporalData.
+ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
+
+# KeyTypeClass defines the schema class for JsonLite. 
+KeyTypeClass=com.foo.pado.data.SomeDataKey
+
+RoutingKeyClass=java.lang.String
+
+# EntryFilterClass filters each key/value pair created by
+# the file importer.
+# SharepointAssetFilter left-trims Location by removing 0's.
+EntryFilterClass=com.foo.pado.data.filter.SomeDataFilter
+
+# Delimiter is ,
+Delimiter=,
+FileLoaderClass=com.netcrest.pado.biz.file.CsvFileLoader
+BatchSize=5000
+DateFormat=yyyyMMdd
+
+# --- Temporal spec ---
+# If IsTemporal is false then all other temporal properties except
+# IdentityKey are ignored and non-temporal objects are created. 
+IsTemporal=true
+# TemporalType must be one of eternal, forever, mortal
+# If eternal, then temporal times are not required.
+# If times are defined then TemporalType is ignored.
+# In Pado, the beginning of time is 1970-01-01T00:00:00.000Z
+# and the end of time is 2099-12-31'T'23:59:59.999Z. These
+# times are used to represent eternal and forever temporal objects.
+TemporalType=eternal
+TemporalStartTime=19700101
+TemporalEndTime=20991231
+TemporalWrittenTime=19700101
+# If Username is not defined, then the OS user name is assigned.
+#Username=
+
+# If IsHistory is true then each file record is compared with the existing
+# temporal record in the grid. Only if the records are different then
+# the file record is inserted into the grid. Note that if temporal timestamps
+# are not available then either the timestamp extracted from the file name
+# if available or the current timestamp is used for the start valid
+# and written time. This means if the record is new then its temporal
+# type is always eternal. If an update, then its temporal type is forever.
+# Default: false
+IsHistory=true
+
+# TemporalTimeResolution is the time resolution of temporal entries.
+# Times are rounded down, e.g., if Day, "20141006 10:00:01.123" is 
+# rounded down to "20141006".
+# Valid values: Year, Month, Day, Hour, Minute, Second, Millisecond
+# Default: Day
+TemporalTimeResolution=Day
+
+# List the columns specified in the Columns property to be skipped.
+# Skipped columns are not included in the data object.
+SkipColumns=
+
+IsCaseSensitive=false
+# Row number begins from 1. Set StartRow to skip the header rows.
+# Default: 1
+StartRow=2
+# Set EndRow to a negative value to skip the last rows, i.e., 
+# -1 to skip the last row, -2 to skip the last 2 rows, etc. 
+# Set it to 0 to load all from StartRow to the last row.
+# Default: 0.
+# EndRow not supported.
+#EndRow=0
+
+# Define the field types. The fields must be in the same order as the columns
+# in the CSV data file.
+# If the primary key is a primitive type then use the category id, Primary;
+# otherwise, define the field names of the primary key class.
+# The temporal attributes are optional as they are predetermined.
+# List field names of the value class. If JsonLite, then list the KeyType names.
+# Note that if the value type is KeyType or POJO, then the field types defined
+# here are ignored and the fields defined by KeyType or POJO are used instead.
+# Format: <field-name>, <field-type>, [Primary|Temporal|Value]
+Column1Name, String, Primary
+Column2Name, int
+Column3Name, float
+Column4Name, Date

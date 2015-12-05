@@ -1,0 +1,38 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.netcrest.pado</groupId>
+		<artifactId>pado-parent</artifactId>
+		<version>0.4.0-B1</version>
+	</parent>
+
+	<artifactId>pado-gemfire-v7</artifactId>
+	<packaging>jar</packaging>
+	<name>pado-gemfire-v7</name>
+	<description>GemFire version 7.x specifics</description>
+
+	<dependencies>
+		<!-- Pado modules -->
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>gemfire-dqueue</artifactId>
+			<version>${pado.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-common</artifactId>
+			<version>${pado.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- GemFire -->
+		<dependency>
+			<groupId>com.gemstone.gemfire</groupId>
+			<artifactId>gemfire</artifactId>
+			<version>7.0.2</version>
+		</dependency>
+	</dependencies>
+</project>

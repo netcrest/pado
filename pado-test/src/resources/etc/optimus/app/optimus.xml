@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<!-- The pool name "pado" is reserved and predefined. Do not create a pool 
+	with the same name in this config file. -->
+<cache>
+	<region name="optimus">
+		<region name="margin_node">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="requirement_config">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="requirement_process">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+
+		<region name="margin_node_group_member">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="margin_node_hierarchy">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="margin_node_map">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="margin_node_role">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="rule_definition">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="collateral_account">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="collateral_pool">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="pool_eligibility_rule">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="instrument">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="instrument_price">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="netcall">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+		<region name="netcall_detail">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="pado">
+			</region-attributes>
+		</region>
+	</region>
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

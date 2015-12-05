@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="jde" location="us">
+	
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="jde">
+				<grid id="jde" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="jde">
+				<grid id="jde" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>jde example</description>
+			</grid-list>
+		</app>
+	</app-list>
+	
+	<path-list>
+		<path name="item_location" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="item_branch" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="item_master" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="cost_ledger" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="sharepoint_asset" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="asset_detail" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="bill_material" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="supplemental_data" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="shared_asset" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="sales_extract" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="location_data" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="cycle_count_entry" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="tx_interface" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+	</path-list>
+	
+	<gemfire root-region-path="/jde"
+		init-delay="0" grid-info-update-delay="0" grid-info-update-interval="10000"
+		shared-pool-name="jde-pool-shared">
+		<gemfire-parent id="go" root-region-path="/go" locators="localhost:20000"></gemfire-parent>
+	</gemfire>
+
+</pado>

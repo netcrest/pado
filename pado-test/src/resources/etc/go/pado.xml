@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="go" location="us">
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="jde">
+				<grid id="go" routing-weight="5">
+					<description>pado (parent) has the heaviest weight. A parent
+						typically does not manage data.</description>
+				</grid>
+				<grid id="jde">
+					<description>jde has normal routing weight for the sys app.</description>
+				</grid>
+				<grid id="prms">
+					<description>prms has normal routing weight for the sys app.</description>
+				</grid>
+				<grid id="rotc">
+					<description>prms has normal routing weight for the sys app.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="jde">
+				<grid id="go" routing-weight="10"></grid>
+				<grid id="jde" routing-weight="1"></grid>
+				<grid id="prms" routing-weight="1"></grid>
+				<grid id="rotc" routing-weight="1"></grid>
+				<description>Allowed grids for test.</description>
+			</grid-list>
+			<description>The test app is for running Pado test suites.</description>
+		</app>
+	</app-list>
+	<path-list build-lucene-index="true">
+		<path name="master_ucn" refid="persistent-partition" data-type="local"
+			temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite" grids="go">
+			<description>UCN xref data.</description>
+		</path>
+		<path name="synthes_ucn" refid="persistent-partition" data-type="local"
+			temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite" grids="go">
+			<description>Synthes customer UCNs.</description>
+		</path>
+		<path name="prms_ucn" refid="persistent-partition" data-type="local"
+			temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite" grids="go">
+			<description>Depuy PRMS customer UCNs.</description>
+		</path>
+		<path name="product_combined" refid="persistent-partition" data-type="local" temporal-enabled="true"
+			key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+			grids="go">
+			<description>Synthes and Depuy products.</description>
+		</path>
+		<path name="asset">
+			<path name="asset_detail" refid="persistent-partition" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Asset utilization details.</description>
+			</path>
+			<path name="launch_desc" refid="persistent-partition" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Asset utilization launch descriptions.</description>
+			</path>
+			<path name="launch_detail" refid="persistent-partition" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Asset utilization launch details</description>
+			</path>
+			<path name="movement" refid="persistent-partition" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Asset utilization movement</description>
+			</path>
+			<path name="sales" refid="persistent-partition" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Asset utilization sales</description>
+			</path>
+		</path>
+		<path name="cms">
+			<path name="hospital" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="location" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="user" refid="persistent-partition" temporal-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+		</path>
+		<path name="order">
+			<path name="composite" refid="persistent-partition" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Conposite orders</description>
+			</path>
+			<path name="order_status" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>Order status</description>
+			</path>
+			<path name="wm_order_in" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>webMethods inbound orders</description>
+			</path>
+			<path name="wm_order_out" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>webMethods outbound executed orders</description>
+			</path>
+			<path name="epor_order_in" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>ePOR inbound orders</description>
+			</path>
+			<path name="epor_order_out" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>ePOR outbound orders</description>
+			</path>
+			<path name="bapi_order_in" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>BAPI inbound orders</description>
+			</path>
+			<path name="bapi_order_out" refid="composite-coloated" data-type="local" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.data.jsonlite.JsonLite"
+				grids="go">
+				<description>BAPI outbound orders</description>
+			</path>
+		</path>
+	</path-list>
+
+	<gemfire root-region-path="/go"
+		is-parent="true" init-delay="5000" grid-info-update-delay="0"
+		grid-info-update-interval="10000">
+		<gemfire-client pool-multiuser-authentication-enabled="false"></gemfire-client>
+		<!--
+		<dqueue name="order" type="server" batch-size="10"
+			colocated-with="/go/order/composite" total-num-buckets="40"
+			batch-time-interval-in-msec="100" preserve-order="false">
+			<listener>
+				<bean class-name="com.jnj.pado.iv.biz.server.DQueueOrderListener" />
+			</listener>
+		</dqueue>
+		-->
+	</gemfire>
+	<!-- 
+	<startup>
+		<bean class-name="com.jnj.pado.iv.core.IvPadoStartupIntializer" />
+	</startup>
+	-->
+</pado>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="grid3" location="uk">
+
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="grid3">
+				<grid id="grid3" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.
+					</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+	</app-list>
+	<path-list>
+		<path name="shared" access-type="public" data-type="local"
+			router-class-name="com.netcrest.pado.internal.impl.DefaultGridRouter">
+			<path name="position" data-type="partition" temporal-enabled="true"
+				key-class-name="String" value-class-name="com.netcrest.pado.temporal.test.Position"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter">
+				<description>shared/position contains security risk exposure
+					data in
+					bi-temporal form. This data is partitioned across multiple
+					grids.
+				</description>
+			</path>
+			<path name="portfolio" data-type="partition" temporal-enabled="true"
+				key-class-name="int" value-class-name="com.netcrest.pado.temporal.test.Portfolio"
+				router-class-name="com.netcrest.pado.internal.impl.PartitionedGridRouter">
+				<description>shared/portfolio contains portfolio objects
+					in
+					bi-temporal form and establishes entity relationships with
+					shared/position.
+					This data is partitioned across multiple
+					grids.
+				</description>
+			</path>
+			<path name="raw" refid="partition" />
+			<path name="ref" refid="partition" />
+			<path name="master" refid="partition" />
+			<path name="temporal" temporal-enabled="true" />
+			<description>The shared grid path is for public use. It contains data
+				made available by vertical silos within the firm.
+			</description>
+		</path>
+	</path-list>
+	<gemfire root-region-path="/fi">
+		<gemfire-parent id="grid0" root-region-path="/pado"
+			locators="localhost:20000"></gemfire-parent>
+	</gemfire>
+
+</pado>

@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./start_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-locators]"
+   echo "                [-gateway [gateway server.xml in $ETC_DIR]]] [-pidonly] [-serial] [-?]"
+   echo ""
+   echo "  Starts servers in the specified site."
+   echo ""
+   echo "      -grid      Starts servers in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Starts servers in the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -locators  Restarts locators in addition to servers."
+   echo "      -gateway   Starts gateways. Default: server_gateway.xml if not specified."
+   echo "      -pidonly   Removes cache server pid file (.cacheserver.ser). This option"
+   echo "                 is required if the site is down."
+   echo "      -serial    Starts servers in serial, one at a time. Default starts"
+   echo "                 servers in parallel."
+   echo "      -rebalance Rebalances each server"
+   echo ""
+   echo "   Default: ./start_site -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+#
+# Start locators
+#
+if [ "$LOCATORS" == "true" ]; then
+   # LocatorArray elements:
+   #    array[0] LocatorNumber
+   #    array[1] LocatorHost
+   #    array[2] LocatorPort
+   #    array[3] JmxRmiPort
+   #    array[4] JmxHttpPort
+   setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
+
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      LOCATOR_NUM=${array[0]}
+      if [ "$LOCATOR_NUM" == "" ]; then
+         continue;
+      fi
+      LOCATOR_HOST=${array[1]}
+      ssh -q -n $SSH_USER@$LOCATOR_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_locator_local -num $LOCATOR_NUM -grid ${GRID} -site ${SITE}; "
+   done
+   sleep 5
+fi
+
+# 
+# Start servers
+#
+
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+#   array[5] IsGateWay
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+do
+   line="${LineArray[$i]}"
+   array=($line)
+   SERVER_NUM=${array[0]}
+   if [ "$SERVER_NUM" == "" ]; then
+      continue;
+   fi
+   SERVER_HOST=${array[1]}
+   IS_GATEWAY=${array[5]}
+   if [ "$IS_GATEWAY" == "true" ]; then
+      if [ "$PARALLEL" == "true" ]; then
+         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh;
+    	      ./start_server_local -num $SERVER_NUM -grid ${GRID} -site ${SITE} -gateway $GATEWAY_XML_FILE $REBLANCE;" &
+      else 
+         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh;
+              ./start_server_local -num $SERVER_NUM -grid ${GRID} -site ${SITE} -gateway $GATEWAY_XML_FILE $REBLANCE;"
+      fi
+   else
+      if [ "$PARALLEL" == "true" ]; then
+         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;" &
+      else
+         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;"
+      fi
+   fi
+done
+disown -a -r

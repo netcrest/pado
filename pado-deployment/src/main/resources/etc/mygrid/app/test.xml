@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+
+<cache>
+	<!-- Default pool for index matrix -->
+	<pool name="index" read-timeout="60000">
+		<locator port="20000" host="localhost" />
+	</pool>
+	<pool name="test-pool" read-timeout="60000">
+		<locator port="20000" host="localhost"/>
+	</pool>
+	<region name="payload">
+		<region-attributes scope="local" data-policy="empty"
+			pool-name="test-pool">
+		</region-attributes>
+	</region>
+	<region name="payload_pdx">
+		<region-attributes scope="local" data-policy="empty"
+			pool-name="test-pool">
+		</region-attributes>
+	</region>
+
+	<region name="trade">
+		<region-attributes scope="local" data-policy="empty"
+			pool-name="test-pool">
+		</region-attributes>
+	</region>
+	
+	<region name="mygrid">
+		<region name="test1">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="test-pool">
+			</region-attributes>
+		</region>
+		<region name="test2">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="test-pool">
+			</region-attributes>
+		</region>
+		<region name="test3">
+			<region-attributes scope="local" data-policy="empty"
+				pool-name="test-pool">
+			</region-attributes>
+		</region>
+	</region>
+	
+
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

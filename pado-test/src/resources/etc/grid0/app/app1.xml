@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+  
+<cache>
+
+	<region-attributes id="grid1" data-policy="empty"
+		scope="local" pool-name="grid1-pool" />
+	<region-attributes id="grid2" data-policy="empty"
+		scope="local" pool-name="grid2-pool" />
+
+	<!-- grid1 -->
+	<region name="risk">
+
+		<region name="test">
+			<region-attributes refid="grid1" />
+		</region>
+
+	</region>
+
+	<!-- grid2 -->
+	<region name="equity">
+
+		<region name="test">
+			<region-attributes refid="grid2" />
+		</region>
+		<region name="counterLock">
+			<region-attributes refid="grid2" />
+		</region>
+		<region name="counter">
+			<region-attributes refid="grid2" />
+		</region>
+
+	</region>
+
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

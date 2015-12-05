@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="mock" location="us">
+	
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="optimus">
+				<grid id="optimus" routing-weight="1">
+					<description>Optimus parent</description>
+				</grid>
+				<grid id="mock" routing-weight="1">
+					<description>Contains mock portfolio data</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="mock">
+				<grid id="mock" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>mock example</description>
+			</grid-list>
+		</app>
+	</app-list>
+	
+	<path-list>
+		<path name="account" temporal-enabled="true" key-class-name="String" grids="mock"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="account_detail" temporal-enabled="true" key-class-name="String" grids="mock"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="bank" temporal-enabled="true" key-class-name="String" grids="mock"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="portfolio" temporal-enabled="true" key-class-name="String" grids="mock"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="position" temporal-enabled="true" key-class-name="String" grids="mock"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="temporal" temporal-enabled="true" key-class-name="String" grids="mock"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+	</path-list>
+	
+	<gemfire root-region-path="/mock" locators="localhost:21000"
+		init-delay="0" grid-info-update-delay="0" grid-info-update-interval="600000"
+		shared-pool-name="mock-pool-shared">
+		<!-- detach from the parent
+		<gemfire-parent id="optimus" root-region-path="/optimus" locators="localhost:20000"></gemfire-parent>
+		-->
+		<gemfire-client locators="localhost:21000"></gemfire-client>
+	</gemfire>
+
+</pado>

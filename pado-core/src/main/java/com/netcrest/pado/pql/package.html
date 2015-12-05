@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Pado utility</title>
+</head>
+<body>
+	This package contains PQL (Pado Query Language) specific classes.
+	Please note the following virtual path limitations.
+	<ul>
+		<li>The VP current release supports only JsonLite objects.</li>
+		<li>Query result set reference must be of a previous query result
+			set. For example, a reference to ${1} is not supported in the first
+			two queries of the example below.</li>
+		<li>Only the AND operator is supported when joining queries. The
+			second query in the example below has an AND operator to reference
+			${0} fields. The current VP release does not support other operators
+			such as OR, NOT, +, and -.</li>
+		<li>Virtual path joins are equivalent to inner joins with support
+			for distinct field names. Each query result set is merged with the
+			previous result set upon field matches. If the same field name exists
+			between result sets then the latter always overwrites the former.</li>
+	</ul>
+	<b>Virtual Path Example:</b>
+	<pre>
+	{
+	   "VirtualPath": "vp/portfolio",
+	   "Input": "String",
+	   "InputDescription": "Any personal information",
+	   "Query": ["person?${Input}",
+	             "account?LastName:(${0}.LastName AND State:${0}.State)",
+	             "portfolio?$AccountNumber:${1}.AccountNumber"],
+	   "QueryDescription": "Portfolios of people who have the same last name and live in the same state",
+	   "Distinct": true,
+	   "Reference": {
+	      "LastName": {
+	         "Query": "${0}.LastName"
+	      },
+	      "FirstName": {
+	         "Query": "${0}.FirstName"
+	      },
+	      "AccountNumber": {
+	         "Query": "${0}.AccountNumber"
+	      },
+	      "PortfolioName": {
+	         "Query": "${2}.Name"
+	      },
+	      "PortfolioId": {
+	         "Query": "${2}.Id"
+	      },
+	      "Positions": {
+	         "Query": "${2}.Positions"
+	      },
+	      "State": {
+	         "Query": "${0}.State"
+	      }
+	   }
+	}
+	</pre>
+</body>
+</html>

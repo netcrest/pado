@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="mygrid" location="us">
+	
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="mygrid">
+				<grid id="mygrid" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="mygrid">
+				<grid id="mygrid" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>mygrid example</description>
+			</grid-list>
+		</app>
+	</app-list>
+	
+	<path-list>
+		<path name="account" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="account_detail" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="bank" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="portfolio" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="position" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+		<path name="temporal" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+		</path>
+
+		<path name="trade" refid="partition" temporal-enabled="true" lucene-enabled="true"/>
+		<path name="nontemporal" refid="partition" />
+		<path name="test1" refid="partition" />
+		<path name="test2" refid="partition" />
+		<path name="test3" refid="partition" />
+		<path name="echo" refid="partition" />
+		<path name="echo2" refid="partition" />
+		<path name="authorization" refid="partition" />
+		<path name="customer" refid="partition" />
+		<path name="test" refid="replicate">
+			<path name="replicated" refid="replicate"/>
+			<path name="partitioned" refid="partition"/>
+		</path>
+	</path-list>
+	
+	<gemfire root-region-path="/mygrid">
+		<dqueue name="order" type="server">
+		<listener>
+			<bean class-name="com.netcrest.pado.test.junit.server.DQueueOrderListener"></bean>
+		</listener>
+		<filter>
+			<bean class-name="com.netcrest.pado.test.junit.server.DQueueOrderFilter"></bean>
+		</filter>
+		</dqueue>
+	</gemfire>
+
+</pado>

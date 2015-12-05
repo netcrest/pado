@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   restart_locator [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-kill] [-?]"
+   echo ""
+   echo "  Restarts a locator by first stopping or killing the running locator in the"
+   echo "  specified grid and site."
+   echo ""
+   echo "      <locator number> Locator number 1-99 ($GRID-$SITE: `getLocatorNumberRange`)"
+   echo "      -grid      Restarts the specified locator in the specified grid."
+   echo "                 Default: ${GRID_DEFAULT}"
+   echo "      -site      Restarts the specified locator in the specified site."
+   echo "                 Default: ${SITE_DEFAULT}"
+   echo "      -kill      Kills the locator before restarting it."
+   echo "                 The kill command is faster than the stop command"
+   echo "                 but at the expense of possible loss or corruption"
+   echo "                 of data."
+   echo ""
+   echo "   Default: ./restart_locator -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+if [ "$KILL" == "true" ]; then
+   $BASE_DIR/bin_sh/kill_locator $*;$BASE_DIR/bin_sh/clean_locator $*;sleep 3;$BASE_DIR/bin_sh/start_locator $*
+else
+   $BASE_DIR/bin_sh/stop_locator $*;$BASE_DIR/bin_sh/clean_locator $*;$BASE_DIR/bin_sh/start_locator $*
+fi
+

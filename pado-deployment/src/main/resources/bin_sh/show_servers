@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   show_servers [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Shows server port configuration defined in the following file for"
+   echo "  the specified grid and site:"
+   echo "     ${GRIDS_DIR}/${GRID}/server_${SITE}.sh"
+   echo ""
+   echo "      -grid      Shows the servers in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Shows the servers in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: show_servers -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+#   array[5] IsGateway
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+# Display the current configuration
+echo ""
+echo "Server Settings"
+echo "==============="
+echo ""
+echo "Server |                    | Server| Debug | Jmx   | Is"
+echo "Number | ServerHost         | Port  | Port  | Port  | Gateway"
+echo "------ | ------------------ | ----- | ----- | ----- | -------"
+for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+do
+   line="${LineArray[$i]}"
+   array=($line)
+   SERVER_NUM=${array[0]}
+   if [ "$SERVER_NUM" == "" ]; then
+      continue;
+   fi
+   SERVER_HOST=${array[1]}
+   SERVER_PORT=${array[2]}
+   DEBUG_PORT=${array[3]}
+   JMX_PORT=${array[4]}
+   IS_GATEWAY=${array[5]}
+   echo "$SERVER_NUM  $SERVER_HOST	$SERVER_PORT	$DEBUG_PORT	$JMX_PORT	$IS_GATEWAY" 
+done
+echo ""

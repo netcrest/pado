@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+<!-- 
+		- Unit is msec for both recovery-delay and start-recovery-delay. 
+	    - recovery-delay: when a member left. Default: -1
+	    - start-recovery-delay: when the member joined. Default: 0
+		- Do not restore redundancy after a member fails or after a new member 
+		  joins, until a rebalance is invoked. 
+		  Solution: recovery-delay="-1" startup-recovery-delay="-1" 
+		- The buckets are unevenly balanced, i.e., some buckets have more data
+		  than others therefore one VM has much more data than others. 
+		  Solution: Invoke rebalance to mix large buckets with small buckets. 
+		- For each partitioned region, the rebalancing operation always performs 
+		  these steps: 
+			1. Restores redundancy by creating copies of any low redundancy 
+			   buckets on the partitions that are storing the least amount of
+			   data. 
+			2. Rebalances partitions to average out the amount of data on each
+			   member. 
+		- Use local-max-memory to control the amount of memory each VM will 
+		  allow for the partitioned region. Default is 90% of the max heap size. 
+		  This means the higher max heap size will receive more data. 
+	-->
+
+	<!-- <async-event-queue id="lucene-queue" parallel="true"
+		batch-size="100" batch-time-interval="1000">
+		<async-event-listener>
+			<class-name>com.netcrest.pado.index.gemfire.lucene.TemporalAsyncEventListenerImpl</class-name>
+		</async-event-listener>
+	</async-event-queue> -->
+
+	<disk-store name="cache-store" max-oplog-size="256" compaction-threshold="80" auto-compact="true">
+		<disk-dirs>
+			<disk-dir>${DISK_STORE_DIR}/cache</disk-dir>
+		</disk-dirs>
+	</disk-store>
+
+	<!-- Temporal regions must be partitioned regions -->
+	<!-- 
+		Partitioned regions should be configured as folllows:
+		<partition-attributes redundant-copies="1" startup-recovery-delay="-1" recovery-delay="0" />
+		
+		Note that if redundant-copies="0" then recovery attributes have no effects.
+		In that case, you would need to rely on persistent regions to recover data.
+		When you restart the crashed server, it will recover data from the persistent files.
+		If you have build-lucene-index="true" in pado.xml (default: false), then Lucene indexes will be
+		rebuilt upon restart. If not, you would need to execute the 'temporal -lucene' command
+		in PadoShell.
+	 -->
+	
+	
+	<!-- <region-attributes id="temporal" data-policy="partition" async-event-queue-ids="lucene-queue"> 
+		</region-attributes> -->
+	<region-attributes id="partition" data-policy="partition">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="40" startup-recovery-delay="-1" recovery-delay="0" >
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="persistent-partition" data-policy="persistent-partition"
+		disk-store-name="cache-store">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="40" startup-recovery-delay="-1" recovery-delay="0" >
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="composite-coloated" data-policy="persistent-partition">
+		<partition-attributes redundant-copies="1"
+			total-num-buckets="40" colocated-with="/go/order/composite" startup-recovery-delay="-1" recovery-delay="0" >
+		</partition-attributes>
+	</region-attributes>
+	<region-attributes id="dynamic-queue" data-policy="partition"
+		async-event-queue-ids="lucene-queue">
+	</region-attributes>
+
+	<region name="go">
+		<region name="test">
+			<region-attributes refid="partition">
+			</region-attributes>
+		</region>
+	</region>
+
+	<!--resource-manager critical-heap-percentage="90" / -->
+	<!-- <resource-manager critical-heap-percentage="95" eviction-heap-percentage="70" 
+		/> -->
+
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+</cache>

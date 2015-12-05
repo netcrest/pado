@@ -1,0 +1,49 @@
+Netcrest Pado Open Source Licenses
+==================================
+
+Open Source Licenses
+--------------------
+
+The following lists open source components distributed with this software product. Please see their respective license files found in the license directory.
+
+Apache License, V2.0
+
+   commons-cli-1.2.jar
+   commons-codec-1.9.jar		
+   guava-r08.jar			
+   joda-time-2.9.1.jar		
+   lucene-analyzers-common-4.7.2.jar
+   lucene-codecs-4.7.2.jar
+   lucene-core-4.7.2.jar
+   lucene-queries-4.7.2.jar
+   lucene-queryparser-4.7.2.jar
+   lucene-sandbox-4.7.2.jar
+
+BSD-2 LICENSE
+   jline-2.13.jar
+
+Eclipse Public License - v 1.0
+   junit-4.11.jar			
+
+MIT LICENSE
+   slf4j-api-1.6.1.jar
+
+MOZILLA PUBLIC LICENSE - V 1.1
+   javassist-3.12.1.GA.jar		
+
+WTFPL License
+   reflections-0.9.5.jar
+
+Commercial Licenses
+-------------------
+
+Pado supports the commercial product(s) listed below. Each product may have their respective licensing terms and trade marks. These products are not part of the Pado distribution and must be separately installed with valid licensing agreements from the repective vendors.
+
+   Pivotal (TM) GemFire(R) 
+
+Vendor Add-ons
+--------------
+
+Pado includes the following vendor add-ons that are also available from their respective vendors in the form of binary and/or source code. Some of the add-ons may have been modified by Netcrest to include bug fixes and enhancements.
+
+   Pivotal GemFire gfdqueue - A GemFire add-on for creating distributed queues that can act as server-side message dispatchers or client-side fetchers.

@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   kill_locator [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "   Kills a remote locator in the specified site of the specified grid."
+   echo ""
+   echo "      <locator number> Locator number 1-99 ($GRID-$SITE: `getLocatorNumberRange`)"
+   echo "      -grid      Stops the locator in the specified grid. Default: $GRID_DEFAULT"
+   echo "      -site      Stops the locator in the specified site. Default: $SITE_DEFAULT"
+   echo ""
+   echo "   Default: kill_locator -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+#
+# Target host
+#
+# LocatorArray elements:
+#    array[0] LocatorNumber
+#    array[1] LocatorHost
+#    array[2] LocatorPort
+#    array[3] JmxRmiPort
+#    array[4] JmxHttpPort
+setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
+line="${LineArray[$SERVER_NUM_NO_LEADING_ZERO]}"
+array=($line)
+LOCATOR_ADDRESS=${array[1]}
+
+if [ "$LOCATOR_ADDRESS" == "" ]; then
+   echo "Invalid locator number. Please enter the locator number and its host address in"
+   echo "   ${GRIDS_DIR}/${GRID}/locator_${SITE}.sh"
+   echo ""
+else
+   ssh -q -n $SSH_USER@$LOCATOR_ADDRESS "cd $REMOTE_BASE_DIR/bin_sh; ./kill_locator_local $*;"
+fi

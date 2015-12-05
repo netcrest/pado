@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 7.0//EN"
+  "http://www.gemstone.com/dtd/cache7_0.dtd">
+
+<cache>
+
+	<!-- <async-event-queue id="lucene-queue" persistent="true"
+		batch-size="1000" batch-time-interval="1000" disk-store-name="disk-store"
+		parallel="true">
+		<async-event-listener>
+			<class-name>com.netcrest.pado.index.gemfire.lucene.TemporalAsyncEventListenerImpl</class-name>
+		</async-event-listener>
+	</async-event-queue> -->
+	<disk-store name="disk-store" max-oplog-size="1024"
+		time-interval="60000" queue-size="50">
+		<disk-dirs>
+			<disk-dir>store</disk-dir>
+		</disk-dirs>
+	</disk-store>
+	<pdx disk-store-name="disk-store" persistent="true"
+		read-serialized="true" />
+
+	<!-- Temporal regions must be partitioned regions -->
+	<!-- <region-attributes id="temporal" data-policy="partition" async-event-queue-ids="lucene-queue">
+	</region-attributes> -->
+	<region-attributes id="temporal" data-policy="partition">
+	</region-attributes>
+
+	<!-- mygrid -->
+	<region name="mygrid">
+
+		<!-- The "account" region is a temporal region. Note that due to a GemFire 
+			limitation, every temporal region must separately register IdentityKeyPartitionResolver, 
+			PartitionListenerImpl and TemporalCacheListener. Do NOT use refid to register 
+			them. Note that if TemporalCacheListener is not registered, it is automatically 
+			registered by Pado during startup only if the grid path is configured with 
+			the "temporal" attribute set in pado.xml. -->
+		<region name="account">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="bank">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/mygrid/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="portfolio">
+			<region-attributes refid="temporal">
+				<partition-attributes colocated-with="/mygrid/account"
+					redundant-copies="1" total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+		<region name="position">
+			<region-attributes refid="temporal">
+				<partition-attributes colocated-with="/mygrid/account"
+					redundant-copies="1" total-num-buckets="20">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+				<cache-listener>
+					<class-name>
+						com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener
+					</class-name>
+				</cache-listener>
+			</region-attributes>
+		</region>
+
+		<!-- For the "temporal" region, TemporalCacheListner is intentionally left 
+			out to demonstrate that it is registered via pado.xml. Note that only cache 
+			listeners can be added to the existing regions. This is a GemFire limitation. -->
+		<region name="temporal">
+			<region-attributes refid="temporal">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20" colocated-with="/mygrid/account">
+					<partition-resolver>
+						<class-name>
+							com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver
+						</class-name>
+					</partition-resolver>
+					<!-- PartitionListener used for recovery and rebalancing -->
+					<partition-listener>
+						<class-name>com.netcrest.pado.temporal.gemfire.impl.PartitionListenerImpl</class-name>
+					</partition-listener>
+				</partition-attributes>
+			</region-attributes>
+		</region>
+		<region name="nontemporal">
+			<region-attributes data-policy="partition">
+				<partition-attributes redundant-copies="1"
+					total-num-buckets="20">
+				</partition-attributes>
+			</region-attributes>
+		</region>
+
+		<!-- The "test" region is a non-temporal region. -->
+		<region name="test">
+			<region name="replicated">
+				<region-attributes data-policy="replicate">
+				</region-attributes>
+			</region>
+			<region name="partitioned">
+				<region-attributes data-policy="partition">
+					<partition-attributes total-num-buckets="20"
+						redundant-copies="1" />
+				</region-attributes>
+			</region>
+		</region>
+		<region name="test1">
+			<region-attributes data-policy="partition">
+				<partition-attributes redundant-copies="1" />
+			</region-attributes>
+		</region>
+		<region name="test2">
+			<region-attributes data-policy="partition">
+				<partition-attributes redundant-copies="1" />
+			</region-attributes>
+		</region>
+		<region name="test3">
+			<region-attributes data-policy="partition">
+				<partition-attributes redundant-copies="1" />
+			</region-attributes>
+		</region>
+		<region name="echo">
+			<region-attributes data-policy="partition" />
+		</region>
+		<region name="echo2">
+			<region-attributes data-policy="partition" />
+		</region>
+		<region name="symbol">
+			<region-attributes data-policy="replicate">
+			</region-attributes>
+		</region>
+		<region name="authorization">
+			<region-attributes data-policy="partition">
+				<partition-attributes total-num-buckets="20"
+					redundant-copies="1" />
+			</region-attributes>
+		</region>
+		<region name="customer">
+			<region-attributes data-policy="partition">
+				<partition-attributes total-num-buckets="20"
+					redundant-copies="1" />
+			</region-attributes>
+		</region>
+	</region>
+
+	<!--resource-manager critical-heap-percentage="90" / -->
+	<resource-manager critical-heap-percentage="90"
+		eviction-heap-percentage="70" />
+
+	<!-- Pado initializer -->
+	<initializer>
+		<!-- Initialize VM as a pado -->
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoServerInitializer</class-name>
+	</initializer>
+
+
+</cache>
+

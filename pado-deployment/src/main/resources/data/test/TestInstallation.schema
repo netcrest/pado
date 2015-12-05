@@ -1,0 +1,26 @@
+GridPath=tmp/temporal
+IsKeyColumns=true
+KeyClass=java.lang.String
+ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
+Delimiter=,
+FileLoaderClass=com.netcrest.pado.biz.file.CsvFileLoader
+BatchSize=5000
+DateFormat=yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+IsCaseSensitive=true
+StartRow=2
+IsTemporal=true
+
+#
+# Schema Definition
+#
+Key, java.lang.String, Primary
+StartValidTime, Date, Temporal
+EndValidTime, Date, Temporal
+WrittenTime, Date, Temporal
+Username, String, Temporal
+Company, java.lang.String
+Country, java.lang.String
+GICS, java.lang.Integer
+Price, java.lang.Double
+Sector, java.lang.String
+Symbol, java.lang.String

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+
+<cache>
+	<!-- Default pool for index matrix -->
+	<pool name="index" read-timeout="60000">
+		<locator port="23000" host="localhost" />
+	</pool>
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

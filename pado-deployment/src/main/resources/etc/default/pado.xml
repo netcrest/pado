@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="pado" location="earth">
+	
+	<!-- Define apps -->
+	<app-list>
+	</app-list>
+	
+	<!-- Define grid paths -->
+	<path-list>
+	</path-list>
+	
+	<!--  Define GemFire specifics -->
+	<gemfire>
+	</gemfire>
+
+</pado>

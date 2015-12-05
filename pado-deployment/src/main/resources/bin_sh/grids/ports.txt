@@ -1,0 +1,58 @@
+Each grid has prefixes assigned for server and debugging port numbers as shown below. The servers begin with the port suffix 01 in each in each grid. For example, mygrid is configured to start two servers with server port numbers 20001 and 20002. The debugging port numbers are 10001 and 10002. Note that mygrid and grid0 are assigned the same prefixes and therefore they must not run on the same machine. mygrid is configured to run as a stand-alone grid without child grids. grid0 is configured to run as a parent grid to grid1-grid5.
+
+Servers
+-------
+             us  uk  jp
+             --- --- ---
+mygrid:      200 201 202
+mygrid_ssl:  200 201 202
+
+mock:        210 211 212
+
+grid0:       200 201 202
+grid1:       210 211 212
+grid2:       220 221 222
+grid3:       230 231 232
+grid4:       240 241 242
+grid5:       250 251 252
+
+wan:         200 201 202
+wan_ssl:     200 201 202
+
+Debug
+-----
+             us  uk  jp
+             --- --- ---
+mygrid:      100 101 102
+mygrid_ssl:  100 101 102
+
+mock:        110 111 112
+
+grid0:       100 101 102
+grid1:       110 111 112
+grid2:       120 121 122
+grid3:       130 131 132
+grid4:       140 141 142
+grid5:       150 151 152
+
+wan:         100 101 102
+wan_ssl:     100 101 102
+
+JMX
+---
+             us  uk  jp
+             --- --- ---
+mygrid:      300 301 302
+mygrid_ssl:  300 301 302
+
+mock:        310 311 312
+
+grid0:       300 301 302
+grid1:       310 311 312
+grid2:       320 321 322
+grid3:       330 331 332
+grid4:       340 341 342
+grid5:       350 351 352
+
+wan:         300 301 302
+wan_ssl:     300 301 302

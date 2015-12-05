@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./restart_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-locators]"
+   echo "                  [-gateway [gateway server.xml in $ETC_DIR]]] [-serial] [-kill] [-persist] [-?]"
+   echo ""
+   echo "  Restarts servers by first stopping or killing all servers in the"
+   echo "  specified site."
+   echo ""
+   echo "      -grid      Restarts the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Restarts the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -locators  Restarts locators in addition to servers."
+   echo "      -gateway   Restarts gateways. Default: server_gateway.xml if not specified."
+   echo "      -serial    Restarts servers in serial, one at a time. Default restarts"
+   echo "                 servers in parallel."
+   echo "      -rebalance Rebalances each server"
+   echo "      -kill      Kills servers/locators before restarting them."
+   echo "                 The kill command is faster than the stop command"
+   echo "                 but at the expense of possible loss or corruption"
+   echo "                 of data."
+   echo "      -persist   Removes all server persistent files if any."
+   echo ""
+   echo "   Default: ./restart_site -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+if [ "$KILL" == "true" ]; then
+   $BASE_DIR/bin_sh/kill_site $*;$BASE_DIR/bin_sh/clean_site $*;sleep 3;$BASE_DIR/bin_sh/start_site $*
+else
+   $BASE_DIR/bin_sh/stop_site $*;$BASE_DIR/bin_sh/clean_site -pid $*;$BASE_DIR/bin_sh/start_site $*
+fi
+

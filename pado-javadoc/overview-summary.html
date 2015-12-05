@@ -1,0 +1,352 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns:m="http://schemas.microsoft.com/office/2004/12/omml"
+xmlns:mv="http://macVmlSchemaUri" xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+
+<body>
+
+<h1>Introduction </h1>
+
+<p class="MsoNormal">Pado API is driven primary by two (2) components: <span style='font-family:"Courier New"'>Pado</span> and <span style='font-family:
+"Courier New"'>IBiz</span>. <span style='font-family:"Courier New"'>Pado</span>
+provides login and catalog services. Upon successful login, the <span style='font-family:"Courier New"'>Pado</span> instance provides the <span style='font-family:"Courier New"'>IBiz</span> catalog, which in turn provides a
+list of <span style='font-family:"Courier New"'>IBiz</span> classes that are
+tailored to the application and the user. From the catalog, the application
+instantiates <span style='font-family:"Courier New"'>IBiz</span> classes, which
+provide access to distributed data and services across federated grids. The
+following code snippet shows three example steps to creating an <span style='font-family:"Courier New"'>IBiz</span> object.</p>
+
+<pre><font color="green">// 1. Connect to the parent grid which is responsible for federating child grids.</font>
+Pado.connect(<font color="blue">locahost:20000"</font>);
+<p>
+<font color="green">// 2. Login to Pado to obtain an instance of Pado, which provides user session service.</font>
+IPado pado = Pado.login("<font color="blue">app-id</font>", "<font color="blue">domain-name</font>", "<font color="blue">user-name</font>", "<font color="blue">password</font>".toCharArray());
+<p>
+<font color="green">// 3. Instantiate an IBiz class, which provides access to the federated grids.</font>
+ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "<font color="green">grid-path</font>");
+</pre>
+
+<p class="MsoNormal">The first two lines of code is typically done only once at
+the login time. Once a <span style='font-family:"Courier New"'>Pado</span>
+instance is obtained, it is used throughout the login session. <span style='font-family:"Courier New"'>IBiz</span> objects act like  normal objects
+with methods that perform business specific operations translating to
+invocations of remote methods spanning one or more federated grids.</p>
+
+<img src="./pado-login.png" alt="Pado Login">
+
+<h1>Pado Core API</h1>
+
+<p class="MsoNormal">Pado is equipped with a simple API for creating and
+accessing grid data services centered on <span style="font-family:Courier">IBiz</span>.
+The API separates client and server as follows.</p>
+
+<h2>Client API </h2>
+
+<p class="MsoNormal">The client API is <span class="GramE">essentially <span style="font-family:Courier">IBiz</span> objects</span>, which are obtained upon
+successful login. The following lists the core classes used by client
+applications.</p>
+
+<table class="MsoTableLightListAccent1" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
+ mso-yfti-tbllook:1184;mso-padding-alt:0in 5.4pt 0in 5.4pt;mso-border-insideh:
+ .5pt solid windowtext;mso-border-insidev:.5pt solid windowtext; width: 669px;">
+ <tr style="mso-yfti-irow:-1;mso-yfti-firstrow:yes">
+  <td width="78" valign="top" style="width:77.65pt;border:solid windowtext 1.0pt;
+  mso-border-alt:solid windowtext .5pt;background:#4F81BD;mso-background-themecolor:
+  accent1;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:5"><b><span style="color:white;
+  mso-themecolor:background1">Client Classes<o:p></o:p></span></b></p>
+  </td>
+  <td width="277" valign="top" style="width:277.35pt;border:solid windowtext 1.0pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
+  solid windowtext .5pt;background:#4F81BD;mso-background-themecolor:accent1;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:1"><b><span style="color:white;
+  mso-themecolor:background1">API<o:p></o:p></span></b></p>
+  </td>
+  <td width="158" valign="top" style="width:157.5pt;border:solid windowtext 1.0pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
+  solid windowtext .5pt;background:#4F81BD;mso-background-themecolor:accent1;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:1"><b><span style="color:white;
+  mso-themecolor:background1">Description<o:p></o:p></span></b></p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:0">
+  <td width="78" valign="top" style="width:77.65pt;border-top:none;border-left:
+  solid #4F81BD 1.0pt;mso-border-left-themecolor:accent1;border-bottom:solid #4F81BD 1.0pt;
+  mso-border-bottom-themecolor:accent1;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid #4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-alt:solid #4F81BD 1.0pt;mso-border-themecolor:accent1;mso-border-right-alt:
+  solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:68"><b><span style="font-family:Courier">Pado<o:p></o:p></span></b></p>
+  </td>
+  <td width="277" valign="top" style="width:277.35pt;border-top:none;border-left:
+  none;border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
+  border-right:solid windowtext 1.0pt;mso-border-top-alt:solid #4F81BD 1.0pt;
+  mso-border-top-themecolor:accent1;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-top-alt:#4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-left-alt:windowtext .5pt;mso-border-bottom-alt:#4F81BD 1.0pt;
+  mso-border-bottom-themecolor:accent1;mso-border-right-alt:windowtext .5pt;
+  mso-border-style-alt:solid;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:64"><span class="SpellE"><span class="GramE"><span style="font-family:Courier">Pado.connect</span></span></span><span class="GramE"><span style="font-family:Courier">(</span></span><span style="font-family:Courier">...);<o:p></o:p></span></p>
+  </td>
+  <td width="158" valign="top" style="width:157.5pt;border-top:none;border-left:
+  none;border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
+  border-right:solid #4F81BD 1.0pt;mso-border-right-themecolor:accent1;
+  mso-border-top-alt:solid #4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:64">A singleton class to make initial
+  connection and to login users.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:1">
+  <td width="78" valign="top" style="width:77.65pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:4"><span class="SpellE"><b><span style="font-family:Courier">IPado</span></b></span><b><span style="font-family:
+  Courier"><o:p></o:p></span></b></p>
+  </td>
+  <td width="277" valign="top" style="width:277.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><span style="font-family:Courier">IPado</span></span><span style="font-family:Courier"> <span class="SpellE">pado</span> = <span class="SpellE"><span class="GramE">Pado.login</span></span><span class="GramE">(</span>...);<o:p></o:p></span></p>
+  </td>
+  <td width="158" valign="top" style="width:157.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal">A user session instance. It provides the IBiz catalog specific
+  to the app specified during login.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:2">
+  <td width="78" valign="top" style="width:77.65pt;border-top:none;border-left:
+  solid #4F81BD 1.0pt;mso-border-left-themecolor:accent1;border-bottom:solid #4F81BD 1.0pt;
+  mso-border-bottom-themecolor:accent1;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid #4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-alt:solid #4F81BD 1.0pt;mso-border-themecolor:accent1;mso-border-right-alt:
+  solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:68"><span class="SpellE"><b><span style="font-family:Courier">ICatalog</span></b></span><b><span style="font-family:Courier"><o:p></o:p></span></b></p>
+  </td>
+  <td width="277" valign="top" style="width:277.35pt;border-top:none;border-left:
+  none;border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
+  border-right:solid windowtext 1.0pt;mso-border-top-alt:solid #4F81BD 1.0pt;
+  mso-border-top-themecolor:accent1;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-top-alt:#4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-left-alt:windowtext .5pt;mso-border-bottom-alt:#4F81BD 1.0pt;
+  mso-border-bottom-themecolor:accent1;mso-border-right-alt:windowtext .5pt;
+  mso-border-style-alt:solid;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:64"><span class="SpellE"><span style="font-family:Courier">ICatalog</span></span><span style="font-family:
+  Courier"> catalog = <span class="SpellE">pado</span> = <span class="SpellE"><span class="GramE">pado.getCatalog</span></span><span class="GramE">(</span>);<o:p></o:p></span></p>
+  </td>
+  <td width="158" valign="top" style="width:157.5pt;border-top:none;border-left:
+  none;border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
+  border-right:solid #4F81BD 1.0pt;mso-border-right-themecolor:accent1;
+  mso-border-top-alt:solid #4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:64">IBiz catalog.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:3">
+  <td width="78" valign="top" style="width:77.65pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:4"><b><span style="font-family:Courier">IBiz<o:p></o:p></span></b></p>
+  </td>
+  <td width="277" valign="top" style="width:277.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span style="font-family:Courier">IBiz biz = <span class="SpellE"><span class="GramE">catalog.newInstance</span></span><span class="GramE">(</span>...);<o:p></o:p></span></p>
+  </td>
+  <td width="158" valign="top" style="width:157.5pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal">IBiz object for accessing grid data and services.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:4;mso-yfti-lastrow:yes">
+  <td width="78" valign="top" style="width:77.65pt;border-top:none;border-left:
+  solid #4F81BD 1.0pt;mso-border-left-themecolor:accent1;border-bottom:solid #4F81BD 1.0pt;
+  mso-border-bottom-themecolor:accent1;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid #4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-alt:solid #4F81BD 1.0pt;mso-border-themecolor:accent1;mso-border-right-alt:
+  solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:68"><b><span style="font-family:Courier">Logger<o:p></o:p></span></b></p>
+  </td>
+  <td width="277" valign="top" style="width:277.35pt;border-top:none;border-left:
+  none;border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
+  border-right:solid windowtext 1.0pt;mso-border-top-alt:solid #4F81BD 1.0pt;
+  mso-border-top-themecolor:accent1;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-top-alt:#4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-left-alt:windowtext .5pt;mso-border-bottom-alt:#4F81BD 1.0pt;
+  mso-border-bottom-themecolor:accent1;mso-border-right-alt:windowtext .5pt;
+  mso-border-style-alt:solid;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:64"><span class="SpellE"><span class="GramE"><span style="font-family:Courier">Logger.error</span></span></span><span class="GramE"><span style="font-family:Courier">(</span></span><span style="font-family:Courier">...);<o:p></o:p></span></p>
+  </td>
+  <td width="158" valign="top" style="width:157.5pt;border-top:none;border-left:
+  none;border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
+  border-right:solid #4F81BD 1.0pt;mso-border-right-themecolor:accent1;
+  mso-border-top-alt:solid #4F81BD 1.0pt;mso-border-top-themecolor:accent1;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="mso-yfti-cnfc:64">A singleton class to log application
+  warnings, errors, etc.</p>
+  </td>
+ </tr>
+</table>
+
+
+<h2>Server API</h2>
+
+<p class="MsoNormal">The server API is comprised of classes for writing IBiz
+implementation classes. </p>
+
+<table class="MsoNormalTable" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
+ mso-yfti-tbllook:1184;mso-padding-alt:0in 5.4pt 0in 5.4pt;mso-border-insideh:
+ .5pt solid windowtext;mso-border-insidev:.5pt solid windowtext">
+ <tr style="mso-yfti-irow:0;mso-yfti-firstrow:yes">
+  <td width="113" valign="top" style="width:112.8pt;border:solid windowtext 1.0pt;
+  mso-border-alt:solid windowtext .5pt;background:#4F81BD;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><b><span style="color:white;mso-themecolor:background1">Server
+  Classes<o:p></o:p></span></b></p>
+  </td>
+  <td width="233" valign="top" style="width:232.8pt;border:solid windowtext 1.0pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
+  solid windowtext .5pt;background:#4F81BD;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><b><span style="color:white;mso-themecolor:background1">API<o:p></o:p></span></b></p>
+  </td>
+  <td width="169" valign="top" style="width:169.4pt;border:solid windowtext 1.0pt;
+  border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
+  solid windowtext .5pt;background:#4F81BD;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><b><span style="color:white;mso-themecolor:background1">Description<o:p></o:p></span></b></p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:1">
+  <td width="113" valign="top" style="width:112.8pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><b><span style="font-family:Courier">IBiz<o:p></o:p></span></b></p>
+  </td>
+  <td width="233" valign="top" style="width:232.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span style="font-family:Courier">IBiz<o:p></o:p></span></p>
+  </td>
+  <td width="169" valign="top" style="width:169.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal">Each business object interface must extend IBiz and apply
+  proper annotations to its methods.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:2">
+  <td width="113" valign="top" style="width:112.8pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><b><span style="font-family:Courier">IBizLocal</span></b></span><b><span style="font-family:Courier"><o:p></o:p></span></b></p>
+  </td>
+  <td width="233" valign="top" style="width:232.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><span style="font-family:Courier">IBizLocal</span></span><span style="font-family:Courier"><o:p></o:p></span></p>
+  </td>
+  <td width="169" valign="top" style="width:169.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><span style="font-family:Courier">IBizLocal</span></span>
+  implementation classes are executed locally in the application VM. Its use
+  may be local parameter validation, invocation rerouting, filtering results,
+  etc.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:3">
+  <td width="113" valign="top" style="width:112.8pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="GramE"><b><span style="font-family:Courier">annotation</span></b></span><b><span style="font-family:Courier"> classes<o:p></o:p></span></b></p>
+  </td>
+  <td width="233" valign="top" style="width:232.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span style="font-family:Courier">@<span class="SpellE">BizClass</span><o:p></o:p></span></p>
+  <p class="MsoNormal"><span style="font-family:Courier">@<span class="SpellE">BizFuture</span><o:p></o:p></span></p>
+  <p class="MsoNormal"><span style="font-family:Courier">@<span class="SpellE">BizMethod</span><o:p></o:p></span></p>
+  <p class="MsoNormal"><span style="font-family:Courier">@<span class="SpellE">OnPath</span><o:p></o:p></span></p>
+  <p class="MsoNormal"><span style="font-family:Courier">@<span class="SpellE">OnServer</span><o:p></o:p></span></p>
+  <p class="MsoNormal"><span style="font-family:Courier">@<span class="SpellE">GridCollector</span><o:p></o:p></span></p>
+  </td>
+  <td width="169" valign="top" style="width:169.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal">Annotations applied to <span style="font-family:Courier">IBiz</span>
+  and implementation classes.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:4">
+  <td width="113" valign="top" style="width:112.8pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><b><span style="font-family:Courier">IBizContextServer</span></b></span><b><span style="font-family:Courier"><o:p></o:p></span></b></p>
+  </td>
+  <td width="233" valign="top" style="width:232.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span style="font-family:Courier">@Resource <o:p></o:p></span></p>
+  <p class="MsoNormal"><span class="SpellE"><span style="font-family:Courier">IBizContextServer</span></span><span style="font-family:Courier"> <span class="SpellE">bizContext</span>;<o:p></o:p></span></p>
+  </td>
+  <td width="169" valign="top" style="width:169.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE">IBizContextServer</span> is
+  automatically injected to server-side IBiz implementation objects if
+  Resource is specified. It provides context objects such as <span class="SpellE"><span style="font-family:Courier">IGridContextServer</span></span>,
+  <span class="SpellE"><span style="font-family:Courier">IUserContext</span></span>,
+  and <span class="SpellE"><span style="font-family:Courier">IDataContext</span></span>
+  that include permissions and target data information.</p>
+  </td>
+ </tr>
+ <tr style="mso-yfti-irow:5;mso-yfti-lastrow:yes">
+  <td width="113" valign="top" style="width:112.8pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><b><span style="font-family:Courier">PadoServerManager</span></b></span><b><span style="font-family:Courier"><o:p></o:p></span></b></p>
+  </td>
+  <td width="233" valign="top" style="width:232.8pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal"><span class="SpellE"><span class="GramE"><span style="font-family:Courier">PadoServerManager.getServerManager</span></span></span><span class="GramE"><span style="font-family:Courier">(</span></span><span style="font-family:Courier">);<o:p></o:p></span></p>
+  </td>
+  <td width="169" valign="top" style="width:169.4pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal">A singleton class that provides server-side grid
+  information.</p>
+  </td>
+ </tr>
+</table><br>
+
+<p class="MsoNormal"><o:p>&nbsp;</o:p></p>
+
+<pre><o:p>&nbsp;</o:p></pre>
+
+</body>
+
+</html>

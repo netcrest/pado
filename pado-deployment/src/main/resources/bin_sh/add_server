@@ -1,0 +1,238 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh
+. ./all_env.sh 
+. ./argenv.sh
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   add_server [-server <input>] [-start] [-rebalance] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Adds a server in the specified grid and site. This command remotely adds"
+   echo "  a new server by adding a new entry into the following file in all servers:"
+   echo "     ${REMOTE_BASE_DIR}/bin_sh/grids/${GRID}/server_${SITE}.sh"
+   echo ""
+   echo "  It is recommended that the new server should first be installed and ssh"
+   echo "  password-less login has been configured before executing this command"
+   echo "  to avoid server configuration discrepencies that may arise due to manual"
+   echo "  file editing and deployment."
+   echo ""
+   echo "      -server <input> Non-interactively adds a server based on the input."
+   echo "                 The input must conform to the following format:"
+   echo "                    <server number>,<host>,<server port>,<debug port>,<JMX port>,<gateway>[true|false]"
+   echo "                 IMPORTANT: The input must not contain white spaces. See examples below."
+   echo "      -start     If specified, then starts the added server. Note that the new"
+   echo "                 starts empty. You must explicitly rebalance."
+   echo "      -rebalance Rebalances the grid after the new server has been added."
+   echo "                 If this option is not specified then the 'rebalance' command should"
+   echo "                 be explicitly executed to evenly spread the data to all servers." 
+   echo "                 If you are adding more than one server then always wait till the" 
+   echo "                 last server before rebalancing to reduce the system load."
+   echo "      -grid      Adds the server in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Adds the server in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: add_server -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   echo "   Examples:"
+   echo "      The following example non-interactively adds server number 4 on localhost,"
+   echo "      starts the new server, and rebalances all servers. Note the '-server'"
+   echo "      format. Spaces are not allowed."
+   echo "         ./add_server -start -rebalance -server 4,localhost,20004,10004,30004,false"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+#   array[5] IsGateway
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+# Display the current configuration
+. ./show_servers
+
+if [ "$SERVER_SPECIFIED" == "true" ]; then
+
+   IFS_BEFORE=$IFS
+   IFS=','
+   array=( $SERVER ) 
+   IFS=$IFS_BEFORE
+   SERVER_NUM=${array[0]}   
+   SERVER_HOST=${array[1]}   
+   SERVER_PORT=${array[2]}   
+   DEBUG_PORT=${array[3]}   
+   JMX_PORT=${array[4]}   
+   IS_GATEWAY=${array[5]}   
+
+   echo "You have entered the following:"
+   echo "   New server number: $SERVER_NUM"
+   echo "  New server address: $SERVER_HOST"
+   echo "     New server port: $SERVER_PORT"
+   echo "      New debug port: $DEBUG_PORT"
+   echo "        New JMX port: $JMX_PORT"
+   echo "Gateway [true|false]: $IS_GATEWAY"
+
+   if [ "$SERVER_HOST" == "" ] || [ "$SERVER_HOST" == "" ]  || [ "$SERVER_PORT" == "" ] || [ "$DEBUG_PORT" == "" ] || [ "$JMX_PORT" == "" ] || [ "$IS_GATEWAY" == "" ]; then
+      echo "Error: You must specify all values. Aborted."
+      echo ""; exit
+   elif [[ "$(isNumber $SERVER_NUM)" == "false" ]]; then
+      echo "Error: The specified server number $SERVER_NUM is not a number. Aborted."
+      echo ""; exit
+   elif [ "$SERVER_NUM" -le "0" ] || [ "$SERVER_NUM" -ge 100 ]; then
+      echo "Error: Invalid server number $SERVER_NUM. Valid range: [1, 99]. Aborted."
+      echo ""; exit
+   fi
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SN=${array[0]}
+      if [ "$SN" == "" ]; then
+         continue;
+      elif [ "$SN" == "$SERVER_NUM" ]; then
+         echo "Error: The specified server number $SERVER_NUM already exists. Aborted."
+         echo ""; exit
+      fi
+   done
+
+else
+
+   # Build array of defined servers
+   line="${LineArray[$LAST_SERVER_NUM]}"
+   array=($line)
+
+   # Use the last host in the list for default values
+   SERVER_NUM=${array[0]}
+   SERVER_HOST=${array[1]}
+   SERVER_PORT=${array[2]}
+   DEBUG_PORT=${array[3]}
+   JMX_PORT=${array[4]}
+   IS_GATEWAY=${array[5]}
+
+   SERVER_NUM=$NEXT_AVAILABLE_SERVER_NUM
+   REDO=true
+   while [ "$REDO" == "true" ]; do
+      read -p "New server number [$SERVER_NUM]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         SERVER_NUM=$INPUT
+      fi 
+      read -p "New server address [$SERVER_HOST]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         SERVER_HOST=$INPUT
+      fi 
+      read -p "New server port [$SERVER_PORT]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         SERVER_PORT=$INPUT
+      fi 
+      read -p "New debug port [$DEBUG_PORT]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         DEBUG_PORT=$INPUT
+      fi 
+      read -p "New JMX port [$JMX_PORT]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         JMX_PORT=$INPUT
+      fi 
+      read -p "Gateway [true|false] [$IS_GATEWAY]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         IS_GATEWAY=$INPUT
+      fi 
+      echo ""
+      echo "You have entered the following:"
+      echo "   New server number: $SERVER_NUM"
+      echo "  New server address: $SERVER_HOST"
+      echo "     New server port: $SERVER_PORT"
+      echo "      New debug port: $DEBUG_PORT"
+      echo "        New JMX port: $JMX_PORT"
+      echo "Gateway [true|false]: $IS_GATEWAY"
+
+      INNER_LOOP=true
+      if [[ "$(isNumber $SERVER_NUM)" == "false" ]]; then
+         echo "Server number must be a number."
+         SERVER_NUM=
+         INNER_LOOP=false
+      elif [ "$SERVER_NUM" -le "0" ] || [ "$SERVER_NUM" -ge 100 ]; then
+         echo "Invalid server number $SERVER_NUM. Valid range: [1, 99]."
+         SERVER_NUM=
+         INNER_LOOP=false
+      elif [[ "$(isNumber $SERVER_PORT)" == "false" ]]; then
+         echo "Server port must be a number."
+         SERVER_PORT=
+         INNER_LOOP=false
+      elif [[ "$(isNumber $DEBUG_PORT)" == "false" ]]; then
+         echo "Debug port must be a number."
+         DEBUG_PORT=
+         INNER_LOOP=false
+      elif [[ "$(isNumber $JMX_PORT)" == "false" ]]; then
+         echo "JMX port must be a number."
+         JMX_PORT=
+         INNER_LOOP=false
+      elif [ "$IS_GATEWAY" != "true" ] && [ "$IS_GATEWAY" != "false" ]; then
+         echo "Gateway must be true or false."
+         IS_GATEWAY=
+         INNER_LOOP=false
+      fi
+
+      while [ "$INNER_LOOP" == "true" ]; do
+         read -p "Enter 'c' to continue, 'r' to re-enter, 'q' to quit: " INPUT
+         case $INPUT in
+            [Cc]* ) REDO=false; INNER_LOOP=false;;
+            [Rr]* ) REDO=true; INNER_LOOP=false;;
+            [Qq]* ) echo "Aborted."; INNER_LOOP=false; exit;;
+         esac
+      done
+   done
+fi
+
+# Append a new server entry in server_<site>.sh
+echo "$SERVER_NUM $SERVER_HOST $SERVER_PORT $DEBUG_PORT $JMX_PORT $IS_GATEWAY" >> $GRIDS_DIR/$GRID/server_${SITE}.sh
+SERVER_HOSTS=`getServerHosts`
+for i in $SERVER_HOSTS
+do
+   HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+   if [ $HOST_NAME == `hostname` ]; then
+      continue
+   fi
+   scp -q -o stricthostkeychecking=no $GRIDS_DIR/$GRID/server_${SITE}.sh $SSH_USER@$i:$REMOTE_BASE_DIR/bin_sh/grids/$GRID/
+done
+./show_servers
+echo "Successfully added server number $SERVER_NUM."
+
+# Start the new server if '-start' specified.
+if [ "$START" == "true" ]; then
+   . ./restart_server -num $SERVER_NUM -kill -persist $REBALANCE
+else
+   echo ""
+fi
