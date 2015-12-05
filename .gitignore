@@ -1,5 +1,6 @@
 # Maven build folders
 target/
+deploy/
 
 # Ant build folders
 build/
