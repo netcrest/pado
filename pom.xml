@@ -92,24 +92,65 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<finalName>${project.artifactId}</finalName>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	<profiles>
+		<profile>
+			<activation>
+				<property>
+					<name>!javadoc.skip</name>
+				</property>
+			</activation>
+			<build>
+				<finalName>${project.artifactId}</finalName>
+				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.1</version>
+						<configuration>
+							<source>1.7</source>
+							<target>1.7</target>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>bundle-sources</id>
+								<phase>package</phase>
+								<goals>
+									<!-- produce source artifact for main project sources -->
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.10.3</version>
+						<configuration>
+							<finalName>pado_${project.version}</finalName>
+							<aggregate>true</aggregate>
+							<excludePackageNames>
+								com.netcrest.pado.internal.*:com.netcrest.pado.biz.file.*:com.netcrest.pado.biz.gemfire.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.test.*:com.netcrest.pado.biz.impl.*:com.netcrest.pado.biz.mon.impl.*:com.netcrest.pado.biz.server.impl.*:com.netcrest.pado.tools.*:com.netcrest.pado.temporal.biz.impl.*:com.netcrest.pado.temporal.gemfire.*:com.netcrest.pado.temporal.test.*:com.netcrest.pado.data.jsonlite.internal.*:com.netcrest.pado.demo.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.gemfire.util.*:com.gemstone.gemfire.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.context.data.v.*:com.netcrest.pado.biz.server.*:com.netcrest.pado.index:com.netcrest.pado.index.exception:com.netcrest.pado.index.internal.*:com.netcrest.pado.index.gemfire.*:com.netcrest.pado.index.helper.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.index.result.*:com.netcrest.pado.index.service.impl.*
+							</excludePackageNames>
+							<docfilessubdirs>true</docfilessubdirs>
+							<doctitle>Pado API (v${project.version})</doctitle>
+							<header>Pado</header>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
 </project>
 

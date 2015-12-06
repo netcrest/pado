@@ -26,9 +26,4 @@
 			<version>${pado.version}</version>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-		</plugins>
-	</build>
 </project>

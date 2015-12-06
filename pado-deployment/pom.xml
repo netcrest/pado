@@ -99,26 +99,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<!-- Exclude javadoc if property is set -->
-	<profiles>
-		<profile>
-			<id>javadoc</id>
-			<activation>
-				<property>
-					<name>!javadoc.skip</name>
-				</property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>com.netcrest.pado</groupId>
-					<artifactId>pado-javadoc</artifactId>
-					<classifier>javadoc</classifier>
-					<version>${project.version}</version>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
-
 </project>
 

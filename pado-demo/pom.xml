@@ -33,8 +33,19 @@
 		</dependency>
 	</dependencies>
 
-	<build>
+	<!-- <build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<aggregate>true</aggregate>
+					<excludePackageNames>
+						com.netcrest.pado.internal.*:com.netcrest.pado.biz.file.*:com.netcrest.pado.biz.gemfire.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.test.*:com.netcrest.pado.biz.impl.*:com.netcrest.pado.biz.mon.impl.*:com.netcrest.pado.biz.server.impl.*:com.netcrest.pado.tools.*:com.netcrest.pado.temporal.biz.impl.*:com.netcrest.pado.temporal.gemfire.*:com.netcrest.pado.temporal.test.*:com.netcrest.pado.data.jsonlite.internal.*:com.netcrest.pado.demo.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.gemfire.util.*:com.gemstone.gemfire.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.context.data.v.*:com.netcrest.pado.biz.server.*:com.netcrest.pado.index:com.netcrest.pado.index.exception:com.netcrest.pado.index.internal.*:com.netcrest.pado.index.gemfire.*:com.netcrest.pado.index.helper.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.index.result.*:com.netcrest.pado.index.service.impl.*
+					</excludePackageNames>
+				</configuration>
+			</plugin>
 		</plugins>
-	</build>
+	</build> -->
 </project>

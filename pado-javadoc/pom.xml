@@ -24,11 +24,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.netcrest.pado</groupId>
-			<artifactId>pado-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.netcrest.pado</groupId>
 			<artifactId>pado-gemfire</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -52,50 +47,76 @@
 	<!-- exclude javadoc if property is set -->
 	<profiles>
 		<profile>
-			<id>javadoc</id>
-			<activation>
-				<property>
-					<name>!javadoc.skip</name>
-				</property>
-			</activation>
+			<!-- <activation> <property> <name>!javadoc.skip</name> </property> </activation> -->
 			<build>
+				<finalName>${project.artifactId}</finalName>
 				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.1</version>
+						<configuration>
+							<source>1.7</source>
+							<target>1.7</target>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>bundle-sources</id>
+								<phase>package</phase>
+								<goals>
+									<!-- produce source artifact for main project sources -->
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<version>2.10.3</version>
 						<configuration>
-							<!-- Default configuration for all reports -->
-							
+							<finalName>pado_${project.version}</finalName>
+							<aggregate>true</aggregate>
+							<includeDependencySources>true</includeDependencySources>
+							<dependencySourceIncludes>
+								<dependencySourceInclude>com.netcrest.pado:pado-common:*</dependencySourceInclude>
+								<dependencySourceInclude>com.netcrest.pado:pado-core:*</dependencySourceInclude>
+								<dependencySourceInclude>com.netcrest.pado:pado-gemfire:*</dependencySourceInclude>
+								<dependencySourceInclude>com.netcrest.pado:pado-biz:*</dependencySourceInclude>
+								<dependencySourceInclude>com.netcrest.pado:pado-biz-gemfire:*</dependencySourceInclude>
+								<dependencySourceInclude>com.netcrest.pado:pado-tools:*</dependencySourceInclude>
+							</dependencySourceIncludes>
+							<excludePackageNames>
+								com.netcrest.pado.internal.*:com.netcrest.pado.biz.file.*:com.netcrest.pado.biz.gemfire.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.test.*:com.netcrest.pado.biz.impl.*:com.netcrest.pado.biz.mon.impl.*:com.netcrest.pado.biz.server.impl.*:com.netcrest.pado.tools.*:com.netcrest.pado.temporal.biz.impl.*:com.netcrest.pado.temporal.gemfire.*:com.netcrest.pado.temporal.test.*:com.netcrest.pado.data.jsonlite.internal.*:com.netcrest.pado.demo.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.gemfire.util.*:com.gemstone.gemfire.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.context.data.v.*:com.netcrest.pado.biz.server.*:com.netcrest.pado.index:com.netcrest.pado.index.exception:com.netcrest.pado.index.internal.*:com.netcrest.pado.index.gemfire.*:com.netcrest.pado.index.helper.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.index.result.*:com.netcrest.pado.index.service.impl.*
+							</excludePackageNames>
+							<docfilessubdirs>true</docfilessubdirs>
+							<doctitle>Pado API (v${project.version})</doctitle>
+							<header>Pado</header>
 						</configuration>
 						<executions>
 							<execution>
-								<id>aggregate</id>
+								<id>attach-javadocs</id>
 								<goals>
-									<goal>aggregate</goal>
+									<goal>jar</goal>
 								</goals>
-								<phase>site</phase>
-								<configuration>
-									<!-- Specific configuration for the aggregate report -->
-									<includeDependencySources>true</includeDependencySources>
-									 <dependencySourceIncludes>
-										<dependencySourceInclude>com.netcrest.pado:pado-common:*</dependencySourceInclude>
-										<dependencySourceInclude>com.netcrest.pado:pado-core:*</dependencySourceInclude>
-										<dependencySourceInclude>com.netcrest.pado:pado-gemfire:*</dependencySourceInclude>
-										<dependencySourceInclude>com.netcrest.pado:pado-biz:*</dependencySourceInclude>
-										<dependencySourceInclude>com.netcrest.pado:pado-biz-gemfire:*</dependencySourceInclude>
-										<dependencySourceInclude>com.netcrest.pado:pado-tools:*</dependencySourceInclude>
-									</dependencySourceIncludes>
-									<excludePackageNames>
-										com.netcrest.pado.internal.*
-									</excludePackageNames>
-								</configuration>
 							</execution>
 						</executions>
-					</plugin>		
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
+
 	</profiles>
 
 </project>
