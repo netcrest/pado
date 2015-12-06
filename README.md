@@ -20,13 +20,42 @@ ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "gr
 
 ## Pado Features
 
-Pado provides the data ubiquity service by versioning data structures and dynamically loading business classes called IBiz. Any code changes made can be deployed to all of the grids that make up Pado by simply dropping them into the Pado cloud.
+- Federate data grids into a single logical grid
+- Search millions of real-time data records across multiple grids
+- Search temporal data with ease 
+- Store anything in any form from any where 
+- Automatically version and merge data type changes 
+- Access data in the form of business objects 
+- Change business rules on the fly 
+- Share data and services across vertical silo applications 
+- Automatically transform any data into bi-temporal data with compact memory footprint
+- Access a complete change history of bi-temporal data in delta form
+- Establish dynamic entity relationships based on as-of time
+- Build security and compliance services with ease
+- Integrate business rules engines with temporal containers to execute as-of rules
+- Scale out linearly and indefinitely
+- Parallelize grid computing to 10’s and 100’s of grid farms with a single command
+- Manage all grid farms in a single centralized view
 
-Pado organizes data via its hierarchical namespace that works like the file system namespace. Each grid path represents a dataset, which can hold data in any form and size. A grid path can target objects, temporal data, real-time events/messages, files, images, transactions, spreadsheets, documents, web contents, etc.
+## How?
 
-Pado is equipped with numerous data services: Apache Lucene, GemFire OQL, temporal data, business rules engines, compliance foundation, context-based state machine, workflow state machine, batch processing, GUI framework, etc.
- 
-Pado retrieves millions of data records in sub-second and delivers them in streamed result sets with pagination support.
+- *Index matrix*: L2 cache-backed result sets with data aggregation and pagination support
+- *Grid-to-grid topology*: a single logical grid of grids
+- *Text search engine*: fast temporal-data-integrated Apache Lucene text search services 
+- *Universal namespace*: unique hierarchical namespaces across grids 
+- *Extreme scalability*: data partitioning across one or more grids 
+- *Data ubiquity*: auto-versioning and hot-deployment of data classes 
+- *IBiz*: business objects running locally and/or remotely 
+- *Web services*: IBiz in the form of web services 
+- *Cloud deployment*: hot deployment of IBiz and data classes 
+- *Apps*: app credential and management service 
+- *JsonLite*: schema-based lightweight JSON objects
+- *IBiz catalog*: reusable business objects 
+- *Grid routing tables*: grid targeting strategies 
+- *ITemporalBiz*: bi-temporal data via a simple API
+- *User session management*: token-based session management security backed by RSA & AES 
+- *PadoDesktop*: All-in-one GUI (data browser, grid monitor, grid management - available from Netcrest)
+- *PadoShell*: Unix-like commands for managing and scripting grids
 
 ## Supported JDK Versions
 
@@ -35,11 +64,12 @@ Pado requires JDK 1.7 to compile and runs on JDK 1.7 and 1.8.
 ## Building Pado
 
 1. Download or clone Pado from GitHub: http://github.com/netcrest/pado
-2. Run "mvn install". 
+2. Install Apache Maven: https://maven.apache.org
+2. Run `mvn install` from the Pado root directory.
 
-The above command compiles all of Pado Maven modules and creates zip and tar distribution files in the pado-deployment/assembly directory. It also inflates the tar distribution file in the deploy/ directory for running and testing the Pado build. 
+The above Maven command compiles all of Pado Maven modules and creates zip and tar distribution files in the `pado-deployment/assembly` directory. It also inflates the tar distribution file in the `deploy/` directory for running and testing the Pado build. 
 
-IMPORTANT: Note that it does not overwrite the existing files in the deploy/ directory, preserving the changes that you may have made.
+IMPORTANT: Note that it does not overwrite the existing files in the `deploy/` directory, preserving the changes that you may have made from the previous build.
 
 ## Installing Pivotal GemFire
 
@@ -47,12 +77,12 @@ In order to run Pado, you must install Pivotal GemFire, which is downloadable fr
 
    https://network.pivotal.io/products/pivotal-gemfire
 
-Pado supports GemFire 7.x and 8.x. Once installed, set the GEMFIRE environment variable to the GemFire installation root directory in bin_sh/setenv.sh as described below.
+Pado supports GemFire 7.x and 8.x. Once installed, set the `GEMFIRE` environment variable to the GemFire installation root directory in `bin_sh/setenv.sh` as described below.
 
 
 ## Running Pado in a Build Environment
 
-Upon successful build, run the default grid called "mygrid" as follows:
+Upon successful build, run the default grid called *mygrid* as follows:
 
 ```
 cd deploy/pado_<version>/bin_sh
