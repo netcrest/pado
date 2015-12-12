@@ -170,6 +170,8 @@ fi
 # Set SERVER_NUM_NO_LEADING_ZERO
 if [[ $SERVER_NUM == 0* ]]; then
    SERVER_NUM_NO_LEADING_ZERO=${SERVER_NUM:1};
+else
+   SERVER_NUM_NO_LEADING_ZERO=$SERVER_NUM
 fi
 
 # If the end server number is not defined then
