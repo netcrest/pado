@@ -18,13 +18,13 @@ package com.netcrest.pado.util;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
+import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.internal.util.ReflectionUtil;
 import com.netcrest.pado.log.Logger;
 //import com.netcrest.pado.tools.pado.PadoShell;
@@ -137,9 +137,7 @@ public class ObjectUtil
 		return keyMap;
 	}
 	
-	static NumberFormat numFormat = NumberFormat.getInstance();
-	
-	public static Object updateKeyMap(KeyMap keyMap, String keyName, String value, SimpleDateFormat dateFormat,
+	public static Object updateKeyMap(KeyMap keyMap, String keyName, String value, SimpleDateFormat dateFormat, NumberFormat numFormat,
 			boolean isCsvFormat, Class arg) throws Exception
 	{
 		Object mapValue = null;
@@ -241,7 +239,7 @@ public class ObjectUtil
 				}
 			} catch (Exception ex) {
 				Logger.error(ex);
-				throw new RuntimeException("Error: invalid value - KeyMap[keyname=" + keyName + ", " + "type=" + arg.getName() + ", value=" + value + "]", ex);
+				throw new PadoException("Error: invalid value - KeyMap[keyname=" + keyName + ", " + "type=" + arg.getName() + ", value=" + value + "]", ex);
 			}
 		}
 

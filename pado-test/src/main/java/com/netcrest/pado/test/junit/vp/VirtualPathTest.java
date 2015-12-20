@@ -79,8 +79,8 @@ public class VirtualPathTest
 	public void testVCULocal() throws FileNotFoundException, IOException
 	{
 //		String input = "FISCPER:2014011 AND USLCHDID:P04005";
-		String input = "USLCHDID:P04005";
-		File file = new File("db/vp/asset.vp_alteryx.json");
+		String input = "BankId:bank_ko";
+		File file = new File("db/vp/vp_portfolio.json");
 		JsonLite virtualPathDefinition = new JsonLite(file);
 		System.out.println(virtualPathDefinition.toString(4, false, false));
 		VirtualPath vp = new VirtualPath(virtualPathDefinition, pado);

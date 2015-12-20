@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,8 +45,6 @@ import com.netcrest.pado.temporal.TemporalEntry;
 import com.netcrest.pado.temporal.test.data.Account;
 import com.netcrest.pado.temporal.test.data.Portfolio;
 import com.netcrest.pado.temporal.test.gemfire.PortfolioKey;
-
-import junit.framework.Assert;
 
 /**
  * TemporalReferenceGetEntryQueryResultSetTest requires "mygrid". Note that this

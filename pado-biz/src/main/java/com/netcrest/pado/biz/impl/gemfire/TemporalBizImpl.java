@@ -1075,11 +1075,10 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 							// OQL
 							try {
 								OqlSearch os = OqlSearch.getOqlSearch();
-								// String qs = os.getTimePredicate(fullPath,
-								// validAtTime, asOfTime) + " AND (" +
-								// queryStatement + ")";
-								// List list = os.searchLocal(qs);
-								List<Object> localList = os.searchLocal(identityKeyQueryStatement);
+								String qs = os.getTimePredicate(fullPath, validAtTime, asOfTime) + " AND ("
+										+ identityKeyQueryStatement + ")";
+								List<Object> localList = os.searchLocal(qs);
+//								List<Object> localList = os.searchLocal(identityKeyQueryStatement);
 								if (localList != null) {
 									if (identityKeySet != null) {
 										identityKeySet.addAll(localList);
@@ -1095,11 +1094,10 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 							}
 						} else {
 							LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
-							// String qs = ls.getTimePredicate(validAtTime,
-							// asOfTime) + " AND (" + queryStatement + ")";
-							// Set identityKeySearchedSet =
-							// ls.getIdentityKeySet(fullPath, qs);
-							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, identityKeyQueryStatement);
+							String qs = ls.getTimePredicate(validAtTime, asOfTime) + " AND ("
+									+ identityKeyQueryStatement + ")";
+							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs);
+//							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, identityKeyQueryStatement);
 							if (identityKeySet != null) {
 								if (identityKeySearchedSet != null) {
 									identityKeySet.addAll(identityKeySearchedSet);

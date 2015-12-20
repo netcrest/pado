@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ public class CsvFileLoader implements IFileLoader
 	private SchemaInfo schemaInfo;
 	private SimpleDateFormat dateFormatter;
 	private DateTimeFormatter jodaFormatter;
+	private NumberFormat numberFormat = NumberFormat.getInstance();
 	private StringBuffer buffer = new StringBuffer(100);
 	private boolean verbose = false;
 	private String verboseTag = "";
@@ -549,7 +551,7 @@ public class CsvFileLoader implements IFileLoader
 		}
 		for (int i = 0; i < keyNames.length; i++) {
 			if (schemaInfo.isSkipColumn(keyNames[i]) == false) {
-				ObjectUtil.updateKeyMap(keyMap, keyNames[i], tokens[startTokenIndex + i], dateFormatter, true,
+				ObjectUtil.updateKeyMap(keyMap, keyNames[i], tokens[startTokenIndex + i], dateFormatter, numberFormat, true,
 						tokenTypes[i]);
 			}
 		}

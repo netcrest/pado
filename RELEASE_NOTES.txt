@@ -4,6 +4,13 @@
 ©2013-2015 Netcrest Technologies, LLC. All rights reserved.
 https://github.com/netcrest/pado
 
+Release: Version 0.4.0-B2
+Release Date: 12/19/2016
+
+- Fixed a data load bug in import_csv which incorrectly shared the same NumberFormat object in a non-thread-safe manner.
+
+*************************************************************************
+
 Release: Version 0.4.0-B1
 Release Date: 12/06/2016
 

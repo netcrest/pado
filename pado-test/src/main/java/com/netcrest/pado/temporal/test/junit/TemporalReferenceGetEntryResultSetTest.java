@@ -53,7 +53,7 @@ public class TemporalReferenceGetEntryResultSetTest
 	@BeforeClass
 	public static void loginPado() throws PadoLoginException
 	{
-		System.setProperty("gemfirePropertyFile", "etc/client/client.properties");
+		System.setProperty("gemfirePropertyFile", "../deploy/pado_0.4.0-B1/etc/client/client.properties");
 		Pado.connect("localhost:20000", true);
 		pado = Pado.login("sys", "netcrest", "dpark", "dpark".toCharArray());
 		ICatalog catalog = pado.getCatalog();

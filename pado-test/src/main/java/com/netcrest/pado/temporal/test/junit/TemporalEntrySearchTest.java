@@ -57,7 +57,7 @@ public class TemporalEntrySearchTest
 		// "etc/user.cer");
 		// System.setProperty("pado.security.enabled", "true");
 
-		System.setProperty("gemfirePropertyFile", "etc/client/client.properties");
+		System.setProperty("gemfirePropertyFile", "../deploy/pado_0.4.0-B1/etc/client/client.properties");
 		Pado.connect("localhost:20000", true);
 		pado = Pado.login("sys", "netcrest", "test1", "test123".toCharArray());
 		ICatalog catalog = pado.getCatalog();
