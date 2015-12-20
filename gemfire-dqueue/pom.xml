@@ -21,7 +21,7 @@
 	<parent>
 		<groupId>com.netcrest.pado</groupId>
 		<artifactId>pado-parent</artifactId>
-		<version>0.4.0-SNAPSHOT</version>
+		<version>0.4.0-B2</version>
 	</parent>
 
 	<artifactId>gemfire-dqueue</artifactId>
