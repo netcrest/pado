@@ -31,7 +31,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<pado.version>0.4.0-B1</pado.version>
+		<pado.version>0.4.0-B2</pado.version>
 	</properties>
 
 	<dependencies>
