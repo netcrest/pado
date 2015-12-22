@@ -36,3 +36,6 @@ tmp/
 bilder.py
 bilder.pyc
 bild.log
+
+# Backup files
+*.bak
