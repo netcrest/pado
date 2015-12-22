@@ -90,8 +90,8 @@ function getBindAddresses
 #
 # Sets the global variable LineArray to trimmed lines except comment and blank lines
 # read from the specified file. The returned array is sorted by server number.
-# It also sets NEXT_AVAILABLE_SERVER_NUM to the firstserver number that is available
-# for addition, LAST_SERVER_NUM to the last index of the array, SERVER_COUNT the
+# It also sets NEXT_AVAILABLE_SERVER_NUM to the first server number that is available
+# for addition, LAST_SERVER_NUM to the last index of the array, and SERVER_COUNT the
 # number of servers.
 # @param file_path
 #

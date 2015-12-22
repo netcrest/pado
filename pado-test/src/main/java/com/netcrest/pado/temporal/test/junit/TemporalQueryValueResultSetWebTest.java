@@ -154,7 +154,7 @@ public class TemporalQueryValueResultSetWebTest
 	@Test
 	public void testGetQueryValues() throws ParseException
 	{
-		String queryString = "account?AccountId:acct_a";
+		String queryString = "account?";
 		// Date validAtDate = formatter.parse("8/26/2011");
 		System.out.println("TemporalQueryValueResultSetWebTest.testGetQueryValues()");
 		System.out.println("-------------------------------------------------------");

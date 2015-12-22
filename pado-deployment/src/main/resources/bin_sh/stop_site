@@ -65,7 +65,7 @@ setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
 
 if [ "$LOCATORS" == "true" ]; then
    NUM=1
-   for (( i = 1; i < ${#LineArray[@]}; i++ ))
+   for (( i = 1; i <= ${LAST_SERVER_NUM}; i++ ))
    do
       line="${LineArray[$i]}"
       array=($line)

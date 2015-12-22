@@ -107,7 +107,7 @@ echo "$NUM_HEADER $NODE_HEADER $NAME_HEADER ---"
 #    array[4] JmxHttpPort
 setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
 
-for (( i = 1; i < ${#LineArray[@]}; i++ ))
+for (( i = 1; i <= ${LAST_SERVER_NUM}; i++ ))
 do
    line="${LineArray[$i]}"
    array=($line)

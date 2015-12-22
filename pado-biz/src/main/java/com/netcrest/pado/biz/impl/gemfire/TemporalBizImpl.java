@@ -1070,41 +1070,41 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 					TemporalCacheListener cl = tm.getTemporalCacheListener();
 
 					Set identityKeySet = attSet.getAttachments();
-					if (identityKeyQueryStatement != null && identityKeyQueryStatement.length() > 0) {
-						if (identityKeyQueryStatement.startsWith("select")) {
-							// OQL
-							try {
-								OqlSearch os = OqlSearch.getOqlSearch();
-								String qs = os.getTimePredicate(fullPath, validAtTime, asOfTime) + " AND ("
-										+ identityKeyQueryStatement + ")";
-								List<Object> localList = os.searchLocal(qs);
+					if (identityKeyQueryStatement.startsWith("select")) {
+						// OQL
+						try {
+							OqlSearch os = OqlSearch.getOqlSearch();
+							String qs = os.getTimePredicate(fullPath, validAtTime, asOfTime) + " AND ("
+									+ identityKeyQueryStatement + ")";
+							List<Object> localList = os.searchLocal(qs);
 //								List<Object> localList = os.searchLocal(identityKeyQueryStatement);
-								if (localList != null) {
-									if (identityKeySet != null) {
-										identityKeySet.addAll(localList);
-									} else {
-										identityKeySet = new HashSet(localList);
-									}
+							if (localList != null) {
+								if (identityKeySet != null) {
+									identityKeySet.addAll(localList);
+								} else {
+									identityKeySet = new HashSet(localList);
 								}
-							} catch (Exception e) {
-								// if query error, log and skip this attribute
-								// set
-								Logger.error(e);
-								continue;
+							}
+						} catch (Exception e) {
+							// if query error, log and skip this attribute
+							// set
+							Logger.error(e);
+							continue;
+						}
+					} else {
+						LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
+						String qs = ls.getTimePredicate(validAtTime, asOfTime);
+						if (identityKeyQueryStatement != null && identityKeyQueryStatement.length() > 0) {
+							qs += " AND ("	+ identityKeyQueryStatement + ")";
+						}
+						Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs);
+//							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, identityKeyQueryStatement);
+						if (identityKeySet != null) {
+							if (identityKeySearchedSet != null) {
+								identityKeySet.addAll(identityKeySearchedSet);
 							}
 						} else {
-							LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
-							String qs = ls.getTimePredicate(validAtTime, asOfTime) + " AND ("
-									+ identityKeyQueryStatement + ")";
-							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs);
-//							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, identityKeyQueryStatement);
-							if (identityKeySet != null) {
-								if (identityKeySearchedSet != null) {
-									identityKeySet.addAll(identityKeySearchedSet);
-								}
-							} else {
-								identityKeySet = identityKeySearchedSet;
-							}
+							identityKeySet = identityKeySearchedSet;
 						}
 					}
 					IFilter filter = attSet.getFilter();
