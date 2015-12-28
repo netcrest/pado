@@ -35,7 +35,7 @@ if [ "$1" == "-?" ]; then
    echo "      -temporal If specified then temporal indexing is not disabled while importing data."
    echo "                Default: The importer first disables temporal indexing if it is enabled"
    echo "                in order to speed up the load time. Upon completion, it re-enables temporal"
-   echo "                which in turn rebuild temporal indexes."
+   echo "                which in turn rebuilds temporal indexes."
    echo "      -verbose  If specified then prints additional import status information."
    echo "      -grid     Imports the data files in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site     Imports the data files in the specified site. Default: ${SITE_DEFAULT}"

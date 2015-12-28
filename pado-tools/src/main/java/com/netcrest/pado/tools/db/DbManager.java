@@ -652,7 +652,7 @@ public class DbManager
 	private void importCsv() throws IOException, InterruptedException
 	{
 		CsvFileImporter csvImporter = new CsvFileImporter(csvProperties);
-		csvImporter.importData(false, false);
+		csvImporter.importData(false, false, -1, -1, false);
 		csvImporter.close();
 	}
 

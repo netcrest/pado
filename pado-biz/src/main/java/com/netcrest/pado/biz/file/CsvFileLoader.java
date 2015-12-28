@@ -50,6 +50,7 @@ import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.index.provider.lucene.DateTool;
 import com.netcrest.pado.internal.util.ClassUtil;
+import com.netcrest.pado.internal.util.SchemaUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.ITemporalAdminBizLink;
@@ -363,7 +364,7 @@ public class CsvFileLoader implements IFileLoader
 				}
 				// String[] tokens =
 				// line.split(String.valueOf(schemaInfo.getDelimiter()));
-				String tokens[] = getTokens(line, schemaInfo.getDelimiter());
+				String tokens[] = SchemaUtil.getTokens(line, schemaInfo.getDelimiter());
 				if (tokens == null) {
 					continue;
 				}
@@ -904,53 +905,6 @@ public class CsvFileLoader implements IFileLoader
 			return null;
 		}
 		return buffer.toString();
-	}
-
-	/**
-	 * Returns an array of tokens extracted from the specified line parameter.
-	 * 
-	 * @param line
-	 *            The string to be tokenized.
-	 * @param delimiter
-	 *            Token separator.
-	 */
-	protected String[] getTokens(String line, char delimiter)
-	{
-		if (line.length() == 0) {
-			return null;
-		}
-		// HBAN,23.82,300,23.79,800,"Thu, ""test"", 'hello' Jun 08 09:41:19 EDT 2006",99895,1094931009,82,99895,8,HBAN
-		ArrayList<String> list = new ArrayList<String>();
-		boolean openQuote = false;
-		String value = "";
-		for (int i = 0; i < line.length(); i++) {
-			char c = line.charAt(i);
-
-			if (c == delimiter) {
-				if (openQuote == false) {
-					value = value.trim();
-					if (value.startsWith("\"") && (value.endsWith("\"") || value.indexOf(" ") != -1)) {
-						value = value.substring(1);
-						if (value.endsWith("\"")) {
-							value = value.substring(0, value.length() - 1);
-						}
-					}
-
-					list.add(value);
-					value = "";
-					continue;
-				}
-			} else if (c == '"' && delimiter == ',') {
-				openQuote = !openQuote;
-			}
-			value += c;
-		}
-		if (value.startsWith("\"") && value.endsWith("\"")) {
-			value = value.substring(1);
-			value = value.substring(0, value.length() - 1);
-		}
-		list.add(value);
-		return (String[]) list.toArray(new String[0]);
 	}
 
 	class EntryCountListener implements IBulkLoaderListener

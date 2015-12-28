@@ -15,13 +15,11 @@
  */
 package com.netcrest.pado.tools;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,29 +27,14 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import com.netcrest.pado.biz.file.SchemaInfo;
+import com.netcrest.pado.internal.util.SchemaUtil;
 
 public class KeyTypeGenerator
 {
-	private String readFile(InputStream is) throws IOException, URISyntaxException
-	{
-		StringBuffer buffer = new StringBuffer(2000);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		try {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				buffer.append(line);
-				buffer.append("\n");
-			}
-		} finally {
-			reader.close();
-		}
-		return buffer.toString();
-	}
-
 	public File generateKeyType(SchemaInfo schemaInfo, File srcDir) throws IOException, URISyntaxException
 	{
 		InputStream is = this.getClass().getClassLoader().getResourceAsStream("com/netcrest/pado/tools/KeyTypeTemplate.txt");
-		String keyTypeStr = readFile(is);
+		String keyTypeStr = SchemaUtil.readFile(is);
 		is.close();
 
 		String keyTypeFullClassName = schemaInfo.getKeyTypeClassName();
@@ -149,17 +132,17 @@ public class KeyTypeGenerator
 		return keyTypeFile;
 	}
 
-	public void generateAll(File importDir, File srcDir)
+	public void generateAll(File schemaDir, File srcDir)
 	{
-		if (importDir == null) {
-			System.err.println("Import directory must be specified.");
+		if (schemaDir == null) {
+			System.err.println("Schema directory must be specified.");
 			return;
 		}
 		if (srcDir == null) {
 			System.err.println("Source directory must be specified.");
 			return;
 		}
-		File schemaFiles[] = importDir.listFiles(new FilenameFilter() {
+		File schemaFiles[] = schemaDir.listFiles(new FilenameFilter() {
 
 			@Override
 			public boolean accept(File dir, String name)
@@ -171,11 +154,11 @@ public class KeyTypeGenerator
 
 		if (schemaFiles == null) {
 			writeLine();
-			writeLine("Import directory not valid: " + importDir.getAbsolutePath());
+			writeLine("Schema directory not valid: " + schemaDir.getAbsolutePath());
 			writeLine();
 		} else if (schemaFiles.length == 0) {
 			writeLine();
-			writeLine("Schema files not found in directory " + importDir.getAbsolutePath());
+			writeLine("Schema files not found in directory " + schemaDir.getAbsolutePath());
 			writeLine();
 		} else {
 			srcDir.mkdirs();
@@ -225,20 +208,20 @@ public class KeyTypeGenerator
 		}
 		writeLine();
 		writeLine("Usage:");
-		writeLine("   KeyTypeGenerator [-schema <schema-directory] [-src <output-directory] [-?]");
+		writeLine("   KeyTypeGenerator [-schemaDir <schema-directory] [-srcDir <output-directory] [-?]");
 		writeLine();
 		writeLine("   IMPORTANT: This command overwrites the existing source code. Make sure");
 		writeLine("              to back up the output source directory first before running");
 		writeLine("              this program in case if you need to revert to the existing code.");
 		writeLine();
-		writeLine("   Generates the key type class declared in all of the CSV schema");
-		writeLine("   files found in the import directory. The directory paths can be");
+		writeLine("   Generates the key type classes declared in all of the CSV schema");
+		writeLine("   files found in the schema directory. The directory paths can be");
 		writeLine("   absolute or relative to the " + padoHome + " directory.");
 		writeLine();
-		writeLine("      -import  Import directory path that contains *.schema files");
-		writeLine("      -src     Source directory path where the key type classes are to be generated");
+		writeLine("      -schemaDir  Import directory path that contains *.schema files");
+		writeLine("      -srcDir     Source directory path where the key type classes are to be generated");
 		writeLine();
-		writeLine("   Default: KeyTypeGenerator -import $PADO_HOME/data/schema -src $PADO_HOME/src/generated");
+		writeLine("   Default: KeyTypeGenerator -schemaDir data/schema -srcDir src/generated");
 		writeLine();
 		System.exit(0);
 	}
@@ -251,26 +234,26 @@ public class KeyTypeGenerator
 	public static void main(String[] args) throws IOException, URISyntaxException
 	{
 		String arg;
-		String importDirPath = "data/schema";
+		String schemaDirPath = "data/schema";
 		String srcDirPath = "src/generated";
 		for (int i = 0; i < args.length; i++) {
 			arg = args[i];
 			if (arg.equalsIgnoreCase("-?")) {
 				usage();
-			} else if (arg.equals("-schema")) {
+			} else if (arg.equals("-schemaDir")) {
 				if (i < args.length - 1) {
-					importDirPath = args[++i];
+					schemaDirPath = args[++i];
 				}
-			} else if (arg.equals("-src")) {
+			} else if (arg.equals("-srcDir")) {
 				if (i < args.length - 1) {
 					srcDirPath = args[++i];
 				}
 			}
 		}
 		KeyTypeGenerator generator = new KeyTypeGenerator();
-		File importDir = new File(importDirPath);
+		File schemaDir = new File(schemaDirPath);
 		File srcDir = new File(srcDirPath);
-		generator.generateAll(importDir, srcDir);
+		generator.generateAll(schemaDir, srcDir);
 	}
 
 }

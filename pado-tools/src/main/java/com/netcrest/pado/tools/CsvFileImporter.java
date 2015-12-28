@@ -21,16 +21,22 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -46,6 +52,8 @@ import com.netcrest.pado.biz.file.FileUtilUnix;
 import com.netcrest.pado.biz.file.SchemaInfo;
 import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.internal.security.AESCipher;
+import com.netcrest.pado.internal.util.SchemaUtil;
+import com.netcrest.pado.internal.util.SchemaUtil.SchemaProp;
 import com.netcrest.pado.log.Logger;
 
 public class CsvFileImporter
@@ -126,16 +134,40 @@ public class CsvFileImporter
 		}
 	}
 
-	public void importData(boolean isTemporalOffWhileImportingData, boolean isVerbose) throws IOException,
-			InterruptedException
+	/**
+	 * 
+	 * @param isTemporalOffWhileImportingData
+	 *            true to temporarily disable temporal indexing before importing
+	 *            data. Upon completion, it enables temporal indexing.
+	 * @param isGenerateSchema
+	 *            true to generate schema files for CSV files that do not have
+	 *            corresponding schema files.
+	 * @param headerRow
+	 *            Column header row number. Row number begins from 1. -1 then
+	 *            the header row is determined. This argument is meaningful only
+	 *            if isGenerateSchema is true.
+	 * @param startRow
+	 *            Start row. If -1, then the row immediately after the header
+	 *            row is assigned as the start row. This argument is meaningful
+	 *            only if isGenerateSchema is true.
+	 * @param isVerbose
+	 *            true to print detailed progress information.
+	 * @throws IOException
+	 *             Thrown if unable to load file(s)
+	 * @throws InterruptedException
+	 *             Thrown if Linux file manipulation or parallel loading threads
+	 *             get interrupted.
+	 */
+	public void importData(boolean isTemporalOffWhileImportingData, boolean isGenerateSchema, int headerRow,
+			int startRow, boolean isVerbose) throws IOException, InterruptedException
 	{
 		String importDirString = csvProperties.getProperty("dir.import", "data/import");
 		String schemaDirString = csvProperties.getProperty("dir.schema", "data/schema");
 		String splitDirString = csvProperties.getProperty("dir.split", "data/split");
 		String processedDirString = csvProperties.getProperty("dir.processed", "data/processed");
 		String errorDirString = csvProperties.getProperty("dir.error", "data/error");
-		int threadCount = Integer.parseInt(csvProperties.getProperty("threads", Runtime.getRuntime()
-				.availableProcessors() + ""));
+		int threadCount = Integer
+				.parseInt(csvProperties.getProperty("threads", Runtime.getRuntime().availableProcessors() + ""));
 		int rowCountPerThread = Integer.parseInt(csvProperties.getProperty("rowsPerThread", "100000"));
 		File importDir = new File(importDirString);
 		File schemaDir = new File(schemaDirString);
@@ -177,10 +209,97 @@ public class CsvFileImporter
 
 		final File[] csvFiles = importDir.listFiles();
 		final List<FilePair> filePairList = new ArrayList<FilePair>(csvFiles.length);
-		for (File csvFile : csvFiles) {
+		List<File> csvFileList = new ArrayList<File>(Arrays.asList(csvFiles));
+		Collections.sort(csvFileList);
+		Iterator<File> iterator = csvFileList.iterator();
+		while (iterator.hasNext()) {
+			File csvFile = iterator.next();
 			for (SchemaFilePrefixPair schemaFilePrefixPair : schemaFilePrefixPairList) {
 				if (csvFile.isFile() && csvFile.getName().startsWith(schemaFilePrefixPair.prefix)) {
 					filePairList.add(new FilePair(schemaFilePrefixPair.schemaFile, csvFile));
+					iterator.remove();
+					break;
+				}
+			}
+		}
+
+		// Generate schema files if isGenerateSchema == true
+		// Iterate all remaining CSV files and determine the schema file
+		// properties.
+		if (isGenerateSchema && csvFileList.size() > 0) {
+			SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			writeLine("The schema files for the following data files are not found in the schema directory:");
+			iterator = csvFileList.iterator();
+			while (iterator.hasNext()) {
+				writeLine("   " + iterator.next().getName());
+			}
+			writeLine("Generating schema files for the above data files...");
+			iterator = csvFileList.iterator();
+			while (iterator.hasNext()) {
+				File csvFile = iterator.next();
+				String fileName = csvFile.getName();
+				int index = fileName.lastIndexOf(".");
+				String generatedSchemaFileName;
+				if (index > 0) {
+					String filePrefix = fileName.substring(0, index);
+					// Replace '-' and space with underscore
+					String gridPath = filePrefix.replaceAll("[\\- ]", "_");
+					gridPath = gridPath.toLowerCase();
+					generatedSchemaFileName = filePrefix + ".schema";
+					File schemaFilePath = new File(schemaDir, generatedSchemaFileName);
+					InputStream is = this.getClass().getClassLoader()
+							.getResourceAsStream("com/netcrest/pado/tools/SchemaTemplate.txt");
+					if (is == null) {
+						throw new IOException(
+								"com/netcrest/pado/tools/SchemaTemplate.txt not found. Schema files generation aborted.");
+					}
+					try {
+						String schemaStr = SchemaUtil.readFile(is);
+						SchemaProp sp = SchemaUtil.determineSchemaProp(csvFile, headerRow);
+						if (startRow > 0) {
+							sp.startRow = startRow;
+						}
+						schemaStr = schemaStr.replaceAll("\\$\\{GRID_PATH\\}", gridPath);
+						schemaStr = schemaStr.replaceAll("\\$\\{IS_KEY_AUTO_GEN\\}", "true");
+						schemaStr = schemaStr.replaceAll("\\$\\{IS_TEMPORAL\\}", "true");
+						schemaStr = schemaStr.replaceAll("\\$\\{DELIMITER\\}", sp.delimiter);
+						if (sp.delimiter.equals(",")) {
+							schemaStr = schemaStr.replaceAll("\\$\\{DELIMITER_COMMENT\\}", sp.delimiter);
+						} else {
+							schemaStr = schemaStr.replaceAll("\\$\\{DELIMITER_COMMENT\\}", "tab");
+						}
+						schemaStr = schemaStr.replaceAll("\\$\\{START_ROW\\}", Integer.toString(sp.startRow));
+						schemaStr = schemaStr.replaceAll("\\$\\{FIELDS\\}", sp.fieldNames);
+
+						// Write schema file
+						FileWriter schemaFileWriter = new FileWriter(schemaFilePath);
+						try {
+							schemaFileWriter.write("## ============================================================\n");
+							schemaFileWriter.write("## Generated: " + timeFormat.format(new Date()) + "\n");
+							schemaFileWriter.write("## Data File: " + csvFile.getName() + "\n");
+							schemaFileWriter
+									.write("## This file was generated by \"import_csv -schema\" as follows:\n");
+							schemaFileWriter.write("##    IsKeyAutoGen=true\n");
+							schemaFileWriter.write("##    Delimiter=" + sp.delimiter + "\n");
+							schemaFileWriter.write("##    IsTemporal=true\n");
+							schemaFileWriter.write("##    TemporalType=eternal\n");
+							schemaFileWriter.write("##    StartRow=" + sp.startRow + "\n");
+							schemaFileWriter.write("##    <Field names extracted from the data file on line "
+									+ sp.headerLineNum + ">\n");
+							schemaFileWriter.write("## ============================================================\n");
+							schemaFileWriter.write("\n");
+							schemaFileWriter.write(schemaStr);
+							writeLine("   Generated: " +  schemaFilePath.getName());
+						} finally {
+							if (schemaFileWriter != null) {
+								schemaFileWriter.close();
+							}
+						}
+					} catch (URISyntaxException e) {
+						throw new IOException(e);
+					} finally {
+						is.close();
+					}
 				}
 			}
 		}
@@ -262,8 +381,8 @@ public class CsvFileImporter
 
 			// The rest split files do not contain the header rows.
 			for (int j = 1; j < splitFiles.length; j++) {
-				taskList.add(new ImportTask(j + 1, schemaInfo2, splitFiles[j], isTemporalOffWhileImportingData,
-						isVerbose));
+				taskList.add(
+						new ImportTask(j + 1, schemaInfo2, splitFiles[j], isTemporalOffWhileImportingData, isVerbose));
 			}
 
 			List<Future<ImportStatus>> futureList = es.invokeAll(taskList);
@@ -334,6 +453,11 @@ public class CsvFileImporter
 		es.shutdown();
 	}
 
+	
+
+	
+
+	
 	private void removeFiles(File dir, final String filePrefix)
 	{
 		File files[] = dir.listFiles(new FilenameFilter() {
@@ -524,10 +648,19 @@ public class CsvFileImporter
 		writeLine("   must be paired with the schema file with the same name in the import");
 		writeLine("   directory. For example, 'foo.csv' must be paired with 'foo.schema'.");
 		writeLine();
-		writeLine("      -temporal Keep temporal indexing enabled while importing data.");
-		writeLine("                Default: temporal indexing is turned off while importing data in order to");
-		writeLine("                         reduce the load time.");
-		writeLine("      -verbose  Prints additional import status.");
+		writeLine("      -temporal  Keep temporal indexing enabled while importing data.");
+		writeLine("                 Default: temporal indexing is turned off while importing data in order to");
+		writeLine("                          reduce the load time. Upon completion, it re-enables temporal");
+		writeLine("                          which in turn rebuilds temporal indexes.");
+		writeLine("      -schema    Generates schema files in the schema directory if the corresponding schema files");
+		writeLine("                 do not exist.");
+		writeLine("      -headerRow Column header row number in the data file. If -1 or unspecified then");
+		writeLine("                 it is automatically determined. This option is only meaningful if -schema");
+		writeLine("                 is specified.  Default: -1");
+		writeLine("      -startRow  Start row number in the data file. If -1 or unspecified then the row");
+		writeLine("                 immediately after the header row is assigned. This option is only meaningful");
+		writeLine("                 if -schema is specified. Default: -1");
+		writeLine("      -verbose   Prints additional import status.");
 		writeLine();
 		writeLine("   Default: CsvFileImporter");
 		writeLine();
@@ -543,18 +676,34 @@ public class CsvFileImporter
 		String arg;
 		boolean isVerbose = false;
 		boolean isTemporalOffWhileImportingData = true;
+		boolean isGenerateSchema = false;
+		int headerRow = -1;
+		int startRow = -1;
+		String tmp;
 		for (int i = 0; i < args.length; i++) {
 			arg = args[i];
 			if (arg.equalsIgnoreCase("-?")) {
 				usage();
 			} else if (arg.equals("-temporal")) {
 				isTemporalOffWhileImportingData = false;
+			} else if (arg.equals("-schema")) {
+				isGenerateSchema = true;
+			} else if (arg.equals("-headerRow")) {
+				if (i < args.length - 1) {
+					tmp = args[++i];
+					headerRow = Integer.parseInt(tmp);
+				}
+			} else if (arg.equals("-startRow")) {
+				if (i < args.length - 1) {
+					tmp = args[++i];
+					startRow = Integer.parseInt(tmp);
+				}
 			} else if (arg.equals("-verbose")) {
 				isVerbose = true;
 			}
 		}
 		CsvFileImporter importer = new CsvFileImporter();
-		importer.importData(isTemporalOffWhileImportingData, isVerbose);
+		importer.importData(isTemporalOffWhileImportingData, isGenerateSchema, headerRow, startRow, isVerbose);
 		importer.close();
 	}
 

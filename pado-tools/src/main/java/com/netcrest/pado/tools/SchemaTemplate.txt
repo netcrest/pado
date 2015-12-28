@@ -1,0 +1,74 @@
+GridPath=${GRID_PATH}
+
+# If IsKeyColumns is true then the CSV file contains key columns in addition
+# to value columns. If false, then the CSV file contains only the value columns.
+# Default: false
+IsKeyColumns=false
+
+# Generate keys automatically. Typically, unique keys are extracted
+# from the data objects by specifying "Primary" but at times
+# the data objects may not be enough to create primary keys.
+# By setting IsKeyAutoGen to true, the CSV file loader can 
+# automatically generate UUID keys.
+IsKeyAutoGen=${IS_KEY_AUTO_GEN}
+
+# KeyClass defines the class of the key objects that are inserted
+# in the underlying data grid path. If temporal, then this class
+# is wrapped in ITemporalKey as the identity key.
+KeyClass=java.lang.String
+# ValueClass defines the class of the value objects that are inserted
+# in the underlying data grid path. If temporal, then this class is
+# wrapped in ITemporalData.
+ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
+
+# KeyTypeClass defines the schema class for JsonLite. 
+KeyTypeClass=com.jnj.ov.depot.data.inventory.EesInvLocRelKey
+`
+RoutingKeyClass=java.lang.String
+
+# EntryFilterClass filters each key/value pair created by
+# the file importer.
+# UcnMasterFilter left-trims UCN numbers by removing 0's.
+#EntryFilterClass=
+
+# Delimiter is ${DELIMITER_COMMENT}
+Delimiter=${DELIMITER}
+FileLoaderClass=com.netcrest.pado.biz.file.CsvFileLoader
+BatchSize=5000
+DateFormat=yyyyMMdd
+
+# --- Temporal spec ---
+# If IsTemporal is false then all other temporal properties except
+# IdentityKey are ignored and non-temporal objects are created. 
+IsTemporal=${IS_TEMPORAL}
+# TemporalType must be one of eternal, forever, mortal
+# If eternal, then temporal times are not required.
+# If times are defined then TemporalType is ignored.
+# In Pado, the beginning of time is 1970-01-01T00:00:00.000Z
+# and the end of time is 2099-12-31'T'23:59:59.999Z. These
+# times are used to represent eternal and forever temporal objects.
+TemporalType=eternal
+TemporalStartTime=19700101
+TemporalEndTime=20991231
+TemporalWrittenTime=19700101
+#Username=
+
+# List the columns specified in the Columns property to be skipped.
+# Skipped columns are not included in the data object.
+SkipColumns=
+
+IsCaseSensitive=false
+# Row number begins from 1. Set StartRow to skip the header rows.
+# Default: 1
+StartRow=${START_ROW}
+
+# Define the field types. The fields must be in the same order as the columns
+# in the CSV data file.
+# If the primary key is a primitive type then use the category id, Primary;
+# otherwise, define the field names of the primary key class.
+# The temporal attributes are optional as they are predetermined.
+# List field names of the value class. If JsonLite, then list the KeyType names.
+# Note that if the value type is KeyType or POJO, then the field types defined
+# here are ignored and the fields defined by KeyType or POJO are used instead.
+# Format: <field-name>, <field-type>, [Primary|Temporal|Value]
+${FIELDS}

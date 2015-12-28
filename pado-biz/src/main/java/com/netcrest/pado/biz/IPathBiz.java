@@ -297,4 +297,8 @@ public interface IPathBiz extends IBiz
 	@SuppressWarnings("rawtypes")
 	public JsonLite rebalance(String gridId, Set<String> includeGridPathSet, Set<String> excludeGridPathSet,
 			long timeout, boolean isSimulate);
+	
+//	@BizMethod
+//	@OnServer(broadcast=true)
+//	public void hintPrimaryKeys(String gridId, String gridPath);
 }

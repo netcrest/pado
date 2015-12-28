@@ -3,6 +3,13 @@ Pado Import-Scheduler
 
 The import-scheduler schedules the data importer based on the time information in the configuration files in the etc/ directory.
 
+Getting started
+---------------
+
+By default, Pado has been configured with the $PADO_HOME/data/scheduler directory as the scheduler’s base directory. Copy the entire $PADO_HOME/data/template/scheduler directory to $PADO_HOME/data/. If you prefer to use another base directory then you can change it in $PADO_HOME/etc/client/scheduler.properties.
+
+Once you have the $PADO_HOME/data/scheduler directory, follow the instructions shown below to create the scheduler and schema files.
+
 Configuration (etc/)
 --------------------
 
@@ -44,3 +51,11 @@ Example:
 
 Note that in Pado, hyphens are now allowed in grid paths.
 
+
+Running scheduler
+-----------------
+
+cd $PADO_HOME/bin_sh/tools
+./import_scheduler -?
+
+The above command show the usage of import_scheduler. Follow the instructions in the usage.

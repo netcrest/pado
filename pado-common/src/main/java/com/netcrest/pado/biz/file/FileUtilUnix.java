@@ -64,7 +64,9 @@ public class FileUtilUnix
 		if (isVerbose) {
 			System.out.println(command);
 		}
-		Process proc = Runtime.getRuntime().exec(command, null, outputDir);
+		ProcessBuilder pb = new ProcessBuilder("split", "-l", Integer.toString(lineCountPerSplit), inputFile.getAbsolutePath(), outputFilePrefix);
+		pb.directory(outputDir);
+		Process proc = pb.start();
 		if (isVerbose) {
 			FileUtil.printProcess(proc);
 		}
@@ -122,7 +124,9 @@ public class FileUtilUnix
 		if (isVerbose) {
 			System.out.println(command);
 		}
-		Process proc = Runtime.getRuntime().exec(command, null, outputDir);
+		ProcessBuilder pb = new ProcessBuilder("split", "-l", Integer.toString(lineCountPerSplit), inputFile.getAbsolutePath(), outputFilePrefix);
+		pb.directory(outputDir);
+		Process proc = pb.start();
 		if (isVerbose) {
 			FileUtil.printProcess(proc);
 		}
@@ -156,10 +160,8 @@ public class FileUtilUnix
 	public static long getLineCount(File inputFile) throws IOException, InterruptedException
 	{
 		String path = inputFile.getAbsolutePath();
-//		path = path.replaceFirst(" ", "\\ ");
-		// TODO: Support file names with spaces
-		String command = "wc -l " + path;
-		Process proc = Runtime.getRuntime().exec(command);
+		ProcessBuilder pb = new ProcessBuilder("wc", "-l", path);
+		Process proc = pb.start();
 		InputStreamReader isr = new InputStreamReader(proc.getInputStream());
 		BufferedReader reader = new BufferedReader(isr);
 		String line;
@@ -220,7 +222,9 @@ public class FileUtilUnix
 			}
 			System.out.println();
 		}
-		Process proc = Runtime.getRuntime().exec(command, null, commandDir);
+		ProcessBuilder pb = new ProcessBuilder(command);
+		pb.directory(commandDir);
+		Process proc = pb.start();
 
 		if (isVerbose) {
 			FileUtil.printProcess(proc);
