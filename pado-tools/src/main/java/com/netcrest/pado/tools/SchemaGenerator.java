@@ -185,7 +185,12 @@ public class SchemaGenerator
 		}
 		writeLine();
 		writeLine("Usage:");
-		writeLine("   SchemaGenerator [-headerRow <column name row number>] [-startRow <start row number] [-?]");
+		writeLine("   SchemaGenerator [-dataDir <data file directory>]");
+		writeLine("                   [-schemaDir <schema file directory>]");
+		writeLine("                   [-parentPath <parent grid path>]");
+		writeLine("                   [-headerRow <column name row number>]");
+		writeLine("                   [-startRow <start row number]");
+		writeLine("                   [-?]");
 		writeLine();
 		writeLine("   IMPORTANT: This command overwrites the existing schema files. Make sure");
 		writeLine("              to back up output directory (-schemaDir) before executing");
