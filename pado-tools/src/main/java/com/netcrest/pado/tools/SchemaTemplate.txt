@@ -22,8 +22,8 @@ KeyClass=java.lang.String
 ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 
 # KeyTypeClass defines the schema class for JsonLite. 
-KeyTypeClass=com.jnj.ov.depot.data.inventory.EesInvLocRelKey
-`
+#KeyTypeClass=
+
 RoutingKeyClass=java.lang.String
 
 # EntryFilterClass filters each key/value pair created by
