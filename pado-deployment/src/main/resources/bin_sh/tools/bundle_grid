@@ -82,7 +82,7 @@ BUNDLE_DATA_PATH=$PADO_HOME/bundle/${GRID_ID}-data.zip
 BUNDLE_DB_PATH=$PADO_HOME/bundle/${GRID_ID}-db.zip
 
 # Zip the files
-CONF_FILES="bin_sh/all_env.sh bin_sh/setenv.sh bin_sh/grids/$GRID_ID etc/pado.properties etc/$GRID_ID etc/client security"
+CONF_FILES="bin_sh/all_env.sh bin_sh/setenv.sh bin_sh/grids/$GRID_ID etc/pado.properties etc/$GRID_ID etc/client script security"
 LIB_FILES="lib/app plugins -x plugins/pado-*.jar plugins/tmp/* plugins/.*"
 DATA_FILES="data/schema data/processed data/scheduler/etc data/scheduler/schema data/scheduler/processed"
 pushd $PADO_HOME > /dev/null 2>&1

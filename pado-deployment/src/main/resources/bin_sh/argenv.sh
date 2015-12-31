@@ -66,6 +66,7 @@ NOW=
 IMPORT=
 CLEAN=
 QUIET=false
+REFID=
 PREFIX=
 HOST_NAMES=
 SERVER_NAMES=
@@ -106,6 +107,8 @@ do
       HOST_NAMES=$i
    elif [ "$PREV" == "-servers" ]; then
       SERVER_NAMES=$i
+   elif [ "$PREV" == "-refid" ]; then
+      REFID=$i
    elif [ "$i" == "-gateway" ]; then
       GATEWAY=gateway
    elif [ "$i" == "-rebalance" ]; then
