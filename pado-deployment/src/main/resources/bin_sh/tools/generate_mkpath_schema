@@ -36,7 +36,7 @@ if [ "$HELP" == "true" ]; then
    echo "      -grid     Grid in which the grid paths to be created. Default: $GRID_DEFAULT"
    echo "      -site     Site in which the grid paths to be created. Default: $SITE_DEFAULT"
    echo ""
-   echo "   Default: ./generate_mkpath_schema -refid .. -grid $GRID_DEFAULT -site $SITE_DEFAULA"
+   echo "   Default: ./generate_mkpath_schema -refid .. -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
    exit
 fi
