@@ -71,6 +71,9 @@ public class SchemaInfo
 	public final static String PROP_IS_SPLIT = "IsSplit";
 	public final static String PROP_ROW_FILTER_CLASS = "RowFilterClass";
 	public final static String PROP_ENTRY_FILTER_CLASS = "EntryFilterClass";
+	public final static String PROP_CHARSET = "Charset";
+	public final static String PROP_LINE_SEPARATOR = "LineSeparator";
+	public final static String PROP_QUOTE_ESCAPE = "QuoteEscape";
 
 	private final static String DEFAULT_BULK_LOADER_CLASS_NAME = PadoUtil.getProperty(
 			Constants.PROP_LOADER_DATA_BULK_LOADER_CLASS,
@@ -86,6 +89,8 @@ public class SchemaInfo
 	private boolean isKeyAutoGen = false;
 	private String gridPath;
 	private char delimiter = 29; // default is ASCII ALT (029)
+	private char quoteEscape = '"';
+	private String lineSeparator = "\n"; 
 	private Class<?> keyClass;
 	private Class<?> valueClass;
 	private KeyType keyType;
@@ -105,6 +110,7 @@ public class SchemaInfo
 	private String dateFormat = "MM/dd/yyyy HH:mm:ss";
 	private boolean columnNamesCaseSensitive = true;
 	private boolean isSplit = true;
+	private String charset = "US-ASCII";
 	
 
 	private boolean isTemporal = true;
@@ -268,6 +274,13 @@ public class SchemaInfo
 						this.endRow = Integer.parseInt(value);
 					} else if (property.equalsIgnoreCase(PROP_IS_SPLIT)) {
 						this.isSplit = value.equalsIgnoreCase("true");
+					} else if (property.equalsIgnoreCase(PROP_LINE_SEPARATOR)) {
+						this.lineSeparator = value;
+					} else if (property.equalsIgnoreCase(PROP_QUOTE_ESCAPE)) {
+						char[] carray = value.toCharArray();
+						if (carray != null && carray.length > 0) {
+							this.quoteEscape = carray[0];
+						}
 					}
 				} else {
 					String tokens[] = getTokens(line, schemaFileDelimiter);
@@ -410,6 +423,16 @@ public class SchemaInfo
 	public char getDelimiter()
 	{
 		return delimiter;
+	}
+	
+	public String getLineSeparator()
+	{
+		return lineSeparator;
+	}
+	
+	public char getQuoteEscape()
+	{
+		return quoteEscape;
 	}
 
 	public Class<?> getKeyClass()
@@ -590,21 +613,27 @@ public class SchemaInfo
 	{
 		return isSplit;
 	}
+	
+	public String getCharset()
+	{
+		return charset;
+	}
 
 	@Override
-	public String toString()
+	public String toString() 
 	{
 		return "SchemaInfo [schemaFileDelimiter=" + schemaFileDelimiter + ", schemaType=" + schemaType
 				+ ", isKeyColumns=" + isKeyColumns + ", isKeyAutoGen=" + isKeyAutoGen + ", gridPath=" + gridPath
-				+ ", delimiter=" + delimiter + ", keyClass=" + keyClass + ", valueClass=" + valueClass + ", keyType="
-				+ keyType + ", keyTypeClassName=" + keyTypeClassName + ", routingKeyClass=" + routingKeyClass
+				+ ", delimiter=" + delimiter + ", quoteEscape=" + quoteEscape + ", lineSeparator=" + lineSeparator
+				+ ", keyClass=" + keyClass + ", valueClass=" + valueClass + ", keyType=" + keyType
+				+ ", keyTypeClassName=" + keyTypeClassName + ", routingKeyClass=" + routingKeyClass
 				+ ", allColumnItems=" + Arrays.toString(allColumnItems) + ", skipColumnSet=" + skipColumnSet
 				+ ", pkColumnNames=" + Arrays.toString(pkColumnNames) + ", valueColumnNames="
 				+ Arrays.toString(valueColumnNames) + ", valueColumnTypes=" + Arrays.toString(valueColumnTypes)
 				+ ", bulkLoaderClass=" + bulkLoaderClass + ", fileLoaderClass=" + fileLoaderClass + ", rowFilterClass="
 				+ rowFilterClass + ", entryFilterClass=" + entryFilterClass + ", batchSize=" + batchSize
-				+ ", dateFormat=" + dateFormat + ", columnNamesCaseSensitive=" + columnNamesCaseSensitive
-				+ ", isSplit=" + isSplit + ", isTemporal=" + isTemporal + ", temporalType=" + temporalType
+				+ ", dateFormat=" + dateFormat + ", columnNamesCaseSensitive=" + columnNamesCaseSensitive + ", isSplit="
+				+ isSplit + ", charset=" + charset + ", isTemporal=" + isTemporal + ", temporalType=" + temporalType
 				+ ", temporalStartTime=" + temporalStartTime + ", temporalEndTime=" + temporalEndTime
 				+ ", temporalWrittenTime=" + temporalWrittenTime + ", temporalTimeResolution=" + temporalTimeResolution
 				+ ", username=" + username + ", startRow=" + startRow + ", endRow=" + endRow + ", isHistory="

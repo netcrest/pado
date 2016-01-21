@@ -65,9 +65,9 @@ Pado requires JDK 1.7 to compile and runs on JDK 1.7 and 1.8.
 
 1. Download or clone Pado from GitHub: http://github.com/netcrest/pado
 2. Install Apache Maven: https://maven.apache.org
-2. Run `mvn install` from the Pado root directory.
+3. Run `mvn install` from the Pado root directory.
 
-The above Maven command compiles all of Pado Maven modules and creates zip and tar distribution files in the `pado-deployment/assembly` directory. It also inflates the tar distribution file in the `deploy/` directory for running and testing the Pado build. 
+The above Maven command (#3) compiles all of Pado Maven modules and creates zip and tar distribution files in the `pado-deployment/assembly` directory. It also inflates the tar distribution file in the `deploy/` directory for running and testing the Pado build. 
 
 IMPORTANT: Note that it does not overwrite the existing files in the `deploy/` directory, preserving the changes that you may have made from the previous build.
 

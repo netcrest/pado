@@ -28,11 +28,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +62,8 @@ import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalKey;
 import com.netcrest.pado.util.IBulkLoader;
 import com.netcrest.pado.util.IBulkLoaderListener;
 import com.netcrest.pado.util.ObjectUtil;
+import com.univocity.parsers.csv.CsvParser;
+import com.univocity.parsers.csv.CsvParserSettings;
 
 /**
  * CsvFileLoader loads CSV file contents in the form of a specified data class
@@ -186,13 +188,13 @@ public class CsvFileLoader implements IFileLoader
 				temporalTime = DateTool.stringToTime(timeStr, schemaInfo.getTemporalTimeResolution());
 			}
 			InputStream inputStream = new FileInputStream(dataFile);
-			Reader reader = new InputStreamReader(inputStream, Charset.forName("US-ASCII"));
-			csvReader = new BufferedReader(reader);
+
+			csvReader = new InputStreamReader(inputStream, schemaInfo.getCharset());
 			count = loadData(csvReader, temporalTime);
 			csvReader.close();
 		} catch (Exception ex) {
-			throw new FileLoaderException("File load failed. " + ex.getMessage() + ". Data file: "
-					+ dataFile.getAbsolutePath(), ex);
+			throw new FileLoaderException(
+					"File load failed. " + ex.getMessage() + ". Data file: " + dataFile.getAbsolutePath(), ex);
 		} finally {
 			if (csvReader != null) {
 				try {
@@ -248,12 +250,12 @@ public class CsvFileLoader implements IFileLoader
 	 * @throws IllegalAccessException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private int loadData(Reader textReader, long temporalTime) throws FileLoaderException, InstantiationException,
-			IllegalAccessException
+	private int loadData(Reader textReader, long temporalTime)
+			throws FileLoaderException, InstantiationException, IllegalAccessException
 	{
 		IBulkLoader bulkLoader;
 		ITemporalAdminBizLink temporalAdminBiz = null;
-		
+
 		// For server-side, do not use IBiz which fails due to class loader
 		// conflicts.
 		if (PadoServerManager.getPadoServerManager() != null) {
@@ -262,19 +264,18 @@ public class CsvFileLoader implements IFileLoader
 			bulkLoader.setBatchSize(schemaInfo.getBatchSize());
 		} else {
 			if (schemaInfo.isTemporal()) {
-				temporalAdminBiz = pado.getCatalog().newInstance(ITemporalAdminBiz.class,
-						schemaInfo.getGridPath());
+				temporalAdminBiz = pado.getCatalog().newInstance(ITemporalAdminBiz.class, schemaInfo.getGridPath());
 				bulkLoader = temporalAdminBiz.createBulkLoader(schemaInfo.getBatchSize());
-				((ITemporalBulkLoader)bulkLoader).setDiffEnabled(schemaInfo.isHistory());
-				((ITemporalBulkLoader)bulkLoader).setDiffTemporalTime(temporalTime);
+				((ITemporalBulkLoader) bulkLoader).setDiffEnabled(schemaInfo.isHistory());
+				((ITemporalBulkLoader) bulkLoader).setDiffTemporalTime(temporalTime);
 			} else {
 				IGridMapBiz gridMapBiz = pado.getCatalog().newInstance(IGridMapBiz.class, schemaInfo.getGridPath());
 				bulkLoader = gridMapBiz.getBulkLoader(schemaInfo.getBatchSize());
-			}	
+			}
 		}
 		EntryCountListener entryCountListener = new EntryCountListener();
 		bulkLoader.addBulkLoaderListener(entryCountListener);
-		
+
 		String pkPropertyName = null;
 		if (schemaInfo.getPkColumnNames().length == 1) {
 			pkPropertyName = schemaInfo.getPkColumnNames()[0];
@@ -345,32 +346,27 @@ public class CsvFileLoader implements IFileLoader
 			}
 		}
 		
+		// CSV parser from uniVocity
+		CsvParserSettings settings = new CsvParserSettings();
+		settings.getFormat().setLineSeparator(schemaInfo.getLineSeparator());
+		settings.getFormat().setDelimiter(schemaInfo.getDelimiter());
+		settings.getFormat().setQuoteEscape(schemaInfo.getQuoteEscape());
+		CsvParser parser = new CsvParser(settings);
+		parser.beginParsing(textReader);
+
 		int lineNumber = 0;
 		int count = 0;
 		BufferedReader reader = null;
-		String line = null;
+		String[] tokens = null;
 		try {
 			reader = new BufferedReader(textReader);
 			// skip the rows before the start row
 			for (int i = 1; i < schemaInfo.getStartRow(); i++) {
-				line = reader.readLine();
+				tokens = parser.parseNext();
 				lineNumber++;
 			}
-			while ((line = readLine(reader)) != null) {
+			while ((tokens = parser.parseNext()) != null) {
 				lineNumber++;
-				String line2 = line.trim();
-				if (line2.startsWith("#") || line2.length() == 0) {
-					continue;
-				}
-				// String[] tokens =
-				// line.split(String.valueOf(schemaInfo.getDelimiter()));
-				String tokens[] = SchemaUtil.getTokens(line, schemaInfo.getDelimiter());
-				if (tokens == null) {
-					continue;
-				}
-				if (tokens.length < 0) {
-					continue;
-				}
 
 				Object keyObject = null;
 				Object dataObject = null;
@@ -449,7 +445,7 @@ public class CsvFileLoader implements IFileLoader
 							Object key = entry.getKey();
 							Object data = entry.getValue();
 							if (key instanceof ITemporalKey && data instanceof ITemporalData) {
-								bulkLoader.put((ITemporalKey)key, (ITemporalData)data);
+								bulkLoader.put((ITemporalKey) key, (ITemporalData) data);
 							} else {
 								bulkLoader.put(key, data);
 							}
@@ -472,7 +468,8 @@ public class CsvFileLoader implements IFileLoader
 
 				if (verbose) {
 					if (count % bulkLoader.getBatchSize() == 0) {
-						System.out.println("   " + verboseTag + " Read: " + count + ", Loaded: " + entryCountListener.getTotalCount());
+						System.out.println("   " + verboseTag + " Read: " + count + ", Loaded: "
+								+ entryCountListener.getTotalCount());
 					}
 				}
 			}
@@ -481,9 +478,12 @@ public class CsvFileLoader implements IFileLoader
 
 		} catch (Exception ex) {
 			Logger.error(ex);
-			throw new FileLoaderException("Error occured while loading data: " + ex.getClass() + ", line=" + lineNumber
-					+ ": " + line, ex);
+			throw new FileLoaderException(
+					"Error occured while loading data: " + ex.getClass() + ", line=" + lineNumber + ": " + Arrays.toString(tokens), ex);
 		} finally {
+			if (parser != null) {
+				parser.stopParsing();
+			}
 			if (reader != null) {
 				try {
 					reader.close();
@@ -552,8 +552,8 @@ public class CsvFileLoader implements IFileLoader
 		}
 		for (int i = 0; i < keyNames.length; i++) {
 			if (schemaInfo.isSkipColumn(keyNames[i]) == false) {
-				ObjectUtil.updateKeyMap(keyMap, keyNames[i], tokens[startTokenIndex + i], dateFormatter, numberFormat, true,
-						tokenTypes[i]);
+				ObjectUtil.updateKeyMap(keyMap, keyNames[i], tokens[startTokenIndex + i], dateFormatter, numberFormat,
+						true, tokenTypes[i]);
 			}
 		}
 		return keyMap;
@@ -861,50 +861,6 @@ public class CsvFileLoader implements IFileLoader
 		} else {
 			return Character.toUpperCase(property.charAt(0)) + property.substring(1);
 		}
-	}
-
-	protected String readLine(BufferedReader reader) throws IOException
-	{
-		boolean endOfLine = false;
-		boolean oddQuote = false;
-		int c;
-		buffer.delete(0, buffer.length());
-		while ((c = reader.read()) != -1) {
-			// TODO: The following supports enclosed quotes for ','. All
-			// other delimiters treat the double quote as a regular character.
-			// We may need to support delimiters other than ',' for enclosed
-			// quotes.
-			if (c == delimiter && c != ',') {
-				oddQuote = false;
-				buffer.append((char) c);
-			} else {
-				switch (c) {
-				case '"':
-					oddQuote = !oddQuote;
-					buffer.append((char) c);
-					break;
-				case '\r':
-					break;
-				case '\n':
-					if (oddQuote) {
-						buffer.append((char) c);
-					} else {
-						endOfLine = true;
-					}
-					break;
-				default:
-					buffer.append((char) c);
-					break;
-				}
-				if (endOfLine) {
-					break;
-				}
-			}
-		}
-		if (c == -1) {
-			return null;
-		}
-		return buffer.toString();
 	}
 
 	class EntryCountListener implements IBulkLoaderListener

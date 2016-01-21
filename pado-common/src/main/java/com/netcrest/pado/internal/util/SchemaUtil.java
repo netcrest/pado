@@ -158,6 +158,7 @@ public class SchemaUtil
 		if (line.length() == 0) {
 			return null;
 		}
+		
 		// HBAN,23.82,300,23.79,800,"Thu, ""test"", 'hello' Jun 08 09:41:19 EDT
 		// 2006",99895,1094931009,82,99895,8,HBAN
 		ArrayList<String> list = new ArrayList<String>();

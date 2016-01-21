@@ -37,6 +37,32 @@ FileLoaderClass=com.netcrest.pado.biz.file.CsvFileLoader
 BatchSize=5000
 DateFormat=yyyyMMdd
 
+# If IsSplit is true then the data file is split into multiple smaller files
+# and assigned to threads to load them in parallel. The number of threads
+# is set in etc/client/csv.properties or etc/client/scheduler.properties.
+# IMPORTANT: IsSplit=true is currently supported for only 8-bit charsets
+#            and tested for US-ASCII. IsSplit must be set to false for all
+#            unsupported charsets.
+IsSplit=true
+
+# Default Charset is US-ASCII. On Unix, use the "file" command to 
+# determine the charset of data files. Some supported charsets are
+#   US-ASCII   Seven-bit ASCII, a.k.a. ISO646-US, a.k.a. the Basic Latin block of the Unicode character set
+#   ISO-8859-1 ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1
+#   UTF-8      Eight-bit UCS Transformation Format
+#   UTF-16BE   Sixteen-bit UCS Transformation Format, big-endian byte order
+#   UTF-16LE   Sixteen-bit UCS Transformation Format, little-endian byte order
+#   UTF-16     Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark
+Charset=US-ASCII
+
+# LineSeparator is the new-line character(s). For example, \r\n for CR-LF.
+# Default: \n
+#LineSeparator=
+
+# QuoteEscape is the escape character for quote as a field value.
+# Default: ".
+#QuoteEscape=
+
 # --- Temporal spec ---
 # If IsTemporal is false then all other temporal properties except
 # IdentityKey are ignored and non-temporal objects are created. 
@@ -51,6 +77,8 @@ TemporalType=eternal
 TemporalStartTime=19700101
 TemporalEndTime=20991231
 TemporalWrittenTime=19700101
+
+# Username is optional. If specified then it overwrites the Pado login user name.
 #Username=
 
 # List the columns specified in the Columns property to be skipped.

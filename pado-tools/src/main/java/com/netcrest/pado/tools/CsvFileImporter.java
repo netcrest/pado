@@ -15,7 +15,6 @@
  */
 package com.netcrest.pado.tools;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -25,11 +24,8 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -453,11 +449,6 @@ public class CsvFileImporter
 		es.shutdown();
 	}
 
-	
-
-	
-
-	
 	private void removeFiles(File dir, final String filePrefix)
 	{
 		File files[] = dir.listFiles(new FilenameFilter() {
@@ -512,11 +503,6 @@ public class CsvFileImporter
 		public ImportStatus call() throws Exception
 		{
 			ImportStatus is = new ImportStatus();
-			InputStream inputStream = new FileInputStream(csvFile);
-			Reader reader = new InputStreamReader(inputStream, Charset.forName("US-ASCII"));
-			BufferedReader csvReader = new BufferedReader(reader);
-			// BufferedReader csvReader = new BufferedReader(new
-			// FileReader(csvFile));
 			ITemporalAdminBiz temporalAdminBiz = null;
 			boolean temporalWasEnabled = false;
 			try {
@@ -546,8 +532,6 @@ public class CsvFileImporter
 				is.isSuccess = true;
 				is.file = csvFile;
 			} finally {
-				csvReader.close();
-
 				// Enable temporal indexing if disabled earlier
 				if (isTemporalOffWhileImportingData) {
 					if (temporalAdminBiz != null && schemaInfo.isHistory() == false) {
