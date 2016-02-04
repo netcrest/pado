@@ -427,35 +427,36 @@ public class LuceneBuilder
 					}
 
 				} else {
-					for (Method method : attributeGetters) {
-						Class fieldType = method.getReturnType();
-						String fieldName = method.getName().substring(3);
-						if (fieldType == Integer.class || fieldType == int.class) {
-							config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.INT);
-							map.put(fieldName, config);
-						} else if (fieldType == Long.class || fieldType == long.class) {
-							config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.LONG);
-							map.put(fieldName, config);
-						} else if (fieldType == Float.class || fieldType == float.class) {
-							config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.FLOAT);
-							map.put(fieldName, config);
-						} else if (fieldType == Double.class || fieldType == double.class) {
-							config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.DOUBLE);
-							map.put(fieldName, config);
-						} else if (fieldType == Date.class) {
-							config = new NumericConfig(PRECISION_STEP, DateTool.Resolution.DAY.numericFormat,
-									NumericType.LONG);
-							map.put(fieldName, config);
-						}
-					}
-
+					
 					// build lucene for each attribute in the current
 					// (latest) data
 					if (attributeGetters != null && attributeGetters.length > 0) {
+						for (Method method : attributeGetters) {
+							Class fieldType = method.getReturnType();
+							String fieldName = method.getName().substring(3);
+							if (fieldType == Integer.class || fieldType == int.class) {
+								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
+										NumericType.INT);
+								map.put(fieldName, config);
+							} else if (fieldType == Long.class || fieldType == long.class) {
+								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
+										NumericType.LONG);
+								map.put(fieldName, config);
+							} else if (fieldType == Float.class || fieldType == float.class) {
+								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
+										NumericType.FLOAT);
+								map.put(fieldName, config);
+							} else if (fieldType == Double.class || fieldType == double.class) {
+								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
+										NumericType.DOUBLE);
+								map.put(fieldName, config);
+							} else if (fieldType == Date.class) {
+								config = new NumericConfig(PRECISION_STEP, DateTool.Resolution.DAY.numericFormat,
+										NumericType.LONG);
+								map.put(fieldName, config);
+							}
+						}
+					
 						List<Document> docList = new ArrayList<Document>();
 
 						for (Object identityKey : identityKeyList) {
