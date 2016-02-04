@@ -136,6 +136,7 @@ public interface Constants
 	public final static String PROP_GRID_ID = "grid.id";
 	public final static String PROP_SITE_ID = "site.id";
 	public final static String PROP_SERVER_ID = "server.id";
+	public final static String PROP_SERVER_NUM = "server.num";
 	public final static String PROP_HOME_DIR = "home.dir";
 	public final static String PROP_PLUGINS_DIR = "plugins.dir";
 	public final static String PROP_ETC_DIR = "etc.dir";

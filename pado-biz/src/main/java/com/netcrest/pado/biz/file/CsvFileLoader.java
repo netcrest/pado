@@ -50,7 +50,6 @@ import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.index.provider.lucene.DateTool;
 import com.netcrest.pado.internal.util.ClassUtil;
-import com.netcrest.pado.internal.util.SchemaUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.ITemporalAdminBizLink;

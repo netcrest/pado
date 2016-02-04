@@ -815,9 +815,13 @@ public class GemfirePado extends Pado
 		}
 		Object token = loginInfo.getToken();
 		if (token == null) {
+			loginInfo = null;
 			return false;
 		}
-		LoginInfo loginInfo = (LoginInfo) loginRegion.get(token);
+		LoginInfo loginInfo2 = (LoginInfo) loginRegion.get(token);
+		if (loginInfo2 == null) {
+			loginInfo = null;
+		}
 		return loginInfo == null;
 	}
 	
@@ -829,7 +833,7 @@ public class GemfirePado extends Pado
 
 	public void refresh()
 	{
-		if (catalog != null) {
+		if (isLoggedOut() == false && catalog != null) {
 			// Re-initialize pools and regions in case new information (such
 			// as new grid) is received.
 			createAppPools(catalog.getAppId());
@@ -851,7 +855,7 @@ public class GemfirePado extends Pado
 				loginRegion.unregisterInterest(token);
 			}
 		}
-		logout();
+		super.resetUser();
 	}
 
 	protected static void reset()

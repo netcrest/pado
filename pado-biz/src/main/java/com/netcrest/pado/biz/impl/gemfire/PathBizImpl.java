@@ -543,7 +543,7 @@ public class PathBizImpl
 	}
 
 	@SuppressWarnings("rawtypes")
-	private PathType getPathType(Region region)
+	public static PathType getPathType(Region region)
 	{
 		if (region == null) {
 			return null;

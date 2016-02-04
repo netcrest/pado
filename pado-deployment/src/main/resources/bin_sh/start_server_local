@@ -225,7 +225,7 @@ APP_PROPERTIES=$APP_PROPERTIES
 # 
 # Pado specifics
 #
-PADO_PROPERTIES="-J-Dpado.grid.id=$GRID_ID -J-Dpado.grid.name=$GRID_NAME -J-Dpado.site.id=$SITE_ID -J-Dpado.site.name=$SITE_NAME -J-Dpado.plugins.dir=$PADO_PLUGINS_DIR -J-Dpado.etc.dir=$ETC_DIR -J-Dpado.etc.grid.dir=$ETC_GRID_DIR -J-Dpado.db.dir=$PADO_DB_DIR -J-Dpado.properties=$PADO_PROPERTY_FILE -J-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR -J-Dpado.server=true -J-Dpado.config-file=$PADO_CONFIG_FILE -J-Dpado.log.gridInfo=false -J-Dpado.lucene.ramDirectory=false -J-Dpado.lucene.builder.thread.count=1 -J-Dpado.index.pageSize=1000 -J-Djavax.xml.accessExternalDTD=all"
+PADO_PROPERTIES="-J-Dpado.grid.id=$GRID_ID -J-Dpado.grid.name=$GRID_NAME -J-Dpado.site.id=$SITE_ID -J-Dpado.site.name=$SITE_NAME -J-Dpado.server.num=$SERVER_NUM -J-Dpado.plugins.dir=$PADO_PLUGINS_DIR -J-Dpado.etc.dir=$ETC_DIR -J-Dpado.etc.grid.dir=$ETC_GRID_DIR -J-Dpado.db.dir=$PADO_DB_DIR -J-Dpado.properties=$PADO_PROPERTY_FILE -J-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR -J-Dpado.server=true -J-Dpado.config-file=$PADO_CONFIG_FILE -J-Dpado.log.gridInfo=false -J-Dpado.lucene.ramDirectory=false -J-Dpado.lucene.builder.thread.count=1 -J-Dpado.index.pageSize=1000 -J-Djavax.xml.accessExternalDTD=all"
 
 #
 # HEAP_MAX is set in grids/<grid-id>/site_<site-id>.sh

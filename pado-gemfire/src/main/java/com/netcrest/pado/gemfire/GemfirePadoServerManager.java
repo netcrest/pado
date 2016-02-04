@@ -212,6 +212,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		gridId = padoConfig.getId();
 		siteId = PadoUtil.getProperty(Constants.PROP_SITE_ID, Constants.DEFAULT_SITE_ID);
 		serverId = cache.getDistributedSystem().getDistributedMember().getId();
+		serverNum = PadoUtil.getProperty(Constants.PROP_SERVER_NUM);
 		PadoUtil.getPadoProperties().setProperty(Constants.PROP_SERVER_ID, serverId);
 		serverName = cache.getName();
 		location = padoConfig.getLocation();
@@ -2602,5 +2603,12 @@ public class GemfirePadoServerManager extends PadoServerManager
 	public boolean isMaster()
 	{
 		return MasterServerLock.getMasterServerLock().isMasterEnabled();
+	}
+	
+	@Override
+	public int getServerCount()
+	{
+		// Add 1 to include itself.
+		return CacheFactory.getAnyInstance().getMembers().size() + 1;
 	}
 }

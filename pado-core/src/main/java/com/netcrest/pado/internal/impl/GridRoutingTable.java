@@ -92,7 +92,7 @@ public class GridRoutingTable implements Externalizable, Cloneable
 	/**
 	 * costBasedTable contains Grid objects sorted by Grid.cost
 	 */
-	private transient TreeSet<Grid> costBasedSet = new TreeSet();
+	private transient TreeSet<Grid> costBasedSet = new TreeSet<Grid>();
 
 	/**
 	 * loadBasedTable contains Grid objects sorted by Grid.load
@@ -104,7 +104,7 @@ public class GridRoutingTable implements Externalizable, Cloneable
 	 * Grid&gt;&gt;. The top-level map is not sorted but the TreeMap is sorted
 	 * by Grid.cost
 	 */
-	private transient HashMap<String, TreeMap<String, Grid>> locationBasedTable = new HashMap(20);
+	private transient HashMap<String, TreeMap<String, Grid>> locationBasedTable = new HashMap<String, TreeMap<String, Grid>>(20);
 
 	/**
 	 * PriorityType is currently always COST.
@@ -433,13 +433,13 @@ public class GridRoutingTable implements Externalizable, Cloneable
 	 * specified location that has the least routing cost. If the grid IDs are
 	 * not specified then the least cost grid from the allowed grids maintained
 	 * by the routing table is selected. If an invalid location is specified
-	 * then the least-cost grid mainted by the routing table is returned.
+	 * then the least-cost grid maintained by the routing table is returned.
 	 * 
 	 * @param location
 	 *            The geographical location of the grid
 	 * @param gridIds
 	 *            Array of grids IDs from which the least-cost grid to be
-	 *            selcted. Any grids not in the specified location are ignored.
+	 *            selected. Any grids not in the specified location are ignored.
 	 */
 	public Grid getLeastCostLocation(String location, String... gridIds)
 	{

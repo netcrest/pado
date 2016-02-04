@@ -153,6 +153,11 @@ public abstract class PadoServerManager
 	 * Server ID - Always unique
 	 */
 	protected String serverId;
+	
+	/**
+	 * Server number (with leading zero)
+	 */
+	protected String serverNum;
 
 	/**
 	 * Server Name - human legible and unique
@@ -1165,6 +1170,14 @@ public abstract class PadoServerManager
 	{
 		return serverId;
 	}
+	
+	/**
+	 * Returns server number with leading zeroes.
+	 */
+	public String getServerNum()
+	{
+		return serverNum;
+	}
 
 	/**
 	 * Returns the server name that is human legible and unique.
@@ -1569,5 +1582,10 @@ public abstract class PadoServerManager
 	 *            User session token
 	 */
 	public abstract boolean isValidToken(Object token);
+	
+	/**
+	 * Returns the total number of currently running servers.
+	 */
+	public abstract int getServerCount();
 
 }

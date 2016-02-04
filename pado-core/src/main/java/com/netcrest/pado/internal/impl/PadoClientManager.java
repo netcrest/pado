@@ -35,13 +35,13 @@ import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 
-public abstract class PadoClientManager
-{
+public abstract class PadoClientManager {
 	protected static PadoClientManager clientManager;
 
 	static {
 		try {
-			Class clazz = PadoUtil.getClass(Constants.PROP_CLASS_PADO_CLIENT_MANAGER, Constants.DEFAULT_CLASS_PADO_CLIENT_MANAGER);
+			Class<?> clazz = PadoUtil.getClass(Constants.PROP_CLASS_PADO_CLIENT_MANAGER,
+					Constants.DEFAULT_CLASS_PADO_CLIENT_MANAGER);
 			clientManager = (PadoClientManager) clazz.newInstance();
 		} catch (Exception e) {
 			Logger.severe("PadoClientManager creation failed. The client will not communicate with the grid.", e);
@@ -52,7 +52,8 @@ public abstract class PadoClientManager
 	private Class<IDataContext> dataContextClass;
 
 	// <appId, Map<username, Pado>>
-	protected final ConcurrentMap<String, Map<String, Pado>> padoMap = new ConcurrentHashMap(2);
+	protected final ConcurrentMap<String, Map<String, Pado>> padoMap = new ConcurrentHashMap<String, Map<String, Pado>>(
+			2);
 
 	/**
 	 * Initializes PadoClientManager with the specified context classes. These
@@ -69,14 +70,13 @@ public abstract class PadoClientManager
 	 * Each invocation of this method creates a new single PadoClientManager
 	 * object. This allows the client to refresh with a new set of context
 	 * classes. If the same set of classes are continue to be used then the
-	 * {@link #clear()} should be invoked instead. Before invoking this
-	 * method, the context (user and data) classes should be included as
-	 * properties in PadoUtil.
+	 * {@link #clear()} should be invoked instead. Before invoking this method,
+	 * the context (user and data) classes should be included as properties in
+	 * PadoUtil.
 	 * 
 	 * @return Returns the singleton instance of PadoClientManager.
 	 */
-	public static synchronized PadoClientManager initialize()
-	{
+	public static synchronized PadoClientManager initialize() {
 		try {
 			String val = PadoUtil.getProperty(Constants.PROP_CLASS_USER_CONTEXT, Constants.DEFAULT_CLASS_USER_CONTEXT);
 			Class<IUserContext> userContextClass = null;
@@ -109,17 +109,14 @@ public abstract class PadoClientManager
 		return clientManager;
 	}
 
-	public static PadoClientManager getPadoClientManager()
-	{
+	public static PadoClientManager getPadoClientManager() {
 		return clientManager;
 	}
 
-	public void init(Properties props)
-	{
+	public void init(Properties props) {
 	}
 
-	public IUserContext createUserContext(IGridService gridService)
-	{
+	public IUserContext createUserContext(IGridService gridService) {
 		IUserContext userContext = null;
 		if (userContextClass != null) {
 			try {
@@ -133,8 +130,7 @@ public abstract class PadoClientManager
 		return userContext;
 	}
 
-	public IDataContext createDataContext(IGridService gridService)
-	{
+	public IDataContext createDataContext(IGridService gridService) {
 		IDataContext dataContext = null;
 		if (dataContextClass != null) {
 			try {
@@ -152,25 +148,15 @@ public abstract class PadoClientManager
 
 	public abstract AppInfo getAppInfo(String appId, boolean fromRemote);
 
-	public void addToken(String appId, Object token)
-	{
-		AppInfo appInfo = getAppInfo(appId);
-		if (appInfo != null) {
-			String gridIds[] = appInfo.getGridIds();
-			for (String gridId : gridIds) {
-
-			}
-		}
-	}
-
-	public void addPado(Pado pado)
-	{
+	public void addPado(Pado pado) {
 		Map<String, Pado> userMap = padoMap.get(pado.getAppId());
 		if (userMap == null) {
-			userMap = new HashMap(2);
+			userMap = new HashMap<String, Pado>(2);
 			padoMap.put(pado.getAppId(), userMap);
 		}
-		userMap.put(pado.getUsername(), pado);
+		synchronized (userMap) {
+			userMap.put(pado.getUsername(), pado);
+		}
 	}
 
 	/**
@@ -180,19 +166,41 @@ public abstract class PadoClientManager
 	 * @param appId
 	 *            Application ID.
 	 */
-	public Pado getPado(String appId)
-	{
+	public Pado getPado(String appId) {
 		Map<String, Pado> userMap = padoMap.get(appId);
 		if (userMap != null) {
-			for (Pado pado : userMap.values()) {
-				return pado;
+			synchronized (userMap) {
+				for (Pado pado : userMap.values()) {
+					if (pado.isLoggedOut() == false) {
+						return pado;
+					}
+				}
 			}
 		}
 		return null;
 	}
 
-	public void refresh(String appId)
-	{
+	/**
+	 * Removes the specified Pado from the client manager only if
+	 * pado.isLoggedout() is true. In other words, if the specified Pado has not
+	 * been logged out then it cannot be removed from the client manager.
+	 * 
+	 * @param pado
+	 *            Pado instance
+	 */
+	public void removePado(Pado pado) {
+		if (pado == null || pado.isLoggedOut() == false) {
+			return;
+		}
+		Map<String, Pado> userMap = padoMap.get(pado.getAppId());
+		if (userMap != null) {
+			synchronized (userMap) {
+				userMap.remove(pado.getUsername());
+			}
+		}
+	}
+
+	public void refresh(String appId) {
 		Map<String, Pado> userMap = padoMap.get(appId);
 		if (userMap != null) {
 			for (Pado pado : userMap.values()) {
@@ -220,14 +228,12 @@ public abstract class PadoClientManager
 	 * @param appId
 	 *            Application ID
 	 */
-	public void removeApp(String appId)
-	{
+	public void removeApp(String appId) {
 		padoMap.remove(appId);
 		GridRoutingTable.removeGridRoutingTable(appId);
 	}
 
-	public void refreshGridRoutingTables()
-	{
+	public void refreshGridRoutingTables() {
 		// Remove all grid IDs that do not exist in the live grid id list
 		// from the current routing table
 		Set<String> appIdSet = GridRoutingTable.getAppIdSet();
@@ -235,7 +241,7 @@ public abstract class PadoClientManager
 			GridRoutingTable routingTable = GridRoutingTable.getGridRoutingTable(appId);
 			Set<String> routingTableGridIdSet = routingTable.getGridIdSet();
 			Set<String> liveGridIdSet = getLiveGridIdSet();
-			ArrayList<String> removalList = new ArrayList(20);
+			ArrayList<String> removalList = new ArrayList<String>(20);
 			for (String gridId : routingTableGridIdSet) {
 				if (liveGridIdSet.contains(gridId) == false) {
 					removalList.add(gridId);
@@ -266,8 +272,7 @@ public abstract class PadoClientManager
 	 * @param appId
 	 *            Application ID
 	 */
-	public Set<String> getLiveGridIdSet(String appId)
-	{
+	public Set<String> getLiveGridIdSet(String appId) {
 		AppInfo appInfo = getAppInfo(appId);
 		if (appInfo != null) {
 			return appInfo.getGridIdSet();
@@ -278,8 +283,7 @@ public abstract class PadoClientManager
 	/**
 	 * Clears all app IDs, resulting an empty manager.
 	 */
-	public void clear()
-	{
+	public void clear() {
 		padoMap.clear();
 	}
 }

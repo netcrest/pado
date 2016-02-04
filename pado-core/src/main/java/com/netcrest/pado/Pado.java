@@ -401,6 +401,9 @@ public abstract class Pado implements IPado
 	public void logout()
 	{
 		// TODO: need better logout logic. send a message to the pado grid
+		if (s_clientManager != null) {
+			s_clientManager.removePado(this);
+		}
 		s_userMap.remove(this.loginInfo.getUsername());
 		s_tokenMap.remove(this.loginInfo.getToken());
 		loginInfo = null;

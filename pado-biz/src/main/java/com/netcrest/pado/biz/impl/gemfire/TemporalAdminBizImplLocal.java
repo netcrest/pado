@@ -156,7 +156,7 @@ public class TemporalAdminBizImplLocal<K, V> implements ITemporalAdminBiz<K, V>,
 	@Override
 	public String getGridPath()
 	{
-		return biz.getBizContext().getGridContextClient().getGridPath();
+		return gridPath;
 	}
 	
 	/**
@@ -165,8 +165,10 @@ public class TemporalAdminBizImplLocal<K, V> implements ITemporalAdminBiz<K, V>,
 	@Override
 	public void setGridPath(String gridPath)
 	{
+		this.gridPath = gridPath;
 		biz.getBizContext().getGridContextClient().setGridPath(gridPath);
 		gridMapBiz.setGridPath(gridPath);
+		loadMetadata();
 	}
 
 	/**

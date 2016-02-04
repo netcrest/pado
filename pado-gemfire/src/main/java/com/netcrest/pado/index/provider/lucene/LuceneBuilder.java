@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -231,10 +232,6 @@ public class LuceneBuilder
 
 			try {
 				List identityKeyList = tm.getIdentityKeyList();
-				if (identityKeyList.size() == 0) {
-					return null;
-				}
-
 				if (isRamDirectory) {
 					if (createNewDirectory) {
 						directory = new RAMDirectory();
@@ -246,6 +243,11 @@ public class LuceneBuilder
 					}
 				} else {
 					File file = new File("lucene" + type.getFullPath());
+					// Delete the directory and create a new. This is not required 
+					// but for troubleshooting, leave it for now.
+					if (file.exists()) {
+						FileUtils.forceDelete(file);
+					}
 					file.mkdirs();
 					directory = new MMapDirectory(file);
 				}
@@ -514,7 +516,7 @@ public class LuceneBuilder
 				writer.commit();
 				writer.close();
 
-				// place the RamDirectory in the lucene
+				// place the RamDirectory in the region
 				if (isRamDirectory) {
 					region.put(type.getFullPath(), (RAMDirectory) directory);
 				} else {
