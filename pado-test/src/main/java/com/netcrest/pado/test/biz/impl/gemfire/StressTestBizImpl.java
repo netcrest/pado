@@ -59,8 +59,9 @@ public class StressTestBizImpl
 	public String __start(final Map<String, JsonLite> pathConfigMap, final int threadCountPerServer,
 			final int loopCount, final boolean isIncludeObjectCreationTime)
 	{
+		String serverNum = PadoServerManager.getPadoServerManager().getServerNum();
 		if (isComplete == false) {
-			return "Aborted. Another stress test already in progress.";
+			return "[serverNum=" + serverNum + "] Aborted. Another stress test already in progress.";
 		}
 		isComplete = false;
 
@@ -101,8 +102,7 @@ public class StressTestBizImpl
 				}
 			}
 		});
-		String serverId = PadoServerManager.getPadoServerManager().getServerId();
-		return "[ServerId=" + serverId + "] Stress test started.";
+		return "[ServerNum=" + serverNum + "] Stress test started.";
 	}
 
 	@BizMethod
@@ -114,9 +114,9 @@ public class StressTestBizImpl
 	@BizMethod
 	public String getStatus()
 	{
-		String serverId = PadoServerManager.getPadoServerManager().getServerId();
+		String serverNum = PadoServerManager.getPadoServerManager().getServerNum();
 		boolean isComplete = isComplete();
-		String status = "[ServerId=" + serverId + ", IsComplete=" + isComplete + "]";
+		String status = "[ServerNum=" + serverNum + ", IsComplete=" + isComplete + "]";
 		return status;
 	}
 
