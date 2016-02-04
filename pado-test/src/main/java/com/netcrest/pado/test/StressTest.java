@@ -18,6 +18,7 @@ package com.netcrest.pado.test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.Pado;
@@ -68,9 +69,10 @@ public class StressTest
 		stressTestBiz.setLoopCount(loopCount);
 		stressTestBiz.setIncludeObjectCreationTime(isIncludeObjectCreationTime);
 		
-		stressTestBiz.start();
-		
-		writeLine("StressTest Started: PathCount=" + stressTestBiz.getPathCount());
+		List<String> statusList = stressTestBiz.start();
+		for (String status : statusList) {
+			writeLine(status);
+		}
 	}
 
 	public void close()

@@ -40,7 +40,6 @@ import com.netcrest.pado.gemfire.util.RegionBulkLoader;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.ITemporalBizLink;
-import com.netcrest.pado.test.biz.IStressTestBiz.StressTestStatus;
 import com.netcrest.pado.util.IBulkLoader;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -57,42 +56,53 @@ public class StressTestBizImpl
 	}
 
 	@BizMethod
-	public void __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
-			boolean isIncludeObjectCreationTime)
+	public String __start(final Map<String, JsonLite> pathConfigMap, final int threadCountPerServer,
+			final int loopCount, final boolean isIncludeObjectCreationTime)
 	{
 		if (isComplete == false) {
-			return;
+			return "Aborted. Another stress test already in progress.";
 		}
-		try {
-			ExecutorService es = Executors.newFixedThreadPool(threadCountPerServer);
-			ArrayList<DataLoader> dataLoaderList = new ArrayList<DataLoader>();
-			int pathCountPerLoop = pathConfigMap.size();
-			for (int i = 0; i < loopCount; i++) {
-				Collection<JsonLite> col = pathConfigMap.values();
-				for (JsonLite pathConfig : col) {
-					DataLoader dataLoader = new DataLoader(pathConfig, isIncludeObjectCreationTime);
-					dataLoaderList.add(dataLoader);
+		isComplete = false;
+
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
+			public void run()
+			{
+				// TODO Auto-generated method stub
+				try {
+					ExecutorService es = Executors.newFixedThreadPool(threadCountPerServer);
+					ArrayList<DataLoader> dataLoaderList = new ArrayList<DataLoader>();
+					int pathCountPerLoop = pathConfigMap.size();
+					for (int i = 0; i < loopCount; i++) {
+						Collection<JsonLite> col = pathConfigMap.values();
+						for (JsonLite pathConfig : col) {
+							DataLoader dataLoader = new DataLoader(pathConfig, isIncludeObjectCreationTime);
+							dataLoaderList.add(dataLoader);
+						}
+					}
+
+					// Invoke all DataLoaders
+					int dataLoaderCount = dataLoaderList.size();
+					List<Future<String>> futureList = es.invokeAll(dataLoaderList);
+
+					// Block till all DataLoaders are done
+					int i = 0;
+					for (Future<String> future : futureList) {
+						String info = future.get();
+						i++;
+						Logger.info("[" + i + "/" + dataLoaderCount + "] " + info);
+					}
+					Logger.info("StressTestBiz: Complete. [loopCount=" + loopCount + ", pathCountPerLoop="
+							+ pathCountPerLoop + "]");
+				} catch (Exception ex) {
+					Logger.error(ex);
+				} finally {
+					isComplete = true;
 				}
 			}
-
-			// Invoke all DataLoaders
-			int dataLoaderCount = dataLoaderList.size();
-			List<Future<String>> futureList = es.invokeAll(dataLoaderList);
-
-			// Block till all DataLoaders are done
-			int i = 0;
-			for (Future<String> future : futureList) {
-				String info = future.get();
-				i++;
-				Logger.info("[" + i + "/" + dataLoaderCount + "] " + info);
-			}
-			Logger.info(
-					"StressTestBiz: Complete. [loopCount=" + loopCount + ", pathCountPerLoop=" + pathCountPerLoop + "]");
-		} catch (Exception ex) {
-			Logger.error(ex);
-		} finally {
-			isComplete = true;
-		}
+		});
+		String serverId = PadoServerManager.getPadoServerManager().getServerId();
+		return "[ServerId=" + serverId + "] Stress test started.";
 	}
 
 	@BizMethod
@@ -102,11 +112,11 @@ public class StressTestBizImpl
 	}
 
 	@BizMethod
-	public StressTestStatus getStatus()
+	public String getStatus()
 	{
-		StressTestStatus status = new StressTestStatus();
-		status.serverId = PadoServerManager.getPadoServerManager().getServerId();
-		status.isComplete = isComplete();
+		String serverId = PadoServerManager.getPadoServerManager().getServerId();
+		boolean isComplete = isComplete();
+		String status = "[ServerId=" + serverId + ", IsComplete=" + isComplete + "]";
 		return status;
 	}
 
@@ -147,7 +157,7 @@ public class StressTestBizImpl
 			Region rootRegion = GemfirePadoServerManager.getPadoServerManager().getRootRegion();
 			Region region = rootRegion.getSubregion(path);
 			IPathBiz.PathType pathType = PathBizImpl.getPathType(region);
-			
+
 			IBulkLoader bulkLoader;
 			switch (pathType) {
 			case TEMPORAL:

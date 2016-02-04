@@ -34,7 +34,7 @@ public interface IStressTestBiz extends IBiz
 	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@OnServer(broadcast = true)
-	void __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
+	List<String> __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
 			boolean isIncludeObjectCreationTime);
 
 	@BizMethod
@@ -44,9 +44,16 @@ public interface IStressTestBiz extends IBiz
 
 	@BizMethod
 	@OnServer(broadcast = true)
-	List<StressTestStatus> getStatus();
+	List<String> getStatus();
 
-	void start();
+	/**
+	 * Starts the stress test. Only one instance of stress test at any given
+	 * time is allowed. If the stress test is already in progress then this call
+	 * is aborted. See status message.
+	 * 
+	 * @return Status message
+	 */
+	List<String> start();
 
 	void addPath(String path);
 
@@ -69,10 +76,11 @@ public interface IStressTestBiz extends IBiz
 	 *            FieldCount, UpdateIntervalInMsec, TotalEntryCount</li>
 	 *            </ul>
 	 */
-	@SuppressWarnings({ "rawtypes"})
+	@SuppressWarnings({ "rawtypes" })
 	void addPath(JsonLite pathConfig);
-	
+
 	int getPathCount();
+
 	Set<String> getPathSet();
 
 	void removePath(String path);
@@ -98,13 +106,4 @@ public interface IStressTestBiz extends IBiz
 	int getLoopCount();
 
 	void setLoopCount(int loopCount);
-
-	public static class StressTestStatus implements Serializable
-	{
-		private static final long serialVersionUID = 1L;
-
-		public String serverId;
-		public boolean isComplete;
-		public String status;
-	}
 }

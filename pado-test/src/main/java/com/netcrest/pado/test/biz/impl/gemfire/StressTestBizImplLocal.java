@@ -16,6 +16,7 @@
 package com.netcrest.pado.test.biz.impl.gemfire;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	}
 
 	@Override
-	public void __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount, boolean isIncludeObjectCreationTime)
+	public List<String> __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount, boolean isIncludeObjectCreationTime)
 	{
 		// First, create all paths
 		IPathBiz pathBiz = pado.getCatalog().newInstance(IPathBiz.class);
@@ -72,13 +73,17 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 						(String) pathConfig.get("Path"), (PathType) pathConfig.get("PathType"), true);
 			}
 		}
-		biz.__start(pathConfigMap, threadCountPerServer, loopCount, isIncludeObjectCreationTime);
+		return biz.__start(pathConfigMap, threadCountPerServer, loopCount, isIncludeObjectCreationTime);
 	}
 
 	@Override
-	public void start()
+	public List<String> start()
 	{
-		__start(pathConfigMap, threadCountPerServer, loopCount, isIncludeObjectCreationTime);
+		List<String> list = __start(pathConfigMap, threadCountPerServer, loopCount, isIncludeObjectCreationTime);
+		if (list != null) {
+			Collections.sort(list);
+		}
+		return list;
 	}
 
 	@Override
@@ -88,10 +93,9 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	}
 
 	@Override
-	public List getStatus()
+	public List<String> getStatus()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return biz.getStatus();
 	}
 	
 	@Override
