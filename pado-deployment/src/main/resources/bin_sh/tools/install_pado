@@ -287,6 +287,7 @@ if [ "$DEBUG" == "true" ]; then
 
    echo ./exec -site $SITE tar --directory=$TOP_DIR -xzf $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz
    echo ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/run $TOP_DIR/${PADO_DIR_SHORT_NAME}
+   echo ./exec -all -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME}/script $TOP_DIR/${PADO_DIR_SHORT_NAME}/script_org
    echo ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/script $TOP_DIR/${PADO_DIR_SHORT_NAME}
 else
    ./exec -site $SITE mkdir -p $TOP_DIR
@@ -306,6 +307,9 @@ else
 
    ./exec -site $SITE tar --directory=$TOP_DIR -xzf $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz
    ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/run $TOP_DIR/${PADO_DIR_SHORT_NAME}
+   ./exec -all -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME}/data $TOP_DIR/${PADO_DIR_SHORT_NAME}/data_install
+   ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/data $TOP_DIR/${PADO_DIR_SHORT_NAME}
+   ./exec -all -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME}/script $TOP_DIR/${PADO_DIR_SHORT_NAME}/script_install
    ./exec -all -site $SITE mv $TOP_DIR/$BACKUP_DIR_SHORT_NAME/script $TOP_DIR/${PADO_DIR_SHORT_NAME}
 fi
 
@@ -316,11 +320,17 @@ echo "- The existing installation has been renamed to $BACKUP_DIR_SHORT_NAME."
 echo "- You are in the newly installed Pado directory."
 echo ""
 echo "IMPORTANT:"
-echo "   Note that the data directory has not been copied into the new"
-echo "   installation directory due to the large sizes of data files."
-echo "   You will need to manually move the data files" 
-echo "      from $TOP_DIR/$BACKUP_DIR_SHORT_NAME/data"
-echo "      to   $TOP_DIR/$PADO_DIR_SHORT_NAME/data"
+echo "   Files have been moved as follows:"
+echo "      1. from $TOP_DIR/$BACKUP_DIR_SHORT_NAME/run"
+echo "         to   $TOP_DIR/$PADO_DIR_SHORT_NAME/run"
+echo "      2. from $TOP_DIR/$PADO_DIR_SHORT_NAME/data"
+echo "         to   $TOP_DIR/$PADO_DIR_SHORT_NAME/data_install"
+echo "         from $TOP_DIR/$BACKUP_DIR_SHORT_NAME/data"
+echo "         to   $TOP_DIR/$PADO_DIR_SHORT_NAME/data"
+echo "      3. from $TOP_DIR/$PADO_DIR_SHORT_NAME/script"
+echo "         to   $TOP_DIR/$PADO_DIR_SHORT_NAME/script_install"
+echo "         from $TOP_DIR/$BACKUP_DIR_SHORT_NAME/script"
+echo "         to   $TOP_DIR/$PADO_DIR_SHORT_NAME/script"
 echo ""
 if [ "$DEBUG" != "true" ]; then
    echo "   Although it appears to be in"
