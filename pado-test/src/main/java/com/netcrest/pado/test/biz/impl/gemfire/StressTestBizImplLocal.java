@@ -65,9 +65,11 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 		Collection<JsonLite> col = pathConfigMap.values();
 		for (JsonLite pathConfig : col) {
 			if (pathConfig.get("Refid") != null) {
+				boolean isTemporal = pathConfig.get("IsTemporal") != null && (Boolean)pathConfig.get("IsTemporal");
+				boolean isLuceneDynamic = pathConfig.get("IsLuceneDynamic") != null && (Boolean)pathConfig.get("IsLuceneDynamic");
 				pathBiz.createPath(biz.getBizContext().getGridService().getDefaultGridId(),
 						(String) pathConfig.get("Path"), (String) pathConfig.get("Refid"),
-						(Boolean) pathConfig.get("IsTemporal"), (Boolean) pathConfig.get("IsLuceneDynamic"), true);
+						isTemporal, isLuceneDynamic, true);
 			} else {
 				pathBiz.createPath(biz.getBizContext().getGridService().getDefaultGridId(),
 						(String) pathConfig.get("Path"), (PathType) pathConfig.get("PathType"), true);

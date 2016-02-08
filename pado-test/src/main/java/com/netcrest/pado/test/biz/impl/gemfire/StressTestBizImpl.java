@@ -69,7 +69,7 @@ public class StressTestBizImpl
 			@Override
 			public void run()
 			{
-				// TODO Auto-generated method stub
+				Logger.info("StressTestBiz: Started");
 				try {
 					ExecutorService es = Executors.newFixedThreadPool(threadCountPerServer);
 					ArrayList<DataLoader> dataLoaderList = new ArrayList<DataLoader>();
