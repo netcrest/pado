@@ -443,14 +443,18 @@ public class CsvFileLoader implements IFileLoader
 						if (entry != null && entry.getKey() != null && entry.getValue() != null) {
 							Object key = entry.getKey();
 							Object data = entry.getValue();
-							if (key instanceof ITemporalKey && data instanceof ITemporalData) {
-								bulkLoader.put((ITemporalKey) key, (ITemporalData) data);
+							if (key instanceof ITemporalKey) {
+								if (data instanceof ITemporalData) {
+									((ITemporalBulkLoader)bulkLoader).put((ITemporalKey) key, (ITemporalData) data);
+								} else {
+									((ITemporalBulkLoader)bulkLoader).put((ITemporalKey) key, data, null);
+								}
 							} else {
 								bulkLoader.put(key, data);
 							}
 						}
 					} else {
-						bulkLoader.put(tk, td);
+						((ITemporalBulkLoader)bulkLoader).put((ITemporalKey)tk, (ITemporalData)td);
 					}
 				} else {
 					if (entryFilter != null) {

@@ -38,7 +38,8 @@ import com.netcrest.pado.temporal.TemporalInternalFactory;
 import com.netcrest.pado.temporal.TemporalUtil;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>implements ITemporalBulkLoader<K, V> {
+public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>implements ITemporalBulkLoader<K, V>
+{
 	private ITemporalBizLink temporalBiz;
 	private TemporalClientFactory clientFactory;
 	private boolean diffEnabled = false;
@@ -51,7 +52,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * @param gridPath
 	 *            The temporal grid path.
 	 */
-	public TemporalBulkLoader(String gridPath, ICatalog catalog) {
+	public TemporalBulkLoader(String gridPath, ICatalog catalog)
+	{
 		this(gridPath, 1000, catalog);
 	}
 
@@ -63,7 +65,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * @param batchSize
 	 *            The bulk load batch size. The default is 1000.
 	 */
-	public TemporalBulkLoader(String gridPath, int batchSize, ICatalog catalog) {
+	public TemporalBulkLoader(String gridPath, int batchSize, ICatalog catalog)
+	{
 		super(null, batchSize);
 		this.batchSize = batchSize;
 		ITemporalAdminBizLink temporalAdminBiz = (ITemporalAdminBizLink) catalog
@@ -74,7 +77,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 		init(temporalAdminBiz);
 	}
 
-	public TemporalBulkLoader(ITemporalAdminBizLink temporalAdminBiz, int batchSize, ICatalog catalog) {
+	public TemporalBulkLoader(ITemporalAdminBizLink temporalAdminBiz, int batchSize, ICatalog catalog)
+	{
 		super(null, batchSize);
 		this.temporalBiz = (ITemporalBizLink) catalog.newInstance("com.netcrest.pado.biz.ITemporalBiz",
 				temporalAdminBiz.getGridPath());
@@ -88,7 +92,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	/**
 	 * Initializes this object.
 	 */
-	private void init(ITemporalAdminBizLink temporalAdminBiz) {
+	private void init(ITemporalAdminBizLink temporalAdminBiz)
+	{
 		map = new HashMap<ITemporalKey<K>, ITemporalData<K>>(batchSize + 1, 1f);
 		clientFactory = temporalAdminBiz.getTemporalClientFactory();
 	}
@@ -101,26 +106,29 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * @parm value The actual value, not ITemporalData
 	 */
 	@Override
-	public void put(K key, V value) throws PathUndefinedException {
+	public void put(K key, V value) throws PathUndefinedException
+	{
 		put(key, value, null, TemporalUtil.MIN_TIME, TemporalUtil.MAX_TIME, System.currentTimeMillis(), false);
 	}
-
+	
 	/**
-	 * Puts the specified temporal key and value into the temporal region using
+	 * Puts the specified temporal key and value into the temporal path using
 	 * the current server time. Note that the key has the type ITemporalKey and
 	 * the value is the actual value, not ITemporalValue.
 	 * 
 	 * @param tkey
 	 *            The temporal key.
-	 * @parm value The actual value, not ITemporalData.
+	 * @param value The actual value, not ITemporalData.
 	 * @param attachmentMap
 	 *            A map of attachment sets containing attachments to be part of
 	 *            the value. If none, pass in null.
 	 * 
 	 * @return Returns the corresponding ITemporalValue object stored in the
-	 *         temporal region.
+	 *         temporal path.
 	 */
-	public ITemporalData<K> put(ITemporalKey<K> tkey, V value, Map<String, AttachmentSet<K>> attachmentMap) {
+	@Override
+	public ITemporalData<K> put(ITemporalKey<K> tkey, V value, Map<String, AttachmentSet<K>> attachmentMap)
+	{
 		try {
 			ITemporalData<K> data;
 			if (value instanceof ITemporalData) {
@@ -146,7 +154,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * {@docRoot}
 	 */
 	public ITemporalData put(K identityKey, V value, Map<String, AttachmentSet<K>> attachmentMap, long startValidTime,
-			long endValidTime, boolean isDelta) {
+			long endValidTime, boolean isDelta)
+	{
 		return put(identityKey, value, attachmentMap, startValidTime, endValidTime, System.currentTimeMillis(),
 				isDelta);
 	}
@@ -155,7 +164,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * {@docRoot}
 	 */
 	public ITemporalData put(K identityKey, V value, Map<String, AttachmentSet<K>> attachmentMap, long startValidTime,
-			long endValidTime, long writtenTime, boolean isDelta) {
+			long endValidTime, long writtenTime, boolean isDelta)
+	{
 		try {
 			ITemporalKey tkey = clientFactory.createTemporalKey(identityKey, startValidTime, endValidTime, writtenTime,
 					gridMapBiz.getBizContext().getUserContext().getUsername());
@@ -183,7 +193,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * Flushes the remaining batch. This method must be invoked at the end of
 	 * the load.
 	 */
-	public void flush() {
+	public void flush()
+	{
 		if (map.size() > 0) {
 			if (diffEnabled) {
 				handleTemporalDiff();
@@ -195,7 +206,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	private ITemporalKey lastTemporalKey;
 
 	@Override
-	public ITemporalData<K> put(ITemporalKey<K> tkey, ITemporalData<K> data) {
+	public ITemporalData<K> put(ITemporalKey<K> tkey, ITemporalData<K> data)
+	{
 		if (diffEnabled) {
 			TemporalEntry te = TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(tkey, data);
 			temporalEntryMap.put(tkey.getIdentityKey(), te);
@@ -209,7 +221,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 		return data;
 	}
 
-	private void handleTemporalDiff() {
+	private void handleTemporalDiff()
+	{
 		if (temporalEntryMap.size() == 0) {
 			return;
 		}
@@ -262,7 +275,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void setDiffEnabled(boolean diffEnabled) {
+	public void setDiffEnabled(boolean diffEnabled)
+	{
 		this.diffEnabled = diffEnabled;
 	}
 
@@ -270,12 +284,14 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isDiffEnabled() {
+	public boolean isDiffEnabled()
+	{
 		return this.diffEnabled;
 	}
 
 	@Override
-	public void setDiffTemporalTime(long temporalTime) {
+	public void setDiffTemporalTime(long temporalTime)
+	{
 		if (temporalTime < 0) {
 			this.diffTemporalTime = System.currentTimeMillis();
 		} else {
@@ -284,7 +300,8 @@ public class TemporalBulkLoader<K, V> extends GridMapBulkLoaderImpl<K, V>impleme
 	}
 
 	@Override
-	public long getDiffTemporalTime() {
+	public long getDiffTemporalTime()
+	{
 		return diffTemporalTime;
 	}
 }

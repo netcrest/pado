@@ -30,10 +30,10 @@ import com.netcrest.pado.util.IBulkLoader;
  *            Value type
  */
 public interface ITemporalBulkLoader<K, V> extends IBulkLoader<K, V>
-{
+{	
 	/**
 	 * Puts temporal data into the temporal path. A bulk-put is done when it
-	 * reaches the batch size.
+	 * reaches the batch size or {@linkplain #flush()} is invoked.
 	 * 
 	 * @param key
 	 *            The temporal key.
