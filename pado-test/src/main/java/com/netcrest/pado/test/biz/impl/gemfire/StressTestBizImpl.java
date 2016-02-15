@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Resource;
 
@@ -65,13 +66,35 @@ public class StressTestBizImpl
 		}
 		isComplete = false;
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
+		Executors.newSingleThreadExecutor(new ThreadFactory() {
+
+			@Override
+			public Thread newThread(Runnable r)
+			{
+				Thread thread = Executors.defaultThreadFactory().newThread(r);
+				thread.setName("StressTestBizLauncherThread");
+				thread.setDaemon(true);
+				return thread;
+			}
+		}).execute(new Runnable() {
 			@Override
 			public void run()
 			{
 				Logger.info("StressTestBiz: Started");
+
+				ExecutorService es = Executors.newFixedThreadPool(threadCountPerServer, new ThreadFactory() {
+
+					@Override
+					public Thread newThread(Runnable r)
+					{
+						Thread thread = Executors.defaultThreadFactory().newThread(r);
+						thread.setName("StressTestBizThread");
+						thread.setDaemon(true);
+						return thread;
+					}
+
+				});
 				try {
-					ExecutorService es = Executors.newFixedThreadPool(threadCountPerServer);
 					ArrayList<DataLoader> dataLoaderList = new ArrayList<DataLoader>();
 					int pathCountPerLoop = pathConfigMap.size();
 					for (int i = 0; i < loopCount; i++) {
@@ -99,6 +122,7 @@ public class StressTestBizImpl
 					Logger.error(ex);
 				} finally {
 					isComplete = true;
+					es.shutdown();
 				}
 			}
 		});

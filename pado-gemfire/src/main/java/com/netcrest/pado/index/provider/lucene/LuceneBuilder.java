@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -144,7 +145,18 @@ public class LuceneBuilder
 
 		try {
 			TemporalType[] temporalTypes = GemfireTemporalManager.getAllTemporalTypes();
-			ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT);
+			ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
+
+				@Override
+				public Thread newThread(Runnable r)
+				{
+					Thread thread = Executors.defaultThreadFactory().newThread(r);
+					thread.setName("LuceneBuilder");
+					thread.setDaemon(true);
+					return thread;
+				}
+				
+			});
 			List<TemporalBuilderTask<Object>> taskList = new ArrayList(temporalTypes.length);
 			for (TemporalType type : temporalTypes) {
 				SimpleDateFormat format = (SimpleDateFormat) DateTool.Resolution.DAY.format.clone();
@@ -166,7 +178,18 @@ public class LuceneBuilder
 
 		try {
 			TemporalType[] temporalTypes = GemfireTemporalManager.getAllTemporalTypes();
-			ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT);
+			ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
+
+				@Override
+				public Thread newThread(Runnable r)
+				{
+					Thread thread = Executors.defaultThreadFactory().newThread(r);
+					thread.setName("LuceneBuilder");
+					thread.setDaemon(true);
+					return thread;
+				}
+				
+			});
 			List<TemporalBuilderTask<Object>> taskList = new ArrayList(temporalTypes.length);
 			for (TemporalType type : temporalTypes) {
 				String path = GridUtil.getChildPath(type.getFullPath());

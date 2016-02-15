@@ -119,6 +119,7 @@ public class QueueDispatcher
         ConsumerThread()
         {
         	super("QueueDispatcher.ConsumerThread");
+        	setDaemon(true);
         }
         
         public void run()

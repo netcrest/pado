@@ -118,7 +118,7 @@ init-delay - Initialization delay in msec. GemFire may invoke the Pado
        the nature of GemFire’s lazy initialization mechanism which applications
        do not have control. This attributes is provided to handle such
        situations by delaying the Pado initializer from launching prematurely.
-grid-info-update-ddelay - GridInfo update delay in msec. Pado generates 
+grid-info-update-delay - GridInfo update delay in msec. Pado generates 
        heartbeats in the form of GridInfo objects between child and parent
        grids. If one of the grids has time-consuming initialization sequences,
        then this attribute may be required to postpone generating the initial 
