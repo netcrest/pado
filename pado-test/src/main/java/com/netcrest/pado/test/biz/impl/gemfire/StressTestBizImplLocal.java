@@ -41,8 +41,10 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	private IPado pado;
 
 	private HashMap<String, JsonLite> pathConfigMap = new HashMap<String, JsonLite>();
-	private int threadCountPerServer = 5;
+	private int threadCountPerDriver = 5;
 	private int loopCount = 1;
+	private int batchSize = 1000;
+	private int updateIntervalInMsec = 0;
 	private boolean isIncludeObjectCreationTime = false;
 
 	@Override
@@ -58,7 +60,7 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	}
 
 	@Override
-	public List<String> __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount, boolean isIncludeObjectCreationTime)
+	public List<String> __start(Map<String, JsonLite> pathConfigMap, int threadCountPerDriver, int loopCount, boolean isIncludeObjectCreationTime)
 	{
 		// First, create all paths
 		IPathBiz pathBiz = pado.getCatalog().newInstance(IPathBiz.class);
@@ -75,13 +77,13 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 						(String) pathConfig.get("Path"), (PathType) pathConfig.get("PathType"), true);
 			}
 		}
-		return biz.__start(pathConfigMap, threadCountPerServer, loopCount, isIncludeObjectCreationTime);
+		return biz.__start(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
 	}
 
 	@Override
 	public List<String> start()
 	{
-		List<String> list = __start(pathConfigMap, threadCountPerServer, loopCount, isIncludeObjectCreationTime);
+		List<String> list = __start(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
 		if (list != null) {
 			Collections.sort(list);
 		}
@@ -117,21 +119,29 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	{
 		pathConfigMap.put(path, createPathConfig(path));
 	}
+	
+	@Override
+	public void addPath(String fullPath, int payloadSize, int fieldCount, int updateIntervalInMsec, int totalEntryCount,
+			int batchSize)
+	{
+		pathConfigMap.put(fullPath,
+				createPathConfig(fullPath, PathType.LOCAL, payloadSize, fieldCount, updateIntervalInMsec, totalEntryCount, batchSize));
+	}
 
 	@Override
 	public void addPath(String path, PathType pathType, int payloadSize, int fieldCount, int updateIntervalInMsec,
-			int totalEntryCount)
+			int totalEntryCount, int batchSize)
 	{
 		pathConfigMap.put(path,
-				createPathConfig(path, pathType, payloadSize, fieldCount, updateIntervalInMsec, totalEntryCount));
+				createPathConfig(path, pathType, payloadSize, fieldCount, updateIntervalInMsec, totalEntryCount, batchSize));
 	}
 
 	@Override
 	public void addPath(String path, String refid, boolean isTemporal, boolean isLuceneDynamic, int payloadSize,
-			int fieldCount, int updateIntervalInMsec, int totalEntryCount)
+			int fieldCount, int updateIntervalInMsec, int totalEntryCount, int batchSize)
 	{
 		pathConfigMap.put(path, createPathConfig(path, refid, isTemporal, isLuceneDynamic, payloadSize, fieldCount,
-				updateIntervalInMsec, totalEntryCount));
+				updateIntervalInMsec, totalEntryCount, batchSize));
 	}
 	
 	@Override
@@ -153,10 +163,13 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 			pathConfig.put("FieldCount", 20);
 		}
 		if (pathConfig.get("UpdateIntervalInMsec") == null) {
-			pathConfig.put("UpdateIntervalInMsec", 20);
+			pathConfig.put("UpdateIntervalInMsec", 0);
 		}
 		if (pathConfig.get("TotalEntryCount") == null) {
 			pathConfig.put("TotalEntryCount", 10000);
+		}
+		if (pathConfig.get("BatchSize") == null) {
+			pathConfig.put("BatchSize", 1000);
 		}
 		pathConfigMap.put((String)pathConfig.get("Path"), pathConfig);
 	}
@@ -204,15 +217,15 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	}
 
 	@Override
-	public int getThreadCountPerServer()
+	public int getThreadCountPerDriver()
 	{
-		return this.threadCountPerServer;
+		return this.threadCountPerDriver;
 	}
 
 	@Override
-	public void setThreadCountPerServer(int threadCountPerServer)
+	public void setThreadCountPerDriver(int threadCountPerDriver)
 	{
-		this.threadCountPerServer = threadCountPerServer;
+		this.threadCountPerDriver = threadCountPerDriver;
 	}
 
 	@Override
@@ -230,14 +243,46 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 			this.loopCount = loopCount;
 		}
 	}
+	
+	@Override
+	public int getBatchSize()
+	{
+		return batchSize;
+	}
 
+	@Override
+	public void setBatchSize(int batchSize)
+	{
+		if (batchSize <= 0) {
+			this.batchSize = 1000;
+		} else {
+			this.batchSize = batchSize;
+		}
+	}
+
+	@Override
+	public int getUpdateIntervalInMsec()
+	{
+		return updateIntervalInMsec;
+	}
+
+	@Override
+	public void setUpdateIntervalInMsec(int updateIntervalInMsec)
+	{
+		if (updateIntervalInMsec < 0) {
+			this.updateIntervalInMsec = 0;
+		} else {
+			this.updateIntervalInMsec = updateIntervalInMsec;
+		}
+	}
+	
 	private JsonLite createPathConfig(String path)
 	{
-		return createPathConfig(path, PathType.TEMPORAL, 1024, 20, 0, 10000);
+		return createPathConfig(path, PathType.TEMPORAL, 1024, 20, updateIntervalInMsec, 10000, batchSize);
 	}
 
 	public JsonLite createPathConfig(String path, IPathBiz.PathType pathType, int payloadSize, int fieldCount,
-			int updateIntervalInMsec, int totalEntryCount)
+			int updateIntervalInMsec, int totalEntryCount, int batchSize)
 	{
 		JsonLite jl = new JsonLite();
 		jl.put("Path", path);
@@ -246,11 +291,12 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 		jl.put("FieldCount", fieldCount);
 		jl.put("UpdateIntervalInMsec", updateIntervalInMsec);
 		jl.put("TotalEntryCount", totalEntryCount);
+		jl.put("BatchSize", batchSize);
 		return jl;
 	}
 
 	public JsonLite createPathConfig(String path, String refid, boolean isTemporal, boolean isLuceneDynamic,
-			int payloadSize, int fieldCount, int updateIntervalInMsec, int totalEntryCount)
+			int payloadSize, int fieldCount, int updateIntervalInMsec, int totalEntryCount, int batchSize)
 	{
 		JsonLite jl = new JsonLite();
 		jl.put("Path", path);
@@ -261,6 +307,7 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 		jl.put("FieldCount", fieldCount);
 		jl.put("UpdateIntervalInMsec", updateIntervalInMsec);
 		jl.put("TotalEntryCount", totalEntryCount);
+		jl.put("BatchSize", batchSize);
 		return jl;
 	}
 }

@@ -15,7 +15,6 @@
  */
 package com.netcrest.pado.test.biz;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,23 +56,51 @@ public interface IStressTestBiz extends IBiz
 
 	void addPath(String path);
 
+	/**
+	 * Adds the specified full path to the stress test driver.
+	 * 
+	 * @param fullPath
+	 *            Full path. Note that unlike other overloaded methods, this
+	 *            method requires a full path which must be configured by the
+	 *            grid in server.xml. By doing so, a separate client driver grid
+	 *            can be created to connect to the grid being tested. This
+	 *            allows the servers in the driver grid to connect as clients
+	 *            (using GemFire pool, for example) and concurrently perform
+	 *            stress tests.
+	 * @param payloadSize
+	 *            Object size in bytes
+	 * @param fieldCount
+	 *            Field count in each object
+	 * @param updateIntervalInMsec
+	 *            Update interval between batches
+	 * @param totalEntryCount
+	 *            Total number of entries
+	 * @param batchSize
+	 *            Bulkload batch size
+	 */
+	void addPath(String fullPath, int payloadSize, int fieldCount, int updateIntervalInMsec, int totalEntryCount,
+			int batchSize);
+
 	void addPath(String path, IPathBiz.PathType pathType, int payloadSize, int fieldCount, int updateIntervalInMsec,
-			int totalEntryCount);
+			int totalEntryCount, int batchSize);
 
 	void addPath(String path, String refid, boolean isTemporal, boolean isLuceneDynamic, int payloadSize,
-			int fieldCount, int updateIntervalInMsec, int totalEntryCount);
+			int fieldCount, int updateIntervalInMsec, int totalEntryCount, int batchSize);
 
 	/**
 	 * Adds the specified path configuration.
 	 * 
-	 * @param jl
+	 * @param pathConfig
 	 *            JsonLite object that contains one of the the following field
 	 *            lists:
 	 *            <ul>
 	 *            <li>Path, PathType, PayloadSize, FieldCount,
-	 *            UpdateIntervalInMsec, TotalEntryCount</li>
+	 *            UpdateIntervalInMsec, TotalEntryCount, BatchSize</li>
 	 *            <li>Path, Refid, IsTemporal, IsLuceneDynamic, PayloadSize,
-	 *            FieldCount, UpdateIntervalInMsec, TotalEntryCount</li>
+	 *            FieldCount, UpdateIntervalInMsec, TotalEntryCount, BatchSize
+	 *            </li>
+	 *            <li>Path (full path), PayloadSize, FieldCount,
+	 *            UpdateIntervalInMsec, TotalEntryCount, BatchSize</li>
 	 *            </ul>
 	 */
 	@SuppressWarnings({ "rawtypes" })
@@ -91,9 +118,17 @@ public interface IStressTestBiz extends IBiz
 
 	void clearAllPaths();
 
-	int getThreadCountPerServer();
+	int getThreadCountPerDriver();
 
-	void setThreadCountPerServer(int threadCountPerServer);
+	void setThreadCountPerDriver(int threadCountPerServer);
+
+	int getBatchSize();
+
+	void setBatchSize(int batchSize);
+	
+	int getUpdateIntervalInMsec();
+
+	void setUpdateIntervalInMsec(int updateIntervalInMsec);
 
 	boolean isIncludeObjectCreationTime();
 

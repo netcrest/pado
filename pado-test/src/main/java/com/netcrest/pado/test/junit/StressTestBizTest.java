@@ -36,7 +36,7 @@ public class StressTestBizTest
 //		System.setProperty("gemfireSecurityPropertyFile", "etc/client/gfsecurity.properties");
 //		System.setProperty("pado.security.aes.user.certificate", "etc/user.cer");
 //		System.setProperty("pado.security.enabled", "true");
-		Pado.connect("localhost:20000", true);
+		Pado.connect("localhost:20100", true);
 		pado = Pado.login("sys", "netcrest", "test1", "test123".toCharArray());
 	}
 
@@ -51,8 +51,9 @@ public class StressTestBizTest
 	{
 		IStressTestBiz stressBiz = pado.getCatalog().newInstance(IStressTestBiz.class);
 		stressBiz.setIncludeObjectCreationTime(false);
-		stressBiz.addPath("stress/test1");
-//		stressBiz.addPath("stress/test2");
+		stressBiz.addPath("/mygrid/test1", 100, 10, 0, 10000, 1000);
+//		stressBiz.addPath("stress/test1", 100, 10, 0, 10000, 1000);
+//		stressBiz.addPath("stress/test1");
 //		stressBiz.addPath("stress/test3");
 		stressBiz.start();
 	}

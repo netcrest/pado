@@ -60,7 +60,7 @@ fi
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 
 # Display the current configuration
-./show_servers
+./show_servers $*
 
 if [ "$SERVER_NUM_SPECIFIED" == "true" ]; then
    # Remove the leading zero set by argenv.sh
@@ -177,7 +177,7 @@ do
    fi
    scp -q -o stricthostkeychecking=no $GRIDS_DIR/$GRID/server_${SITE}.sh $SSH_USER@$i:$REMOTE_BASE_DIR/bin_sh/grids/$GRID/
 done
-./show_servers
+./show_servers $*
 echo "Successfully removed server number $SERVER_NUM."
 if [ "$REBALANCE" != "" ]; then
    ./rebalance -commit -quiet -grid $GRID -site $SITE

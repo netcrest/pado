@@ -29,28 +29,28 @@ import com.netcrest.pado.util.IBulkLoaderListener;
 
 public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 {
-	private Region<K, V> region;
-	private HashMap<K, V> map;
-	private int batchSize = 1000;
+	protected Region<K, V> region;
+	protected HashMap<K, V> map;
+	protected int batchSize = 1000;
 	protected Set<IBulkLoaderListener> bulkLoaderListenerSet = new HashSet<IBulkLoaderListener>(3);
 
 	public RegionBulkLoader()
 	{
 		map = new HashMap<K, V>(batchSize, 1f);
 	}
-	
+
 	public RegionBulkLoader(String gridPath)
 	{
 		this(gridPath, 1000);
 	}
-	
+
 	public RegionBulkLoader(String gridPath, int batchSize)
 	{
 		setPath(gridPath);
 		this.batchSize = batchSize;
 		map = new HashMap<K, V>(batchSize, 1f);
 	}
-	
+
 	public RegionBulkLoader(Region<K, V> region)
 	{
 		this(region, 1000);
@@ -82,7 +82,9 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 
 	/**
 	 * Sets the batch size. The default size is 1000.
-	 * @param batchSize Batch size
+	 * 
+	 * @param batchSize
+	 *            Batch size
 	 */
 	@Override
 	public void setBatchSize(int batchSize)
@@ -117,8 +119,7 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 		}
 		map.put(key, value);
 		if (map.size() % batchSize == 0) {
-			region.putAll(map);
-			map.clear();
+			flush();
 		}
 	}
 
@@ -129,12 +130,12 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 		if (count > 0 && region != null) {
 			region.putAll(map);
 			map.clear();
-		}
-		synchronized (bulkLoaderListenerSet) {
-			Iterator<IBulkLoaderListener> iterator = bulkLoaderListenerSet.iterator();
-			while (iterator.hasNext()) {
-				IBulkLoaderListener listener = iterator.next();
-				listener.flushed(count);
+			synchronized (bulkLoaderListenerSet) {
+				Iterator<IBulkLoaderListener> iterator = bulkLoaderListenerSet.iterator();
+				while (iterator.hasNext()) {
+					IBulkLoaderListener listener = iterator.next();
+					listener.flushed(count);
+				}
 			}
 		}
 	}
@@ -151,7 +152,7 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 	@Override
 	public void addBulkLoaderListener(IBulkLoaderListener listener)
 	{
-		synchronized(bulkLoaderListenerSet) {
+		synchronized (bulkLoaderListenerSet) {
 			bulkLoaderListenerSet.add(listener);
 		}
 	}
@@ -159,7 +160,7 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 	@Override
 	public void removeBulkLoaderListener(IBulkLoaderListener listener)
 	{
-		synchronized(bulkLoaderListenerSet) {
+		synchronized (bulkLoaderListenerSet) {
 			bulkLoaderListenerSet.remove(listener);
 		}
 	}
