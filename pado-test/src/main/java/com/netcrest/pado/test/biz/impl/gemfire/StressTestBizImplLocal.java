@@ -79,11 +79,47 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 		}
 		return biz.__start(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
 	}
+	
+	@Override
+	public List<String> __startQuery(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
+			boolean isIncludeObjectCreationTime)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> __startTx(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
+			boolean isIncludeObjectCreationTime)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	public List<String> start()
 	{
 		List<String> list = __start(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
+		if (list != null) {
+			Collections.sort(list);
+		}
+		return list;
+	}
+	
+	@Override
+	public List<String> startQuery()
+	{
+		List<String> list = __startQuery(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
+		if (list != null) {
+			Collections.sort(list);
+		}
+		return list;
+	}
+
+	@Override
+	public List<String> startTx()
+	{
+		List<String> list = __startTx(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
 		if (list != null) {
 			Collections.sort(list);
 		}

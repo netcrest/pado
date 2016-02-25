@@ -36,6 +36,18 @@ public interface IStressTestBiz extends IBiz
 	List<String> __start(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
 			boolean isIncludeObjectCreationTime);
 
+	@SuppressWarnings("rawtypes")
+	@BizMethod
+	@OnServer(broadcast = true)
+	List<String> __startQuery(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
+			boolean isIncludeObjectCreationTime);
+
+	@SuppressWarnings("rawtypes")
+	@BizMethod
+	@OnServer(broadcast = true)
+	List<String> __startTx(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
+			boolean isIncludeObjectCreationTime);
+
 	@BizMethod
 	@OnServer(broadcast = true)
 	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.BooleanAndCollector")
@@ -54,6 +66,23 @@ public interface IStressTestBiz extends IBiz
 	 */
 	List<String> start();
 
+	/**
+	 * Starts query tests
+	 */
+	List<String> startQuery();
+
+	/**
+	 * Starts transaction tests
+	 */
+	List<String> startTx();
+
+	/**
+	 * Adds the specified path in the test with the default test settings.
+	 * 
+	 * @param path
+	 *            Grid path or full path. If full path then the underyling data
+	 *            grid API is used for all tests.
+	 */
 	void addPath(String path);
 
 	/**
@@ -125,7 +154,7 @@ public interface IStressTestBiz extends IBiz
 	int getBatchSize();
 
 	void setBatchSize(int batchSize);
-	
+
 	int getUpdateIntervalInMsec();
 
 	void setUpdateIntervalInMsec(int updateIntervalInMsec);
