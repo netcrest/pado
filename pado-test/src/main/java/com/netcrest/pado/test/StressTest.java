@@ -235,14 +235,15 @@ public class StressTest
 							buffer.append("\n                            Path:" + path);
 							buffer.append("\n PayloadSize (approximate chars): " + payloadSize);
 							buffer.append("\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
-							buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
 							buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
 							buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
+							buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
+							buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
+							buffer.append("\n             Elapsed Time (sec): " + latencyFormat.format(highTimeTookInSec));
 							buffer.append("\n                     DriverCount: " + driverCount);
 							buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
 							buffer.append("\n               FieldSize (chars): " + fieldSize);
 							buffer.append("\n                      FieldCount: " + fieldCount);
-							buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
 
 							// Log perf metrics
 							perfLogger.log(Level.INFO, buffer.toString());

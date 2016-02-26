@@ -109,6 +109,7 @@ import com.netcrest.pado.link.IGridBizLink;
 import com.netcrest.pado.link.IPadoBizLink;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.security.RSACipher;
+import com.netcrest.pado.server.MasterFailoverListener;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.gemfire.GemfireTemporalManager;
 import com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener;
@@ -2604,6 +2605,18 @@ public class GemfirePadoServerManager extends PadoServerManager
 	{
 		return MasterServerLock.getMasterServerLock().isMasterEnabled();
 	}
+	
+	@Override
+    public void addMasterFailoverListener(final MasterFailoverListener listener)
+    {
+            MasterServerLock.getMasterServerLock().addMasterFailoverListener(listener);
+    }
+
+    @Override
+    public void removeMasterFailoverListener(final MasterFailoverListener listener)
+    {
+            MasterServerLock.getMasterServerLock().removeMasterFailoverListener(listener);
+    }
 	
 	@Override
 	public int getServerCount()

@@ -28,9 +28,10 @@ import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PathInfo;
 
 /**
- * IPadoBiz is an internal IBiz class for creating login sessions and providing
+ * IPadoBizLink is an internal IBiz class for creating login sessions and providing
  * metadata services. This class is not allowed outside of internal use.
- * 
+ * This is a class loader link class that links the main class loader to
+ * an IBiz class loader.
  * @author dpark
  * 
  */

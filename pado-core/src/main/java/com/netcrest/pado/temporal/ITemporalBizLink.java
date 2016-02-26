@@ -30,7 +30,7 @@ import com.netcrest.pado.index.service.IScrollableResultSet;
 /**
  * ITemporalBizLink provides temporal data services for the specified grid path.
  * The grid path can be changed as needed before invoking ITemporalBizLink
- * methods. It is a class loader link class that links the main class loader to
+ * methods. This is a class loader link class that links the main class loader to
  * an IBiz class loader.
  * 
  * @author dpark

@@ -1554,6 +1554,20 @@ public abstract class PadoServerManager
 	 * Returns true if this server is the master server.
 	 */
 	public abstract boolean isMaster();
+	
+    /**
+     * Adds the master failover listener.
+     *
+     * @param listener the listener
+     */
+    public abstract void addMasterFailoverListener(MasterFailoverListener listener);
+
+    /**
+     * Removes the master failover listener.
+     *
+     * @param listener the listener
+     */
+    public abstract void removeMasterFailoverListener(MasterFailoverListener listener);
 
 	/**
 	 * Returns the IUserPrincial object mapped by the specified token.

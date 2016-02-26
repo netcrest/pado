@@ -16,6 +16,7 @@
 package com.netcrest.pado.gemfire;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -36,6 +37,7 @@ import com.netcrest.pado.info.message.MessageType;
 import com.netcrest.pado.internal.factory.InfoFactory;
 import com.netcrest.pado.link.IGridBizLink;
 import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.server.MasterFailoverListener;
 import com.netcrest.pado.server.PadoServerManager;
 
 /**
@@ -74,7 +76,9 @@ public class MasterServerLock
 	 * publishing system-wide event notifications.
 	 */
 	protected Region systemRegion;
-
+	
+	private final Set<MasterFailoverListener> masterFailoverListenerSet = Collections.synchronizedSet(new HashSet(2));
+	
 	public static MasterServerLock getMasterServerLock()
 	{
 		return masterServerLock;
@@ -170,7 +174,7 @@ public class MasterServerLock
 	void failover(String oldMasterMemberId)
 	{
 		Logger.info("Failover in progress... Failed cache member ID: " + oldMasterMemberId);
-		
+		final boolean isBeforeMaster = isMasterEnabled();
 		enableMaster(oldMasterMemberId);
 		if (isMasterEnabled()) {
 			// report server failure to parents
@@ -183,8 +187,7 @@ public class MasterServerLock
 				sm.putMessageParents(MessageType.GridStatus, gridStatusInfo);
 			}
 		}
-		
-		Logger.info("Failover complete.");
+		fireMasterFailoverEvent(isBeforeMaster);
 		logCacheServerState();
 	}
 
@@ -228,7 +231,26 @@ public class MasterServerLock
 	{
 		return masterEnabled;
 	}
-
+	
+	public void addMasterFailoverListener(final MasterFailoverListener listener)
+	{
+		masterFailoverListenerSet.add(listener);
+	}
+	
+	public void removeMasterFailoverListener(final MasterFailoverListener listener)
+	{
+		masterFailoverListenerSet.remove(listener);
+	}
+	
+	protected void fireMasterFailoverEvent(final boolean isMasterBefore)
+	{
+		synchronized (masterFailoverListenerSet) {
+			for (final MasterFailoverListener listener : masterFailoverListenerSet) {
+				listener.failoverOccurred(isMasterBefore, isMasterEnabled());
+			}
+		}
+	}
+	
 	/**
 	 * Prints the server Primary/Secondary status.
 	 */
