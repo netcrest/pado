@@ -36,12 +36,24 @@ import com.netcrest.pado.test.biz.IStressTestBiz;
 @SuppressWarnings({ "rawtypes" })
 public class StressTest
 {
+	private String filePath = "etc/client/StressTest.json";
 	private IPado pado;
 	private final java.util.logging.Logger perfLogger;
 	private final java.util.logging.Logger driverLogger;
 
-	public StressTest()
+	/**
+	 * Constructs a StressTest object that sends stress test requests to the
+	 * driver grid.
+	 * 
+	 * @param filePath
+	 *            Config file path that is absolute or relative to $PADO_HOME.
+	 *            If null, etc/client/StressTest.json is assigned.
+	 */
+	public StressTest(String filePath)
 	{
+		if (filePath != null) {
+			this.filePath = filePath;
+		}
 		Pado.connect();
 		pado = Pado.login();
 
@@ -53,19 +65,17 @@ public class StressTest
 
 	private java.util.logging.Logger createLogger(String filePath, boolean suppressConsole)
 	{
-		java.util.logging.Logger logger = java.util.logging.Logger
-				.getLogger(filePath);
-		
-//		if (suppressConsole) {
-//			// suppress the logging output to the console
-//			java.util.logging.Handler[] handlers = logger.getHandlers();
-//			for (java.util.logging.Handler handler : handlers) {
-//				if (handlers[0] instanceof java.util.logging.ConsoleHandler) {
-//					logger.removeHandler(handler);
-//				}
-//			}
-//		}
-		
+		java.util.logging.Logger logger = java.util.logging.Logger.getLogger(filePath);
+
+		// if (suppressConsole) {
+		// // suppress the logging output to the console
+		// java.util.logging.Handler[] handlers = logger.getHandlers();
+		// for (java.util.logging.Handler handler : handlers) {
+		// if (handlers[0] instanceof java.util.logging.ConsoleHandler) {
+		// logger.removeHandler(handler);
+		// }
+		// }
+		// }
 
 		logger.setLevel(java.util.logging.Level.INFO);
 		try {
@@ -83,18 +93,20 @@ public class StressTest
 	@SuppressWarnings("unchecked")
 	public void start() throws FileNotFoundException, IOException, InterruptedException
 	{
-		JsonLite config = new JsonLite(new File("etc/client/StressTest.json"));
+		JsonLite config = new JsonLite(new File(filePath));
 		writeLine(config.toString(4, false, false));
 		IStressTestBiz stressTestBiz = pado.getCatalog().newInstance(IStressTestBiz.class);
 		Object[] paths = (Object[]) config.get("Paths");
-		for (Object obj : paths) {
-			JsonLite jl = (JsonLite) obj;
-			String pathType = (String) jl.get("PathType");
-			if (pathType != null) {
-				IPathBiz.PathType pt = IPathBiz.PathType.valueOf(pathType.toUpperCase());
-				jl.put("PathType", pt);
+		if (paths != null) {
+			for (Object obj : paths) {
+				JsonLite jl = (JsonLite) obj;
+				String pathType = (String) jl.get("PathType");
+				if (pathType != null) {
+					IPathBiz.PathType pt = IPathBiz.PathType.valueOf(pathType.toUpperCase());
+					jl.put("PathType", pt);
+				}
+				stressTestBiz.addPath(jl);
 			}
-			stressTestBiz.addPath(jl);
 		}
 
 		String testType = (String) config.get("TestType");
@@ -132,7 +144,7 @@ public class StressTest
 		} else if (testType.equalsIgnoreCase("Query")) {
 			statusList = stressTestBiz.startQuery();
 		} else if (testType.equalsIgnoreCase("TX")) {
-			statusList = stressTestBiz.startTx();
+			statusList = stressTestBiz.startTx(config);
 		} else {
 			statusList = stressTestBiz.start();
 		}
@@ -171,99 +183,199 @@ public class StressTest
 			if (messageType == MessageType.GridStatus) {
 				if (message instanceof JsonLite) {
 					JsonLite jl = (JsonLite) message;
-					String path = (String) jl.get("Path");
-					List<PerfMetrics> list = metricMap.get(path);
-					if (list == null) {
-						list = new ArrayList<PerfMetrics>();
-						metricMap.put(path, list);
-					}
-					List<JsonLite> messageList = messageMap.get(path);
-					if (messageList == null) {
-						messageList = new ArrayList<JsonLite>();
-						messageMap.put(path, messageList);
-					}
-					messageList.add(jl);
-					if (path != null) {
-						PerfMetrics pm = new PerfMetrics();
-						pm.highTimeTookInSec = (Double) jl.get("HighTimeTookInSec");
-						pm.latencyInMsec = (Double) jl.get("LatencyInMsec");
-						pm.rateObjectsPerSec = (Double) jl.get("RateObjectsPerSec");
-						pm.driverCount = (Integer) jl.get("DriverCount");
-						pm.totalEntryCount = (Integer) jl.get("TotalEntryCount");
-						pm.lowLatencyInMsec = (Double) jl.get("LowLatencyInMsec");
-						pm.highLatencyInMsec = (Double) jl.get("HighLatencyInMsec");
-						list.add(pm);
+					String testType = (String) jl.get("TestType");
+					if (testType.equalsIgnoreCase("TX")) {
+						reportTx(jl);
+					} else {
+						String path = (String) jl.get("Path");
+						List<PerfMetrics> list = metricMap.get(path);
+						if (list == null) {
+							list = new ArrayList<PerfMetrics>();
+							metricMap.put(path, list);
+						}
+						List<JsonLite> messageList = messageMap.get(path);
+						if (messageList == null) {
+							messageList = new ArrayList<JsonLite>();
+							messageMap.put(path, messageList);
+						}
+						messageList.add(jl);
+						if (path != null) {
+							PerfMetrics pm = new PerfMetrics();
+							pm.highTimeTookInSec = (Double) jl.get("HighTimeTookInSec");
+							pm.latencyInMsec = (Double) jl.get("LatencyInMsec");
+							pm.rateObjectsPerSec = (Double) jl.get("RateObjectsPerSec");
+							pm.driverCount = (Integer) jl.get("DriverCount");
+							pm.totalEntryCount = (Integer) jl.get("TotalEntryCount");
+							pm.lowLatencyInMsec = (Double) jl.get("LowLatencyInMsec");
+							pm.highLatencyInMsec = (Double) jl.get("HighLatencyInMsec");
+							list.add(pm);
 
-						if (pm.driverCount == list.size()) {
-							int driverCount = pm.driverCount;
-							int fieldSize = (Integer) jl.get("FieldSize");
-							int fieldCount = (Integer) jl.get("FieldCount");
-							int payloadSize = (Integer) jl.get("PayloadSize");
+							if (pm.driverCount == list.size()) {
+								int driverCount = pm.driverCount;
+								int fieldSize = (Integer) jl.get("FieldSize");
+								int fieldCount = (Integer) jl.get("FieldCount");
+								int payloadSize = (Integer) jl.get("PayloadSize");
 
-							double highTimeTookInSec = Double.MIN_VALUE;
-							double lowLatencyInMsec = Double.MAX_VALUE;
-							double highLatencyInMsec = Double.MIN_VALUE;
-							double totalLatency = 0d;
-							int totalEntryCount = 0;
+								double highTimeTookInSec = Double.MIN_VALUE;
+								double lowLatencyInMsec = Double.MAX_VALUE;
+								double highLatencyInMsec = Double.MIN_VALUE;
+								double totalLatency = 0d;
+								int totalEntryCount = 0;
 
-							for (PerfMetrics pm2 : list) {
-								totalLatency += pm2.latencyInMsec;
-								totalEntryCount += pm2.totalEntryCount;
+								for (PerfMetrics pm2 : list) {
+									totalLatency += pm2.latencyInMsec;
+									totalEntryCount += pm2.totalEntryCount;
 
-								if (highTimeTookInSec < pm2.highTimeTookInSec) {
-									highTimeTookInSec = pm2.highTimeTookInSec;
+									if (highTimeTookInSec < pm2.highTimeTookInSec) {
+										highTimeTookInSec = pm2.highTimeTookInSec;
+									}
+									if (lowLatencyInMsec > pm2.lowLatencyInMsec) {
+										lowLatencyInMsec = pm2.lowLatencyInMsec;
+									}
+									if (highLatencyInMsec < pm2.highLatencyInMsec) {
+										highLatencyInMsec = pm2.highLatencyInMsec;
+									}
+									if (lowLatencyInMsec > highLatencyInMsec) {
+										lowLatencyInMsec = highLatencyInMsec;
+									}
+									if (highLatencyInMsec < lowLatencyInMsec) {
+										highLatencyInMsec = lowLatencyInMsec;
+									}
 								}
-								if (lowLatencyInMsec > pm2.lowLatencyInMsec) {
-									lowLatencyInMsec = pm2.lowLatencyInMsec;
+								double aggregateRate = totalEntryCount / highTimeTookInSec;
+								double avgLatency = totalLatency / list.size();
+								testNum++;
+								StringBuffer buffer = new StringBuffer(2000);
+								buffer.append("\n");
+								buffer.append(testNum + ". BulkLoad Test");
+								buffer.append("\n                            Path:" + path);
+								buffer.append("\n PayloadSize (approximate chars): " + payloadSize);
+								buffer.append(
+										"\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
+								buffer.append("\n              Low Latency (msec): "
+										+ latencyFormat.format(lowLatencyInMsec));
+								buffer.append("\n             High Latency (msec): "
+										+ latencyFormat.format(highLatencyInMsec));
+								buffer.append(
+										"\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
+								buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
+								buffer.append("\n             Elapsed Time (sec): "
+										+ latencyFormat.format(highTimeTookInSec));
+								buffer.append("\n                     DriverCount: " + driverCount);
+								buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
+								buffer.append("\n               FieldSize (chars): " + fieldSize);
+								buffer.append("\n                      FieldCount: " + fieldCount);
+
+								// Log perf metrics
+								perfLogger.log(Level.INFO, buffer.toString());
+
+								// Log each driver message
+								for (JsonLite jl2 : messageList) {
+									String driverNum = (String) jl.get("DriverNum");
+									driverCount = (Integer) jl.get("DriverCount");
+									driverLogger.log(Level.INFO, testNum + ". BulkLoad Test Driver [" + driverNum + "/"
+											+ driverCount + "]\n" + jl2.toString(4, false, false));
 								}
-								if (highLatencyInMsec < pm2.highLatencyInMsec) {
-									highLatencyInMsec = pm2.highLatencyInMsec;
-								}
-								if (lowLatencyInMsec > highLatencyInMsec) {
-									lowLatencyInMsec = highLatencyInMsec;
-								}
-								if (highLatencyInMsec < lowLatencyInMsec) {
-									highLatencyInMsec = lowLatencyInMsec;
-								}
+
+								// Clean up the maps
+								metricMap.remove(path);
+								messageMap.remove(path);
 							}
-							double aggregateRate = totalEntryCount / highTimeTookInSec;
-							double avgLatency = totalLatency / list.size();
-							testNum++;
-							StringBuffer buffer = new StringBuffer(2000);
-							buffer.append("\n");
-							buffer.append(testNum + ". BulkLoad Test");
-							buffer.append("\n                            Path:" + path);
-							buffer.append("\n PayloadSize (approximate chars): " + payloadSize);
-							buffer.append("\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
-							buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
-							buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
-							buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
-							buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
-							buffer.append("\n             Elapsed Time (sec): " + latencyFormat.format(highTimeTookInSec));
-							buffer.append("\n                     DriverCount: " + driverCount);
-							buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
-							buffer.append("\n               FieldSize (chars): " + fieldSize);
-							buffer.append("\n                      FieldCount: " + fieldCount);
-
-							// Log perf metrics
-							perfLogger.log(Level.INFO, buffer.toString());
-
-							// Log each driver message
-							for (JsonLite jl2 : messageList) {
-								String driverNum = (String) jl.get("DriverNum");
-								driverCount = (Integer) jl.get("DriverCount");
-								driverLogger.log(Level.INFO, testNum + ". BulkLoad Test Driver [" + driverNum + "/"
-										+ driverCount + "]\n" + jl2.toString(4, false, false));
-							}
-
-							// Clean up the maps
-							metricMap.remove(path);
-							messageMap.remove(path);
 						}
 					}
 
 				}
 			}
+		}
+
+		private void reportTx(JsonLite txResults)
+		{
+			JsonLite jl = txResults;
+			String token = (String)jl.get("Token");
+			List<PerfMetrics> list = metricMap.get(token);
+			if (list == null) {
+				list = new ArrayList<PerfMetrics>();
+				metricMap.put(token, list);
+			}
+			List<JsonLite> messageList = messageMap.get(token);
+			if (messageList == null) {
+				messageList = new ArrayList<JsonLite>();
+				messageMap.put(token, messageList);
+			}
+			messageList.add(jl);
+			if (token != null) {
+				PerfMetrics pm = new PerfMetrics();
+				pm.highTimeTookInSec = (Double) jl.get("HighTimeTookInSec");
+				pm.latencyInMsec = (Double) jl.get("LatencyInMsec");
+				pm.rateObjectsPerSec = (Double) jl.get("RateObjectsPerSec");
+				pm.driverCount = (Integer) jl.get("DriverCount");
+				pm.totalEntryCount = (Integer) jl.get("TotalTxCount");
+				pm.lowLatencyInMsec = (Double) jl.get("LowLatencyInMsec");
+				pm.highLatencyInMsec = (Double) jl.get("HighLatencyInMsec");
+				list.add(pm);
+
+				if (pm.driverCount == list.size()) {
+					int driverCount = pm.driverCount;
+
+					double highTimeTookInSec = Double.MIN_VALUE;
+					double lowLatencyInMsec = Double.MAX_VALUE;
+					double highLatencyInMsec = Double.MIN_VALUE;
+					double totalLatency = 0d;
+					int totalEntryCount = 0;
+
+					for (PerfMetrics pm2 : list) {
+						totalLatency += pm2.latencyInMsec;
+						totalEntryCount += pm2.totalEntryCount;
+
+						if (highTimeTookInSec < pm2.highTimeTookInSec) {
+							highTimeTookInSec = pm2.highTimeTookInSec;
+						}
+						if (lowLatencyInMsec > pm2.lowLatencyInMsec) {
+							lowLatencyInMsec = pm2.lowLatencyInMsec;
+						}
+						if (highLatencyInMsec < pm2.highLatencyInMsec) {
+							highLatencyInMsec = pm2.highLatencyInMsec;
+						}
+						if (lowLatencyInMsec > highLatencyInMsec) {
+							lowLatencyInMsec = highLatencyInMsec;
+						}
+						if (highLatencyInMsec < lowLatencyInMsec) {
+							highLatencyInMsec = lowLatencyInMsec;
+						}
+					}
+					double aggregateRate = totalEntryCount / highTimeTookInSec;
+					double avgLatency = totalLatency / list.size();
+					testNum++;
+					StringBuffer buffer = new StringBuffer(2000);
+					buffer.append("\n");
+					buffer.append(testNum + ". BulkLoad Test");
+					buffer.append("\n                           Token: " + token);
+					buffer.append("\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
+					buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
+					buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
+					buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
+					buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
+					buffer.append("\n              Elapsed Time (sec): " + latencyFormat.format(highTimeTookInSec));
+					buffer.append("\n                     DriverCount: " + driverCount);
+					buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
+
+					// Log perf metrics
+					perfLogger.log(Level.INFO, buffer.toString());
+
+					// Log each driver message
+					for (JsonLite jl2 : messageList) {
+						String driverNum = (String) jl.get("DriverNum");
+						driverCount = (Integer) jl.get("DriverCount");
+						driverLogger.log(Level.INFO, testNum + ". BulkLoad Test Driver [" + driverNum + "/"
+								+ driverCount + "]\n" + jl2.toString(4, false, false));
+					}
+
+					// Clean up the maps
+					metricMap.remove(token);
+					messageMap.remove(token);
+				}
+			}
+
 		}
 
 		class PerfMetrics
@@ -298,12 +410,12 @@ public class StressTest
 	{
 		writeLine();
 		writeLine("Usage:");
-		writeLine("   StressTest [-?]");
+		writeLine("   StressTest [<config file path relative to $PADO_HOME>] [-?]");
 		writeLine();
-		writeLine("   Default: StressTest");
 		writeLine("   StressTest writes mock data into the grid by all servers.");
 		writeLine("      - Set test criteria in etc/client/StressTest.json");
 		writeLine("      - Each server outputs results in perf/perf.txt");
+		writeLine("   Default: StressTest etc/client/StressTest.json");
 		writeLine();
 		System.exit(0);
 	}
@@ -311,15 +423,18 @@ public class StressTest
 	public static void main(String[] args) throws Exception
 	{
 		String arg;
+		String filePath = null;
 		for (int i = 0; i < args.length; i++) {
 			arg = args[i];
 			if (arg.equalsIgnoreCase("-?")) {
 				usage();
+			} else {
+				filePath = arg;
 			}
 		}
 
 		System.setProperty("gemfirePropertyFile", "etc/client/client.properties");
-		StressTest client = new StressTest();
+		StressTest client = new StressTest(filePath);
 		client.start();
 		client.close();
 	}

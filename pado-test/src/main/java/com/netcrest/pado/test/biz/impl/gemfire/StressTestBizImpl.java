@@ -30,6 +30,7 @@ import javax.annotation.Resource;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.CacheFactory;
+import com.gemstone.gemfire.cache.CacheTransactionManager;
 import com.gemstone.gemfire.cache.Region;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
@@ -73,7 +74,8 @@ public class StressTestBizImpl
 		perfLogger.setLevel(java.util.logging.Level.INFO);
 		try {
 			String homeDir = PadoUtil.getProperty(Constants.PROP_HOME_DIR);
-			java.util.logging.FileHandler fileTxt = new java.util.logging.FileHandler(homeDir + "/perf/driver_perf.log");
+			java.util.logging.FileHandler fileTxt = new java.util.logging.FileHandler(
+					homeDir + "/perf/driver_perf.log");
 			java.util.logging.SimpleFormatter formatterTxt = new java.util.logging.SimpleFormatter();
 			fileTxt.setFormatter(formatterTxt);
 			perfLogger.addHandler(fileTxt);
@@ -166,7 +168,7 @@ public class StressTestBizImpl
 								}
 							}
 							JsonLite perfInfo = perfList.get(0);
-							int totalEntryCount = (Integer)perfInfo.get("TotalEntryCount");
+							int totalEntryCount = (Integer) perfInfo.get("TotalEntryCount");
 							avgLatencyInMsec = totalLatencyInMsec / perfList.size();
 							double rateObjectsPerSec = totalEntryCount / highTimeTookInSec;
 							aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
@@ -194,8 +196,8 @@ public class StressTestBizImpl
 							// Publish the perf results to clients
 							PadoServerManager.getPadoServerManager().putMessage(MessageType.GridStatus, aggregateInfo);
 						}
-						Logger.info("StressTestBiz: BulkLoad Tests Complete. [loopCount=" + loopCount + ", pathCountPerLoop="
-								+ pathCountPerLoop + "]");
+						Logger.info("StressTestBiz: BulkLoad Tests Complete. [loopCount=" + loopCount
+								+ ", pathCountPerLoop=" + pathCountPerLoop + "]");
 					}
 				} catch (Exception ex) {
 					Logger.error(ex);
@@ -207,16 +209,16 @@ public class StressTestBizImpl
 		});
 		return "[DriverNum(ServerNum)=" + serverNum + "] Stress test started.";
 	}
-	
+
 	@BizMethod
-	public String __startQuery(final Map<String, JsonLite> pathConfigMap, final int threadCountPerDriver,
-			final int loopCount, final boolean isIncludeObjectCreationTime)
+	public String __startTx(final JsonLite txRequest)
 	{
 		String serverNum = PadoServerManager.getPadoServerManager().getServerNum();
 		if (isComplete == false) {
 			return "[DriverNum(ServerNum)=" + serverNum + "] Aborted. Another stress test already in progress.";
 		}
 		isComplete = false;
+		final int serverCount = PadoServerManager.getPadoServerManager().getServerCount();
 
 		Executors.newSingleThreadExecutor(new ThreadFactory() {
 
@@ -233,8 +235,9 @@ public class StressTestBizImpl
 			public void run()
 			{
 
-				Logger.info("StressTestBiz: Query Tests Started");
+				Logger.info("StressTestBiz: Tx Tests Started");
 
+				final int threadCountPerDriver = (Integer) txRequest.get("ThreadCountPerServer");
 				ExecutorService es = Executors.newFixedThreadPool(threadCountPerDriver, new ThreadFactory() {
 
 					@Override
@@ -248,81 +251,86 @@ public class StressTestBizImpl
 
 				});
 				try {
-					ArrayList<DataLoader> dataLoaderList = new ArrayList<DataLoader>();
-					int pathCountPerLoop = pathConfigMap.size();
-					for (int k = 0; k < loopCount; k++) {
-						Collection<JsonLite> col = pathConfigMap.values();
-						for (JsonLite pathConfig : col) {
-							for (int j = 1; j <= threadCountPerDriver; j++) {
-								DataLoader dataLoader = new DataLoader(j, threadCountPerDriver, pathConfig,
-										isIncludeObjectCreationTime);
-								dataLoaderList.add(dataLoader);
-							}
-							// Invoke all DataLoaders
-							List<Future<JsonLite>> futureList = es.invokeAll(dataLoaderList);
-
-							// Block till all threads are done. Collect
-							// results in to one list.
-							ArrayList<JsonLite> perfList = new ArrayList<JsonLite>();
-							for (Future<JsonLite> future : futureList) {
-								JsonLite perfInfo = future.get();
-								perfList.add(perfInfo);
-							}
-
-							// Iterate the results to compute average latency
-							// and aggregate rate.
-							JsonLite aggregateInfo = new JsonLite();
-							double lowLatencyInMsec = Double.MAX_VALUE;
-							double highLatencyInMsec = Double.MIN_VALUE;
-							double avgLatencyInMsec = 0d;
-							double totalLatencyInMsec = 0d;
-							double highTimeTookInSec = Double.MIN_VALUE;
-							for (JsonLite perfInfo : perfList) {
-								double latencyInMsec = (Double) perfInfo.get("LatencyInMsec");
-								double timeTookInSec = (Double) perfInfo.get("TimeTookInSec");
-								totalLatencyInMsec += latencyInMsec;
-								if (lowLatencyInMsec > latencyInMsec) {
-									lowLatencyInMsec = latencyInMsec;
-								}
-								if (highLatencyInMsec < latencyInMsec) {
-									highLatencyInMsec = latencyInMsec;
-								}
-								if (highTimeTookInSec < timeTookInSec) {
-									highTimeTookInSec = timeTookInSec;
-								}
-							}
-							JsonLite perfInfo = perfList.get(0);
-							int totalEntryCount = (Integer)perfInfo.get("TotalEntryCount");
-							avgLatencyInMsec = totalLatencyInMsec / perfList.size();
-							double rateObjectsPerSec = totalEntryCount / highTimeTookInSec;
-							aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
-							aggregateInfo.put("LatencyInMsec", avgLatencyInMsec);
-							aggregateInfo.put("RateObjectsPerSec", rateObjectsPerSec);
-							aggregateInfo.put("LowLatencyInMsec", lowLatencyInMsec);
-							aggregateInfo.put("HighLatencyInMsec", highLatencyInMsec);
-							aggregateInfo.put("ServerName", perfInfo.get("ServerName"));
-							aggregateInfo.put("FieldSize", perfInfo.get("FieldSize"));
-							aggregateInfo.put("PayloadSize", perfInfo.get("PayloadSize"));
-							aggregateInfo.put("Path", perfInfo.get("Path"));
-							aggregateInfo.put("IsIncludeObjectCreationTime",
-									perfInfo.get("IsIncludeObjectCreationTime"));
-							aggregateInfo.put("ServerNum", perfInfo.get("ServerNum"));
-							aggregateInfo.put("DriverNum", perfInfo.get("DriverNum"));
-							aggregateInfo.put("DriverCount", perfInfo.get("DriverCount"));
-							aggregateInfo.put("ServerCount", perfInfo.get("ServerCount"));
-							aggregateInfo.put("TotalEntryCount", perfInfo.get("TotalEntryCount"));
-							aggregateInfo.put("FieldCount", perfInfo.get("FieldCount"));
-							aggregateInfo.put("ThreadCountPerDriver", threadCountPerDriver);
-
-							// Log perf results in the perf log file
-							perfLogger.info(aggregateInfo.toString(4, false, false));
-
-							// Publish the perf results to clients
-							PadoServerManager.getPadoServerManager().putMessage(MessageType.GridStatus, aggregateInfo);
-						}
-						Logger.info("StressTestBiz: Query Tests Complete. [loopCount=" + loopCount + ", pathCountPerLoop="
-								+ pathCountPerLoop + "]");
+					Integer val = (Integer) txRequest.get("TxCount");
+					if (val == null) {
+						val = 1000;
 					}
+					final int txCount = val;
+					ArrayList<TxTask> txTaskList = new ArrayList<TxTask>();
+
+					int txCountPerServer = txCount / serverCount;
+					int txCountPerThread = txCountPerServer / threadCountPerDriver;
+
+					for (int j = 1; j <= threadCountPerDriver; j++) {
+						TxTask txTask = new TxTask(txRequest, j, threadCountPerDriver, txCountPerThread);
+						txTaskList.add(txTask);
+					}
+
+					// Invoke all TxTasks
+					List<Future<JsonLite>> futureList = es.invokeAll(txTaskList);
+
+					// Block till all threads are done. Collect
+					// results in to one list.
+					ArrayList<JsonLite> perfList = new ArrayList<JsonLite>();
+					for (Future<JsonLite> future : futureList) {
+						JsonLite perfInfo = future.get();
+						perfList.add(perfInfo);
+					}
+
+					// Iterate the results to compute average latency
+					// and aggregate rate.
+					JsonLite aggregateInfo = new JsonLite();
+					double lowLatencyInMsec = Double.MAX_VALUE;
+					double highLatencyInMsec = Double.MIN_VALUE;
+					double avgLatencyInMsec = 0d;
+					double totalLatencyInMsec = 0d;
+					double highTimeTookInSec = Double.MIN_VALUE;
+					for (JsonLite perfInfo : perfList) {
+						double latencyInMsec = (Double) perfInfo.get("LatencyInMsec");
+						double timeTookInSec = (Double) perfInfo.get("TimeTookInSec");
+						totalLatencyInMsec += latencyInMsec;
+						if (lowLatencyInMsec > latencyInMsec) {
+							lowLatencyInMsec = latencyInMsec;
+						}
+						if (highLatencyInMsec < latencyInMsec) {
+							highLatencyInMsec = latencyInMsec;
+						}
+						if (highTimeTookInSec < timeTookInSec) {
+							highTimeTookInSec = timeTookInSec;
+						}
+					}
+					JsonLite perfInfo = perfList.get(0);
+					int totalEntryCount = (Integer) perfInfo.get("TotalTxCount");
+					avgLatencyInMsec = totalLatencyInMsec / perfList.size();
+					double rateObjectsPerSec = totalEntryCount / highTimeTookInSec;
+					aggregateInfo.put("Token", txRequest.get("Token"));
+					aggregateInfo.put("TestType", txRequest.get("TestType"));
+					aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
+					aggregateInfo.put("LatencyInMsec", avgLatencyInMsec);
+					aggregateInfo.put("RateObjectsPerSec", rateObjectsPerSec);
+					aggregateInfo.put("LowLatencyInMsec", lowLatencyInMsec);
+					aggregateInfo.put("HighLatencyInMsec", highLatencyInMsec);
+					aggregateInfo.put("ServerName", perfInfo.get("ServerName"));
+					aggregateInfo.put("FieldSize", perfInfo.get("FieldSize"));
+					aggregateInfo.put("PayloadSize", perfInfo.get("PayloadSize"));
+					aggregateInfo.put("Path", perfInfo.get("Path"));
+					aggregateInfo.put("IsIncludeObjectCreationTime", perfInfo.get("IsIncludeObjectCreationTime"));
+					aggregateInfo.put("ServerNum", perfInfo.get("ServerNum"));
+					aggregateInfo.put("DriverNum", perfInfo.get("DriverNum"));
+					aggregateInfo.put("DriverCount", perfInfo.get("DriverCount"));
+					aggregateInfo.put("ServerCount", perfInfo.get("ServerCount"));
+					aggregateInfo.put("TotalTxCount", perfInfo.get("TotalTxCount"));
+					aggregateInfo.put("ThreadCountPerDriver", threadCountPerDriver);
+
+					// Log perf results in the perf log file
+					perfLogger.info(aggregateInfo.toString(4, false, false));
+
+					// Publish the perf results to clients
+					PadoServerManager.getPadoServerManager().putMessage(MessageType.GridStatus, aggregateInfo);
+
+					Logger.info("StressTestBiz: Tx Tests Complete. [txCount=" + txCount + ", txCountPerServer="
+							+ txCountPerServer + ", txCountPerThread=" + txCountPerThread + "]");
+
 				} catch (Exception ex) {
 					Logger.error(ex);
 				} finally {
@@ -381,6 +389,38 @@ public class StressTestBizImpl
 		jl.put("PayloadSize", payloadSize); // int
 		jl.put("FieldCount", fieldCount); // int
 		jl.put("FieldSize", fieldSize); // int
+		jl.put("IsIncludeObjectCreationTime", isIncludeObjectCreationTime); // boolean
+		jl.put("TimeTookInMsec", deltaInMsec); // long
+		jl.put("TimeTookInSec", deltaInSec); // double
+		jl.put("RateObjectsPerSec", rate); // double
+		jl.put("RateObjectsPerSecString", format.format(rate)); // String
+		jl.put("LatencyInMsec", latency); // double
+		jl.put("LatencyInMsecString", latencyFormat.format(latency)); // String
+
+		return jl;
+	}
+
+	private JsonLite getTxPerfInfoPerThread(String serverNum, int threadNum, int threadCount,
+			boolean isIncludeObjectCreationTime, int txCountPerThread, int totalTxCount, long deltaInMsec)
+	{
+		double deltaInSec = (double) deltaInMsec / 1000d;
+		double rate = (double) txCountPerThread / (double) deltaInSec;
+		double latency = (double) ((double) deltaInMsec / (double) txCountPerThread);
+		DecimalFormat format = new DecimalFormat("#,###.00");
+		DecimalFormat latencyFormat = new DecimalFormat("#,###.000");
+
+		JsonLite jl = new JsonLite();
+		String serverName = PadoServerManager.getPadoServerManager().getServerName();
+		int serverCount = PadoServerManager.getPadoServerManager().getServerCount();
+		jl.put("ServerName", serverName); // String
+		jl.put("ServerNum", serverNum); // String
+		jl.put("DriverNum", serverNum); // String
+		jl.put("ServerCount", serverCount); // int
+		jl.put("DriverCount", serverCount); // int
+		jl.put("TxCountPerThread", txCountPerThread); // int
+		jl.put("ThreadNum", threadNum); // int
+		jl.put("ThreadCount", threadCount); // int
+		jl.put("TotalTxCount", totalTxCount); // int
 		jl.put("IsIncludeObjectCreationTime", isIncludeObjectCreationTime); // boolean
 		jl.put("TimeTookInMsec", deltaInMsec); // long
 		jl.put("TimeTookInSec", deltaInSec); // double
@@ -615,5 +655,163 @@ public class StressTestBizImpl
 				startTime = System.currentTimeMillis();
 			}
 		}
+	}
+
+	private class TxTask implements Callable<JsonLite>
+	{
+		private int threadNum;
+		private int threadCount;
+		private int txCountPerThread;
+		JsonLite txRequest;
+		private boolean txEnabled = false;
+		private boolean isIncludeObjectCreationTime = true;
+
+		TxTask(JsonLite txRequest, int threadNum, int threadCount, int txCountPerThread)
+		{
+			this.txRequest = txRequest;
+			this.threadNum = threadNum;
+			this.threadCount = threadCount;
+			this.txCountPerThread = txCountPerThread;
+			Boolean val = (Boolean) txRequest.get("IsIncludeObjectCreationTime");
+			if (val == null) {
+				val = false;
+			}
+			this.isIncludeObjectCreationTime = val;
+			val = (Boolean) txRequest.get("TxEnabled");
+			if (val == null) {
+				val = false;
+			}
+			this.txEnabled = val;
+		}
+
+		@Override
+		public JsonLite call() throws Exception
+		{
+			Cache cache = CacheFactory.getAnyInstance();
+			String serverNum = PadoServerManager.getPadoServerManager().getServerNum();
+			Object[] txTaskRequestItems = (Object[]) txRequest.get("TxTaskItems");
+			GemfireTxTaskItem[] gemfireTaskItems = new GemfireTxTaskItem[txTaskRequestItems.length];
+			int i = 0;
+			for (Object obj : txTaskRequestItems) {
+				JsonLite jl = (JsonLite) obj;
+				GemfireTxTaskItem item = new GemfireTxTaskItem();
+				String fullPath = (String) jl.get("Path");
+				item.region = cache.getRegion(fullPath);
+				Integer val = (Integer) jl.get("PayloadSize");
+				if (val == null) {
+					val = 1024;
+				}
+				int payloadSize = val;
+				val = (Integer) jl.get("FieldCount");
+				if (val == null) {
+					val = 20;
+				}
+				item.fieldCount = val;
+				item.fieldSize = payloadSize / item.fieldCount;
+				String itemType = (String)jl.get("ItemType");
+				item.isPut = itemType != null && itemType.equalsIgnoreCase("Put");
+				gemfireTaskItems[i++] = item;
+			}
+
+			int startIndex = (threadNum - 1) * txCountPerThread + 1;
+			int endIndex = startIndex + txCountPerThread - 1;
+			long elapsedTime = runGemfire(gemfireTaskItems, serverNum, startIndex, endIndex);
+			return getTxPerfInfoPerThread(serverNum, threadNum, threadCount, isIncludeObjectCreationTime,
+					txCountPerThread, txCountPerThread * threadCount, elapsedTime);
+		}
+
+		private JsonLite createObject(int fieldCount, int fieldSize)
+		{
+			JsonLite jl = new JsonLite();
+			for (int i = 0; i < fieldCount; i++) {
+				jl.put("f" + i, createField(fieldSize));
+			}
+			return jl;
+		}
+
+		private String createField(int fieldSize)
+		{
+			StringBuffer buffer = new StringBuffer(fieldSize);
+			for (int i = 0; i < fieldSize; i++) {
+				buffer.append('a');
+			}
+			return buffer.toString();
+		}
+
+		private long runGemfire(GemfireTxTaskItem[] items, String serverNum, int startIndex, int endIndex)
+		{
+			JsonLite value;
+			long startTime;
+			long endTime;
+			
+			if (txEnabled) {
+				
+				// Use TransactionManager
+				
+				CacheTransactionManager txMgr = CacheFactory.getAnyInstance().getCacheTransactionManager();
+				startTime = System.currentTimeMillis();
+				for (int i = startIndex; i <= endIndex; i++) {
+					txMgr.begin();
+					for (GemfireTxTaskItem item : items) {
+						String key = serverNum + i;
+						if (item.isPut) {
+							value = createObject(item.fieldCount, item.fieldSize);
+							item.region.put(key, value);
+						} else {
+							value = item.region.get(key);
+						}
+					}
+					txMgr.commit();
+				}
+				endTime = System.currentTimeMillis();
+				
+			} else {
+				
+				// Do NOT use TransactionManager
+				
+				startTime = System.currentTimeMillis();
+				if (items.length == 1) {
+					
+					// If one item then do not compare isPut
+					GemfireTxTaskItem item = items[0];
+					if (item.isPut) {
+						for (int i = startIndex; i <= endIndex; i++) {
+							String key = serverNum + i;
+							value = createObject(item.fieldCount, item.fieldSize);
+							item.region.put(key, value);
+						}
+					} else {
+						for (int i = startIndex; i <= endIndex; i++) {
+							String key = serverNum + i;
+							value = item.region.get(key);
+						}
+					}
+				} else {
+					
+					// Multiple operations
+					for (int i = startIndex; i <= endIndex; i++) {
+						for (GemfireTxTaskItem item : items) {
+							String key = serverNum + i;
+							if (item.isPut) {
+								value = createObject(item.fieldCount, item.fieldSize);
+								item.region.put(key, value);
+							} else {
+								value = item.region.get(key);
+							}
+						}
+					}
+				}
+				endTime = System.currentTimeMillis();
+			}
+			return endTime - startTime;
+		}
+	}
+
+	class GemfireTxTaskItem
+	{
+		Region<String, JsonLite> region;
+		int fieldCount;
+		int fieldSize;
+		boolean isPut;
 	}
 }

@@ -45,8 +45,7 @@ public interface IStressTestBiz extends IBiz
 	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@OnServer(broadcast = true)
-	List<String> __startTx(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
-			boolean isIncludeObjectCreationTime);
+	List<String> __startTx(JsonLite txRequest);
 
 	@BizMethod
 	@OnServer(broadcast = true)
@@ -73,8 +72,11 @@ public interface IStressTestBiz extends IBiz
 
 	/**
 	 * Starts transaction tests
+	 * 
+	 * @param txRequest
+	 *            Transaction request
 	 */
-	List<String> startTx();
+	List<String> startTx(JsonLite txRequest);
 
 	/**
 	 * Adds the specified path in the test with the default test settings.

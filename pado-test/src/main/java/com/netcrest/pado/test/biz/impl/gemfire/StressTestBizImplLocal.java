@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
@@ -89,11 +90,10 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	}
 
 	@Override
-	public List<String> __startTx(Map<String, JsonLite> pathConfigMap, int threadCountPerServer, int loopCount,
-			boolean isIncludeObjectCreationTime)
+	public List<String> __startTx(JsonLite txRequest)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		txRequest.put("Token", UUID.randomUUID().toString());
+		return biz.__startTx(txRequest);
 	}
 
 	@Override
@@ -117,9 +117,9 @@ public class StressTestBizImplLocal implements IStressTestBiz, IBizLocal
 	}
 
 	@Override
-	public List<String> startTx()
+	public List<String> startTx(JsonLite txRequest)
 	{
-		List<String> list = __startTx(pathConfigMap, threadCountPerDriver, loopCount, isIncludeObjectCreationTime);
+		List<String> list = __startTx(txRequest);
 		if (list != null) {
 			Collections.sort(list);
 		}
