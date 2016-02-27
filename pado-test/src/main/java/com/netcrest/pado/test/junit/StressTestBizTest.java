@@ -19,9 +19,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.Pado;
+import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.test.biz.IStressTestBiz;
 
@@ -46,15 +46,27 @@ public class StressTestBizTest
 		Pado.close();
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testStressTestBiz()
 	{
 		IStressTestBiz stressBiz = pado.getCatalog().newInstance(IStressTestBiz.class);
-		stressBiz.setIncludeObjectCreationTime(false);
-		stressBiz.addPath("/mygrid/test1", 100, 10, 0, 10000, 1000);
-//		stressBiz.addPath("stress/test1", 100, 10, 0, 10000, 1000);
-//		stressBiz.addPath("stress/test1");
-//		stressBiz.addPath("stress/test3");
-		stressBiz.start();
+		JsonLite request = new JsonLite();
+		request.put("TestType", "BulkLoad");
+		request.put("LoopCount", 5);
+		request.put("ThreadCountPerDriver", 2);
+		request.put("IsIncludeObjectCreationTime", false);
+		request.put("UpdateIntervalInMsec", 0);
+		request.put("BatchSize", "100");
+		
+		JsonLite path = new JsonLite();
+		path.put("Path", "/mygrid/test1");
+		path.put("PayloadSize", 1024);
+		path.put("FieldCount", 20);
+		path.put("TotalEntryCount", 1000);
+		Object[] paths = new Object[] { path };
+		request.put("Paths", paths);
+		
+		stressBiz.start(request);
 	}
 }

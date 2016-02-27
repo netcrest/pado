@@ -27,7 +27,6 @@ import java.util.logging.Level;
 import com.netcrest.pado.IMessageListener;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.Pado;
-import com.netcrest.pado.biz.IPathBiz;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.info.message.MessageType;
 import com.netcrest.pado.log.Logger;
@@ -40,6 +39,7 @@ public class StressTest
 	private IPado pado;
 	private final java.util.logging.Logger perfLogger;
 	private final java.util.logging.Logger driverLogger;
+	private boolean shouldRun = true;
 
 	/**
 	 * Constructs a StressTest object that sends stress test requests to the
@@ -94,65 +94,24 @@ public class StressTest
 	public void start() throws FileNotFoundException, IOException, InterruptedException
 	{
 		JsonLite config = new JsonLite(new File(filePath));
-		writeLine(config.toString(4, false, false));
+		perfLogger.info(config.toString(4, false, false));
 		IStressTestBiz stressTestBiz = pado.getCatalog().newInstance(IStressTestBiz.class);
-		Object[] paths = (Object[]) config.get("Paths");
-		if (paths != null) {
-			for (Object obj : paths) {
-				JsonLite jl = (JsonLite) obj;
-				String pathType = (String) jl.get("PathType");
-				if (pathType != null) {
-					IPathBiz.PathType pt = IPathBiz.PathType.valueOf(pathType.toUpperCase());
-					jl.put("PathType", pt);
-				}
-				stressTestBiz.addPath(jl);
-			}
-		}
 
-		String testType = (String) config.get("TestType");
-		if (testType == null) {
-			testType = "BulkLoad";
-		}
-
-		int threadCountPerDriver = 5;
-		int loopCount = 1;
-		boolean isIncludeObjectCreationTime = false;
-		int batchSize = 1000;
-		if (config.get("ThreadCountPerDriver") != null) {
-			threadCountPerDriver = (Integer) config.get("ThreadCountPerDriver");
-		}
-		if (config.get("LoopCount") != null) {
-			loopCount = (Integer) config.get("LoopCount");
-		}
-		if (config.get("IsIncludeObjectCreationTime") != null) {
-			isIncludeObjectCreationTime = (Boolean) config.get("IsIncludeObjectCreationTime");
-		}
-		if (config.get("BatchSize") != null) {
-			batchSize = (Integer) config.get("BatchSize");
-		}
-		stressTestBiz.setThreadCountPerDriver(threadCountPerDriver);
-		stressTestBiz.setLoopCount(loopCount);
-		stressTestBiz.setIncludeObjectCreationTime(isIncludeObjectCreationTime);
-		stressTestBiz.setBatchSize(batchSize);
-
+		int loopCount = (Integer)config.get("LoopCount", 1);
+		int threadCountPerDriver = (Integer) config.get("ThreadCountPerDriver", 2);
+		config.put("ThreadCountPerDriver", threadCountPerDriver);
+		
 		// Add PerfListener for collecting and aggregating results
-		pado.addMessageListener(new PerfListener(threadCountPerDriver));
+		pado.addMessageListener(new PerfListener(loopCount, threadCountPerDriver));
 
 		List<String> statusList;
-		if (testType.equalsIgnoreCase("BulkLoad")) {
-			statusList = stressTestBiz.start();
-		} else if (testType.equalsIgnoreCase("Query")) {
-			statusList = stressTestBiz.startQuery();
-		} else if (testType.equalsIgnoreCase("TX")) {
-			statusList = stressTestBiz.startTx(config);
-		} else {
-			statusList = stressTestBiz.start();
-		}
+		statusList = stressTestBiz.start(config);
+		
 		for (String status : statusList) {
-			writeLine(status);
+			perfLogger.info(status);
 		}
 
-		while (true) {
+		while (shouldRun) {
 			Thread.sleep(1000);
 		}
 	}
@@ -164,14 +123,16 @@ public class StressTest
 
 	class PerfListener implements IMessageListener
 	{
+		int loopCount;
 		int testNum = 0;
 		int threadCountPerDriver;
 		DecimalFormat rateFormat = new DecimalFormat("#,###.00");
 		DecimalFormat latencyFormat = new DecimalFormat("#,###.000");
 
-		PerfListener(int threadCountPerDriver)
+		PerfListener(int loopCount, int threadCountPerDriver)
 		{
 			this.threadCountPerDriver = threadCountPerDriver;
+			this.loopCount = loopCount;
 		}
 
 		HashMap<String, List<PerfMetrics>> metricMap = new HashMap<String, List<PerfMetrics>>();
@@ -211,6 +172,7 @@ public class StressTest
 							list.add(pm);
 
 							if (pm.driverCount == list.size()) {
+								int loopNum = (Integer)jl.get("LoopNum");
 								int driverCount = pm.driverCount;
 								int fieldSize = (Integer) jl.get("FieldSize");
 								int fieldCount = (Integer) jl.get("FieldCount");
@@ -248,6 +210,8 @@ public class StressTest
 								StringBuffer buffer = new StringBuffer(2000);
 								buffer.append("\n");
 								buffer.append(testNum + ". BulkLoad Test");
+								buffer.append("\n                           Token: " + jl.get("Token"));
+								buffer.append("\n                            Loop: " + loopNum + "/" + loopCount);
 								buffer.append("\n                            Path:" + path);
 								buffer.append("\n PayloadSize (approximate chars): " + payloadSize);
 								buffer.append(
@@ -259,7 +223,7 @@ public class StressTest
 								buffer.append(
 										"\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
 								buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
-								buffer.append("\n             Elapsed Time (sec): "
+								buffer.append("\n              Elapsed Time (sec): "
 										+ latencyFormat.format(highTimeTookInSec));
 								buffer.append("\n                     DriverCount: " + driverCount);
 								buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
@@ -271,19 +235,24 @@ public class StressTest
 
 								// Log each driver message
 								for (JsonLite jl2 : messageList) {
+									String driverName = (String) jl.get("DriverName");
 									String driverNum = (String) jl.get("DriverNum");
 									driverCount = (Integer) jl.get("DriverCount");
-									driverLogger.log(Level.INFO, testNum + ". BulkLoad Test Driver [" + driverNum + "/"
+									driverLogger.log(Level.INFO, testNum + ". BulkLoad Test Driver [" + driverName + ": " + driverNum + "/"
 											+ driverCount + "]\n" + jl2.toString(4, false, false));
 								}
 
 								// Clean up the maps
 								metricMap.remove(path);
 								messageMap.remove(path);
+								
+								if (loopNum == loopCount) {
+									perfLogger.log(Level.INFO, "Bulk Loader Test Complete.");
+									shouldRun = false;
+								}
 							}
 						}
 					}
-
 				}
 			}
 		}
@@ -348,7 +317,7 @@ public class StressTest
 					testNum++;
 					StringBuffer buffer = new StringBuffer(2000);
 					buffer.append("\n");
-					buffer.append(testNum + ". BulkLoad Test");
+					buffer.append(testNum + ". Tx Test");
 					buffer.append("\n                           Token: " + token);
 					buffer.append("\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
 					buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
@@ -364,15 +333,19 @@ public class StressTest
 
 					// Log each driver message
 					for (JsonLite jl2 : messageList) {
+						String driverName = (String) jl.get("DriverName");
 						String driverNum = (String) jl.get("DriverNum");
 						driverCount = (Integer) jl.get("DriverCount");
-						driverLogger.log(Level.INFO, testNum + ". BulkLoad Test Driver [" + driverNum + "/"
+						driverLogger.log(Level.INFO, testNum + ". Tx Test Driver [" + driverName + ": " + driverNum + "/"
 								+ driverCount + "]\n" + jl2.toString(4, false, false));
 					}
 
 					// Clean up the maps
 					metricMap.remove(token);
 					messageMap.remove(token);
+					
+					perfLogger.log(Level.INFO, "Tx Test Complete.");
+					shouldRun = false;
 				}
 			}
 
@@ -435,7 +408,10 @@ public class StressTest
 
 		System.setProperty("gemfirePropertyFile", "etc/client/client.properties");
 		StressTest client = new StressTest(filePath);
+		
+		// start() blocks tests are complete
 		client.start();
+		
 		client.close();
 	}
 }
