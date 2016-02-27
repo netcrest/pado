@@ -90,62 +90,55 @@ import com.netcrest.pado.gemfire.util.DataSerializerEx;
  * GemFire's OQL.</li>
  * <li>JsonLite is fully integrated with the key class versioning mechanism,
  * which enables multiple versions of JsonLite key sets to coexist in the
- * fabric. All versioned key classes are fully forward and backward compatible.</li>
+ * fabric. All versioned key classes are fully forward and backward compatible.
+ * </li>
  * <li>JsonLite key classes are universally unique across space and time.</li>
  * <li>JsonLite is language neutral.</li>
  * </ul>
  * <p>
- * <h3>Lighter and Faster</h3>
- * JsonLite, in general, is significantly lighter and faster than HashMap and
- * JSON. The size of a typical serialized JsonLite object is considerably
- * smaller than the counterpart HashMap and JSON objects. Enum
- * {@link #get(KeyType)} calls are faster than {@link HashMap#get(Object)}
+ * <h3>Lighter and Faster</h3> JsonLite, in general, is significantly lighter
+ * and faster than HashMap and JSON. The size of a typical serialized JsonLite
+ * object is considerably smaller than the counterpart HashMap and JSON objects.
+ * Enum {@link #get(KeyType)} calls are faster than {@link HashMap#get(Object)}
  * because the values are indexed in an array, circumventing the more expensive
  * hash lookup operation.
  * 
- * <h3>Map with enum KeyType Keys</h3>
- * JsonLite implements Map and therefore has the same Map methods and behaves
- * exactly like Map. Unlike HashMap which also implements Map, a JsonLite object
- * is restricted to a fixed set of predefined keys in an enum class that
- * implements the interface KeyType. This restriction effectively makes JsonLite
- * lighter, faster, and more acquiescent than HashMap and JSON. It removes the
- * keys from the wire format and provides a valid key list for strict allowed
- * key and type checking.
+ * <h3>Map with enum KeyType Keys</h3> JsonLite implements Map and therefore has
+ * the same Map methods and behaves exactly like Map. Unlike HashMap which also
+ * implements Map, a JsonLite object is restricted to a fixed set of predefined
+ * keys in an enum class that implements the interface KeyType. This restriction
+ * effectively makes JsonLite lighter, faster, and more acquiescent than HashMap
+ * and JSON. It removes the keys from the wire format and provides a valid key
+ * list for strict allowed key and type checking.
  * 
- * <h3>Code Generator</h3>
- * Editing keys, although it can be done manually, is done via the provided IDE
- * plug-in which automatically generates a new version of the enum class. The
- * built-in versioning mechanism allows the new versioned enum class to be
- * deployed to the servers and clients during runtime without the requirement of
- * restarting them. The servers automatically load the new versioned class
- * making it immediately available to the application along with the previous
- * versions.
+ * <h3>Code Generator</h3> Editing keys, although it can be done manually, is
+ * done via the provided IDE plug-in which automatically generates a new version
+ * of the enum class. The built-in versioning mechanism allows the new versioned
+ * enum class to be deployed to the servers and clients during runtime without
+ * the requirement of restarting them. The servers automatically load the new
+ * versioned class making it immediately available to the application along with
+ * the previous versions.
  * 
- * <h3>String Keys</h3>
- * In addition to the enum keys, JsonLite also supports String keys. String keys
- * are costlier than enum keys but comparable to HashMap and JSON in terms of
- * the put and get speeds. One of the benefits of using String keys is the
- * flexibility of executing ad hoc queries. JsonLite is fully compliant with the
- * GemFire query service, making it ideal for object-relational mapping.
+ * <h3>String Keys</h3> In addition to the enum keys, JsonLite also supports
+ * String keys. String keys are costlier than enum keys but comparable to
+ * HashMap and JSON in terms of the put and get speeds. One of the benefits of
+ * using String keys is the flexibility of executing ad hoc queries. JsonLite is
+ * fully compliant with the GemFire query service, making it ideal for
+ * object-relational mapping.
  * 
  * <p>
  * <h3>Using JsonLite</h3>
  * <ol>
- * <li>
- * Create a <code>{@link KeyType}</code> enum class using the code generator.</li>
- * <li>
- * Register the new <code>KeyType</code> enum class using
+ * <li>Create a <code>{@link KeyType}</code> enum class using the code
+ * generator.</li>
+ * <li>Register the new <code>KeyType</code> enum class using
  * <code>{@link KeyTypeManager}</code>.</li>
- * <li>
- * Use <code>KeyType</code> to create <code>JsonLite</code> objects. Always use
- * {@link #JsonLite(KeyType)} to create <code>JsonLite</code> objects.</li>
- * <li>
- * Put the JsonLite objects into cache regions</li>
- * <li>
- * Get the JsonLite objects from cache regions</li>
- * <li>
- * Get values from the objects using <code>KeyType</code> or <code>String</code>
- * keys</li>
+ * <li>Use <code>KeyType</code> to create <code>JsonLite</code> objects. Always
+ * use {@link #JsonLite(KeyType)} to create <code>JsonLite</code> objects.</li>
+ * <li>Put the JsonLite objects into cache regions</li>
+ * <li>Get the JsonLite objects from cache regions</li>
+ * <li>Get values from the objects using <code>KeyType</code> or
+ * <code>String</code> keys</li>
  * </ol>
  * 
  * <h3>Examples</h3>
@@ -532,8 +525,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 				if (bean != null) {
 					Method method = methodMap.get("set" + key);
 					if (method == null) {
-						throw new JsonLiteException("Undefined setter method: " + bean.getClass().getCanonicalName()
-								+ ".set" + key);
+						throw new JsonLiteException(
+								"Undefined setter method: " + bean.getClass().getCanonicalName() + ".set" + key);
 					}
 					try {
 						Class argType = method.getParameterTypes()[0];
@@ -584,7 +577,7 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			}
 		}
 	}
-	
+
 	private Map<String, V> createValueMapIfNotExist()
 	{
 		if (valueMap == null) {
@@ -592,7 +585,7 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		}
 		return valueMap;
 	}
-	
+
 	private Map<Object, Map<String, Object>> createThreadReferenceMapIfNotExist()
 	{
 		if (threadReferenceMap == null) {
@@ -600,7 +593,6 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		}
 		return threadReferenceMap;
 	}
-	
 
 	/**
 	 * Initializes the JsonLite object by creating data structures for the
@@ -714,6 +706,32 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 	}
 
 	/**
+	 * Returns the value of the specified key type. If the default constructor
+	 * {@link #JsonLite()} is used to create this object then this method
+	 * implicitly initializes itself with the specified key type if it has not
+	 * been initialized previously. It returns the specified default value if
+	 * the mapped value is null or not found.
+	 * 
+	 * @param keyType
+	 *            The key type constant to lookup the mapped value.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 * @return Returns the mapped value. It returns the specified default value
+	 *         if the mapped value does not exist or it was explicitly set to
+	 *         null.
+	 */
+	public V get(KeyType keyType, V defaultValue)
+	{
+		V val = get(keyType);
+		if (val == null) {
+			return defaultValue;
+		} else {
+			return val;
+		}
+	}
+
+	/**
 	 * 
 	 * @param keyType
 	 * @param wrapper
@@ -768,7 +786,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 
 		// if (this.keyType.getId().equals(keyType.getId()) == false) {
 		// throw new
-		// InvalidKeyException("The passed-in KeyType does not match. [this key type: "
+		// InvalidKeyException("The passed-in KeyType does not match. [this key
+		// type: "
 		// + this.keyType.getClass().getName() + ", passed-in invalid type: " +
 		// keyType.getClass().getName()
 		// + "]");
@@ -871,6 +890,27 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			return null;
 		}
 		return get(keyType);
+	}
+
+	/**
+	 * Returns the mapped value for the specified key. It uses the String value
+	 * of the key, i.e., key.toString(), to lookup the mapped value. It returns
+	 * the specified default value if the mapped value is null or not found.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public V get(Object key, V defaultValue)
+	{
+		V val = get(key);
+		if (val == null) {
+			return defaultValue;
+		} else {
+			return val;
+		}
 	}
 
 	// private Map getMap(JsonLite jl, Map map)
@@ -1151,9 +1191,10 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 							try {
 								values[i] = readValueGemfire(keyTypeValues, i, dis);
 							} catch (Exception ex) {
-								throw new RuntimeException("Desserialization error: [KeyTypeClass="
-										+ keyTypeValues[i].getClass().getName() + ", keyType="
-										+ keyTypeValues[i].getName() + ", index=" + i + "]", ex);
+								throw new RuntimeException(
+										"Desserialization error: [KeyTypeClass=" + keyTypeValues[i].getClass().getName()
+												+ ", keyType=" + keyTypeValues[i].getName() + ", index=" + i + "]",
+										ex);
 							}
 						}
 					}
@@ -1193,8 +1234,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		return JsonLiteSerializer.read(keyTypes[index].getType(), input);
 	}
 
-	private Object readValueGemfire(KeyType[] keyTypes, int index, DataInput input) throws IOException,
-			ClassNotFoundException
+	private Object readValueGemfire(KeyType[] keyTypes, int index, DataInput input)
+			throws IOException, ClassNotFoundException
 	{
 		return DataSerializerEx.read(keyTypes[index].getType(), input);
 	}
@@ -1376,8 +1417,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		try {
 			JsonLiteSerializer.write(keyTypes[index].getType(), values[index], output);
 		} catch (Exception ex) {
-			throw new InvalidKeyException(
-					ex.getMessage() + keyTypes.getClass() + " index=" + keyTypes[index].getName(), ex);
+			throw new InvalidKeyException(ex.getMessage() + keyTypes.getClass() + " index=" + keyTypes[index].getName(),
+					ex);
 		}
 	}
 
@@ -1386,8 +1427,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		try {
 			DataSerializerEx.write(keyTypes[index].getType(), values[index], output);
 		} catch (Exception ex) {
-			throw new InvalidKeyException(
-					ex.getMessage() + keyTypes.getClass() + " index=" + keyTypes[index].getName(), ex);
+			throw new InvalidKeyException(ex.getMessage() + keyTypes.getClass() + " index=" + keyTypes[index].getName(),
+					ex);
 		}
 	}
 
@@ -1725,7 +1766,7 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			} else {
 				oldVal = valueMap.remove(key);
 			}
-			
+
 		} else {
 			KeyType keyType = this.keyType.getKeyType(key.toString());
 			if (keyType == null) {
@@ -1803,9 +1844,10 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			System.arraycopy(values, 0, jl.values, 0, values.length);
 			System.arraycopy(dirtyFlags, 0, jl.dirtyFlags, 0, dirtyFlags.length);
 			jl.serializedBytes = serializedBytes;
-//			if (serializedBytes != null) {
-//				System.arraycopy(serializedBytes, 0, jl.serializedBytes, 0, serializedBytes.length);
-//			}
+			// if (serializedBytes != null) {
+			// System.arraycopy(serializedBytes, 0, jl.serializedBytes, 0,
+			// serializedBytes.length);
+			// }
 		}
 		return jl;
 	}
@@ -2287,7 +2329,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 				byte[] byteArray = serializedBytes;
 				if (byteArray != null) {
 					DataSerializer.writeByteArray(byteArray, output);
-					HeapDataOutputStream hdos2 = GemfireVersionSpecifics.getGemfireVersionSpecifics().createHeapDataOutpuStream();
+					HeapDataOutputStream hdos2 = GemfireVersionSpecifics.getGemfireVersionSpecifics()
+							.createHeapDataOutpuStream();
 					for (int i = 0; i < keyTypeValues.length; i++) {
 						if (keyTypeValues[i].isKeyKeepSerialized() == false) {
 							// keep it separate in deserialized array.
@@ -2298,8 +2341,10 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 					DataSerializer.writeByteArray(hdos2.toByteArray(), output);
 					hdos2.close();
 				} else {
-					HeapDataOutputStream hdos = GemfireVersionSpecifics.getGemfireVersionSpecifics().createHeapDataOutpuStream();
-					HeapDataOutputStream hdos2 = GemfireVersionSpecifics.getGemfireVersionSpecifics().createHeapDataOutpuStream();
+					HeapDataOutputStream hdos = GemfireVersionSpecifics.getGemfireVersionSpecifics()
+							.createHeapDataOutpuStream();
+					HeapDataOutputStream hdos2 = GemfireVersionSpecifics.getGemfireVersionSpecifics()
+							.createHeapDataOutpuStream();
 					for (int i = 0; i < keyTypeValues.length; i++) {
 						if (keyTypeValues[i].isKeyKeepSerialized()) {
 							// serialize in the normal array
@@ -2338,7 +2383,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			keyVersion = DataSerializer.readUnsignedShort(input);
 			keyType = KeyTypeManager.getKeyType(mostSigBits, leastSigBits, keyVersion);
 			if (keyType == null) {
-				throw new JsonLiteException("KeyType undefined. Make sure the KeyType class is versioned and included in the jar file.");
+				throw new JsonLiteException(
+						"KeyType undefined. Make sure the KeyType class is versioned and included in the jar file.");
 			}
 			init(keyType);
 			values = new Object[keyType.getKeyCount()];
