@@ -127,6 +127,7 @@ public class StressTestBizImpl
 							false);
 					int updateIntervalInMsec = (Integer) bulkLoadRequest.get("UpdateIntervalInMsec", 0);
 					int batchSize = (Integer) bulkLoadRequest.get("UpdateIntervalInMsec", 1000);
+					String keyPrefix = (String) bulkLoadRequest.get("KeyPrefix", "");
 
 					// Each loop launches the number of threads defined by
 					// threadCountPerDriver for each path. It publishes each
@@ -139,7 +140,7 @@ public class StressTestBizImpl
 							dataLoaderTaskList.clear();
 							for (int j = 1; j <= threadCountPerDriver; j++) {
 								BulkLoaderTask bulkLoaderTask = new BulkLoaderTask(j, threadCountPerDriver, pathConfig,
-										isIncludeObjectCreationTime, batchSize, updateIntervalInMsec);
+										isIncludeObjectCreationTime, batchSize, updateIntervalInMsec, keyPrefix);
 								dataLoaderTaskList.add(bulkLoaderTask);
 							}
 							// Invoke all DataLoaders

@@ -15,7 +15,11 @@
  */
 package com.netcrest.pado.test.junit;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -24,6 +28,7 @@ import com.netcrest.pado.Pado;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.test.biz.IStressTestBiz;
+
 
 public class StressTestBizTest
 {
@@ -58,6 +63,7 @@ public class StressTestBizTest
 		request.put("IsIncludeObjectCreationTime", false);
 		request.put("UpdateIntervalInMsec", 0);
 		request.put("BatchSize", "100");
+		request.put("KeyPrefix", "k");
 		
 		JsonLite path = new JsonLite();
 		path.put("Path", "/mygrid/test1");
@@ -67,6 +73,11 @@ public class StressTestBizTest
 		Object[] paths = new Object[] { path };
 		request.put("Paths", paths);
 		
-		stressBiz.start(request);
+		List<String> replyList = stressBiz.start(request);
+		Assert.assertNotNull(replyList);
+		Collections.sort(replyList);
+		for (String reply : replyList) {
+			System.out.println(reply);
+		}
 	}
 }

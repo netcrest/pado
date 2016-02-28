@@ -2,6 +2,7 @@ package com.netcrest.pado.test.biz.impl.gemfire;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.gemstone.gemfire.cache.Cache;
@@ -31,9 +32,10 @@ public class BulkLoaderTask implements Callable<JsonLite>
 	private boolean isIncludeObjectCreationTime = true;
 	private int batchSize = 1000;
 	private int updateIntervalInMsec = 0;
+	private String keyPrefix = "";
 
 	BulkLoaderTask(int threadNum, int threadCount, JsonLite pathConfig, boolean isIncludeObjectCreationTime,
-			int batchSize, int updateIntervalInMsec)
+			int batchSize, int updateIntervalInMsec, String keyPrefix)
 	{
 		this.threadNum = threadNum;
 		this.threadCount = threadCount;
@@ -42,6 +44,10 @@ public class BulkLoaderTask implements Callable<JsonLite>
 		this.isIncludeObjectCreationTime = isIncludeObjectCreationTime;
 		this.batchSize = batchSize;
 		this.updateIntervalInMsec = updateIntervalInMsec;
+		this.keyPrefix = keyPrefix;
+		if (keyPrefix != null) {
+			this.keyPrefix = keyPrefix;
+		}
 	}
 
 	@Override
@@ -119,20 +125,27 @@ public class BulkLoaderTask implements Callable<JsonLite>
 		int startIndex = (threadNum - 1) * entryCountPerThread + 1;
 		int endIndex = startIndex + entryCountPerThread - 1;
 		if (isIncludeObjectCreationTime) {
+
+			// Include object creation time. Create a object just
+			// before inserting into the grid.
 			startTime = System.currentTimeMillis();
 			for (int i = startIndex; i <= endIndex; i++) {
-				String key = serverNum + i;
+				String key = keyPrefix + serverNum + i;
 				value = StressTestUtil.createObject(fieldCount, fieldSize);
 				bulkLoader.put(key, value);
 			}
 			bulkLoader.flush();
 			endTime = System.currentTimeMillis();
 		} else {
-			value = StressTestUtil.createObject(fieldCount, fieldSize);
+
+			// Do NOT include the object creation time. Create
+			// all objects up front in a batch and reuse them.
+			List<JsonLite> batch = StressTestUtil.createBatchOfObjects(batchSize, fieldCount, fieldSize);
 			startTime = System.currentTimeMillis();
 			for (int i = startIndex; i <= endIndex; i++) {
-				String key = serverNum + i;
-				bulkLoader.put(key, value);
+				String key = keyPrefix + serverNum + i;
+				int index = i % batch.size();
+				bulkLoader.put(key, batch.get(index));
 			}
 			bulkLoader.flush();
 			endTime = System.currentTimeMillis();

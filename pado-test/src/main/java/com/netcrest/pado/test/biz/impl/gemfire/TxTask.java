@@ -1,6 +1,7 @@
 package com.netcrest.pado.test.biz.impl.gemfire;
 
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.gemstone.gemfire.cache.Cache;
@@ -19,6 +20,7 @@ public class TxTask implements Callable<JsonLite>
 	JsonLite txRequest;
 	private boolean txEnabled = false;
 	private boolean isIncludeObjectCreationTime = true;
+	private String keyPrefix = "";
 
 	TxTask(JsonLite txRequest, int threadNum, int threadCount, int txCountPerThread)
 	{
@@ -26,16 +28,9 @@ public class TxTask implements Callable<JsonLite>
 		this.threadNum = threadNum;
 		this.threadCount = threadCount;
 		this.txCountPerThread = txCountPerThread;
-		Boolean val = (Boolean) txRequest.get("IsIncludeObjectCreationTime");
-		if (val == null) {
-			val = false;
-		}
-		this.isIncludeObjectCreationTime = val;
-		val = (Boolean) txRequest.get("TxEnabled");
-		if (val == null) {
-			val = false;
-		}
-		this.txEnabled = val;
+		this.isIncludeObjectCreationTime = (Boolean) txRequest.get("IsIncludeObjectCreationTime", false);
+		this.txEnabled = (Boolean) txRequest.get("TxEnabled", false);
+		this.keyPrefix = (String) txRequest.get("KeyPrefix", "");
 	}
 
 	@Override
@@ -45,45 +40,37 @@ public class TxTask implements Callable<JsonLite>
 		String serverNum = PadoServerManager.getPadoServerManager().getServerNum();
 		Object[] txTaskRequestItems = (Object[]) txRequest.get("TxTaskItems");
 		GemfireTxTaskItem[] gemfireTaskItems = new GemfireTxTaskItem[txTaskRequestItems.length];
+		List<JsonLite>[] putBatches = new List[gemfireTaskItems.length];
+
+		// Create object batch for each PUT is IsPputPrevGetValue is false
+
 		int i = 0;
 		for (Object obj : txTaskRequestItems) {
 			JsonLite jl = (JsonLite) obj;
 			GemfireTxTaskItem item = new GemfireTxTaskItem();
 			String fullPath = (String) jl.get("Path");
 			item.region = cache.getRegion(fullPath);
-			Integer val = (Integer) jl.get("PayloadSize");
-			if (val == null) {
-				val = 1024;
-			}
-			int payloadSize = val;
-			val = (Integer) jl.get("FieldCount");
-			if (val == null) {
-				val = 20;
-			}
-			item.fieldCount = val;
+			int payloadSize = (Integer) jl.get("PayloadSize", 1024);
+			item.fieldCount = (Integer) jl.get("FieldCount", 20);
 			item.fieldSize = payloadSize / item.fieldCount;
-			String itemType = (String) jl.get("ItemType");
-			if (itemType == null) {
-				item.type = TxItemType.PUT;
-			} else {
-				item.type = TxItemType.valueOf(itemType.toUpperCase());
+			String itemType = (String) jl.get("ItemType", "Put");
+			item.type = TxItemType.valueOf(itemType.toUpperCase());
+			item.isPutPrevGetValue = (Boolean) jl.get("PutPrevGetValue", false);
+			gemfireTaskItems[i] = item;
+
+			if (item.type == TxItemType.PUT) {
+				putBatches[i] = StressTestUtil.createBatchOfObjects(100, item.fieldCount, item.fieldSize);
 			}
-			Boolean boolVal = (Boolean) txRequest.get("PutPrevGetValue");
-			if (boolVal == null) {
-				boolVal = false;
-			}
-			item.isPutPrevGetValue = boolVal;
-			gemfireTaskItems[i++] = item;
+			i++;
 		}
 
 		int startIndex = (threadNum - 1) * txCountPerThread + 1;
 		int endIndex = startIndex + txCountPerThread - 1;
-		long elapsedTime = runGemfire(gemfireTaskItems, serverNum, startIndex, endIndex);
+		long elapsedTime = runGemfire(gemfireTaskItems, putBatches, serverNum, startIndex, endIndex);
 		return getTxPerfInfoPerThread(serverNum, threadNum, threadCount, isIncludeObjectCreationTime, txCountPerThread,
 				txCountPerThread * threadCount, elapsedTime);
 	}
 
-	
 	private JsonLite getTxPerfInfoPerThread(String serverNum, int threadNum, int threadCount,
 			boolean isIncludeObjectCreationTime, int txCountPerThread, int totalTxCount, long deltaInMsec)
 	{
@@ -116,10 +103,9 @@ public class TxTask implements Callable<JsonLite>
 		return jl;
 	}
 
-	private long runGemfire(GemfireTxTaskItem[] items, String serverNum, int startIndex, int endIndex)
+	private long runGemfire(GemfireTxTaskItem[] items, List<JsonLite>[] putBatches, String serverNum, int startIndex,
+			int endIndex)
 	{
-		JsonLite value;
-		JsonLite getValue = null;
 		long startTime;
 		long endTime;
 
@@ -131,30 +117,7 @@ public class TxTask implements Callable<JsonLite>
 			startTime = System.currentTimeMillis();
 			for (int i = startIndex; i <= endIndex; i++) {
 				txMgr.begin();
-				for (GemfireTxTaskItem item : items) {
-					String key = serverNum + i;
-					switch (item.type) {
-					case GET:
-						getValue = item.region.get(key);
-						break;
-					case REMOVE:
-						item.region.registerInterest(key);
-						break;
-					case PUT:
-					default:
-						if (item.isPutPrevGetValue) {
-							if (getValue == null) {
-								value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
-							} else {
-								value = getValue;
-							}
-						} else {
-							value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
-						}
-						item.region.put(key, value);
-						break;
-					}
-				}
+				transact(items, putBatches, serverNum, i);
 				txMgr.commit();
 			}
 			endTime = System.currentTimeMillis();
@@ -168,61 +131,92 @@ public class TxTask implements Callable<JsonLite>
 
 				// If one item then do not compare isPut
 				GemfireTxTaskItem item = items[0];
-				switch (item.type) {
-				case GET:
-					for (int i = startIndex; i <= endIndex; i++) {
-						String key = serverNum + i;
-						value = item.region.get(key);
-					}
-					break;
-				case REMOVE:
-					for (int i = startIndex; i <= endIndex; i++) {
-						String key = serverNum + i;
-						value = item.region.remove(key);
-					}
-					break;
-				case PUT:
-				default:
-					for (int i = startIndex; i <= endIndex; i++) {
-						String key = serverNum + i;
-						value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
-						item.region.put(key, value);
-					}
-					break;
-				}
+				singleOperation(item, putBatches, serverNum, startIndex, endIndex);
+
 			} else {
 
 				// Multiple operations
 				for (int i = startIndex; i <= endIndex; i++) {
-					for (GemfireTxTaskItem item : items) {
-						String key = serverNum + i;
-						switch (item.type) {
-						case GET:
-							value = item.region.get(key);
-							break;
-						case REMOVE:
-							value = item.region.remove(key);
-							break;
-						case PUT:
-						default:
-							if (item.isPutPrevGetValue) {
-								if (getValue == null) {
-									value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
-								} else {
-									value = getValue;
-								}
-							} else {
-								value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
-							}
-							item.region.put(key, value);
-							break;
-						}
-					}
+					transact(items, putBatches, serverNum, i);
 				}
 			}
 			endTime = System.currentTimeMillis();
 		}
 		return endTime - startTime;
+	}
+
+	void transact(GemfireTxTaskItem[] items, List<JsonLite>[] putBatches, String serverNum, int index)
+	{
+		JsonLite value;
+		JsonLite getValue = null;
+		for (int i = 0; i < items.length; i++) {
+			GemfireTxTaskItem item = items[i];
+			String key = keyPrefix + serverNum + index;
+			switch (item.type) {
+			case GET:
+				getValue = item.region.get(key);
+				break;
+			case REMOVE:
+				item.region.registerInterest(key);
+				break;
+			case PUT:
+			default:
+				if (item.isPutPrevGetValue) {
+					if (getValue == null) {
+						if (isIncludeObjectCreationTime) {
+							value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
+						} else {
+							int j = index % putBatches[i].size();
+							value = putBatches[i].get(j);
+						}
+					} else {
+						value = getValue;
+					}
+				} else {
+					if (isIncludeObjectCreationTime) {
+						value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
+					} else {
+						int j = index % putBatches[i].size();
+						value = putBatches[i].get(j);
+					}
+				}
+				item.region.put(key, value);
+				break;
+			}
+		}
+	}
+
+	void singleOperation(GemfireTxTaskItem item, List<JsonLite>[] putBatches, String serverNum, int startIndex,
+			int endIndex)
+	{
+		JsonLite value;
+		switch (item.type) {
+		case GET:
+			for (int i = startIndex; i <= endIndex; i++) {
+				String key = keyPrefix + serverNum + i;
+				value = item.region.get(key);
+			}
+			break;
+		case REMOVE:
+			for (int i = startIndex; i <= endIndex; i++) {
+				String key = keyPrefix + serverNum + i;
+				value = item.region.remove(key);
+			}
+			break;
+		case PUT:
+		default:
+			for (int i = startIndex; i <= endIndex; i++) {
+				String key = keyPrefix + serverNum + i;
+				if (isIncludeObjectCreationTime) {
+					value = StressTestUtil.createObject(item.fieldCount, item.fieldSize);
+				} else {
+					int j = i % putBatches[i].size();
+					value = putBatches[i].get(j);
+				}
+				item.region.put(key, value);
+			}
+			break;
+		}
 	}
 }
 
