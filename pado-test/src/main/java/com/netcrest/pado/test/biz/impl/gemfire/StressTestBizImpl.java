@@ -65,11 +65,11 @@ public class StressTestBizImpl
 			Logger.error(ex);
 		}
 	}
-	
+
 	@BizMethod
 	public String __start(final JsonLite request)
 	{
-		String testType = (String)request.get("TestType");
+		String testType = (String) request.get("TestType");
 		if (testType.equalsIgnoreCase("BulkLoad")) {
 			return startBulkLoad(request);
 		} else if (testType.equalsIgnoreCase("Tx")) {
@@ -260,11 +260,8 @@ public class StressTestBizImpl
 
 				});
 				try {
-					Integer val = (Integer) txRequest.get("TxCount");
-					if (val == null) {
-						val = 1000;
-					}
-					final int txCount = val;
+					final int loopCount = (Integer) txRequest.get("LoopCount", 1);
+					final int txCount = (Integer) txRequest.get("TxCount", 1000);
 					ArrayList<TxTask> txTaskList = new ArrayList<TxTask>();
 
 					int txCountPerServer = txCount / serverCount;
@@ -275,66 +272,69 @@ public class StressTestBizImpl
 						txTaskList.add(txTask);
 					}
 
-					// Invoke all TxTasks
-					List<Future<JsonLite>> futureList = es.invokeAll(txTaskList);
+					for (int loopNum = 1; loopNum <= loopCount; loopNum++) {
 
-					// Block till all threads are done. Collect
-					// results in to one list.
-					ArrayList<JsonLite> perfList = new ArrayList<JsonLite>();
-					for (Future<JsonLite> future : futureList) {
-						JsonLite perfInfo = future.get();
-						perfList.add(perfInfo);
+						// Invoke all TxTasks
+						List<Future<JsonLite>> futureList = es.invokeAll(txTaskList);
+
+						// Block till all threads are done. Collect
+						// results in to one list.
+						ArrayList<JsonLite> perfList = new ArrayList<JsonLite>();
+						for (Future<JsonLite> future : futureList) {
+							JsonLite perfInfo = future.get();
+							perfList.add(perfInfo);
+						}
+
+						// Iterate the results to compute average latency
+						// and aggregate rate.
+						JsonLite aggregateInfo = new JsonLite();
+						double lowLatencyInMsec = Double.MAX_VALUE;
+						double highLatencyInMsec = Double.MIN_VALUE;
+						double avgLatencyInMsec = 0d;
+						double totalLatencyInMsec = 0d;
+						double highTimeTookInSec = Double.MIN_VALUE;
+						for (JsonLite perfInfo : perfList) {
+							double latencyInMsec = (Double) perfInfo.get("LatencyInMsec");
+							double timeTookInSec = (Double) perfInfo.get("TimeTookInSec");
+							totalLatencyInMsec += latencyInMsec;
+							if (lowLatencyInMsec > latencyInMsec) {
+								lowLatencyInMsec = latencyInMsec;
+							}
+							if (highLatencyInMsec < latencyInMsec) {
+								highLatencyInMsec = latencyInMsec;
+							}
+							if (highTimeTookInSec < timeTookInSec) {
+								highTimeTookInSec = timeTookInSec;
+							}
+						}
+						JsonLite perfInfo = perfList.get(0);
+						int totalEntryCount = (Integer) perfInfo.get("TotalTxCount");
+						avgLatencyInMsec = totalLatencyInMsec / perfList.size();
+						double rateObjectsPerSec = totalEntryCount / highTimeTookInSec;
+						aggregateInfo.put("Token", txRequest.get("Token"));
+						aggregateInfo.put("TestType", txRequest.get("TestType"));
+						aggregateInfo.put("LoopNum", loopNum);
+						aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
+						aggregateInfo.put("LatencyInMsec", avgLatencyInMsec);
+						aggregateInfo.put("RateObjectsPerSec", rateObjectsPerSec);
+						aggregateInfo.put("LowLatencyInMsec", lowLatencyInMsec);
+						aggregateInfo.put("HighLatencyInMsec", highLatencyInMsec);
+						aggregateInfo.put("FieldSize", perfInfo.get("FieldSize"));
+						aggregateInfo.put("PayloadSize", perfInfo.get("PayloadSize"));
+						aggregateInfo.put("Path", perfInfo.get("Path"));
+						aggregateInfo.put("IsIncludeObjectCreationTime", perfInfo.get("IsIncludeObjectCreationTime"));
+						aggregateInfo.put("DriverName", serverName);
+						aggregateInfo.put("DriverNum", perfInfo.get("DriverNum"));
+						aggregateInfo.put("DriverCount", perfInfo.get("DriverCount"));
+						aggregateInfo.put("TotalTxCount", perfInfo.get("TotalTxCount"));
+						aggregateInfo.put("ThreadCountPerDriver", threadCountPerDriver);
+
+						// Log perf results in the perf log file
+						perfLogger.info(aggregateInfo.toString(4, false, false));
+
+						// Publish the perf results to clients
+						PadoServerManager.getPadoServerManager().putMessage(MessageType.GridStatus, aggregateInfo);
 					}
-
-					// Iterate the results to compute average latency
-					// and aggregate rate.
-					JsonLite aggregateInfo = new JsonLite();
-					double lowLatencyInMsec = Double.MAX_VALUE;
-					double highLatencyInMsec = Double.MIN_VALUE;
-					double avgLatencyInMsec = 0d;
-					double totalLatencyInMsec = 0d;
-					double highTimeTookInSec = Double.MIN_VALUE;
-					for (JsonLite perfInfo : perfList) {
-						double latencyInMsec = (Double) perfInfo.get("LatencyInMsec");
-						double timeTookInSec = (Double) perfInfo.get("TimeTookInSec");
-						totalLatencyInMsec += latencyInMsec;
-						if (lowLatencyInMsec > latencyInMsec) {
-							lowLatencyInMsec = latencyInMsec;
-						}
-						if (highLatencyInMsec < latencyInMsec) {
-							highLatencyInMsec = latencyInMsec;
-						}
-						if (highTimeTookInSec < timeTookInSec) {
-							highTimeTookInSec = timeTookInSec;
-						}
-					}
-					JsonLite perfInfo = perfList.get(0);
-					int totalEntryCount = (Integer) perfInfo.get("TotalTxCount");
-					avgLatencyInMsec = totalLatencyInMsec / perfList.size();
-					double rateObjectsPerSec = totalEntryCount / highTimeTookInSec;
-					aggregateInfo.put("Token", txRequest.get("Token"));
-					aggregateInfo.put("TestType", txRequest.get("TestType"));
-					aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
-					aggregateInfo.put("LatencyInMsec", avgLatencyInMsec);
-					aggregateInfo.put("RateObjectsPerSec", rateObjectsPerSec);
-					aggregateInfo.put("LowLatencyInMsec", lowLatencyInMsec);
-					aggregateInfo.put("HighLatencyInMsec", highLatencyInMsec);
-					aggregateInfo.put("FieldSize", perfInfo.get("FieldSize"));
-					aggregateInfo.put("PayloadSize", perfInfo.get("PayloadSize"));
-					aggregateInfo.put("Path", perfInfo.get("Path"));
-					aggregateInfo.put("IsIncludeObjectCreationTime", perfInfo.get("IsIncludeObjectCreationTime"));
-					aggregateInfo.put("DriverName", serverName);
-					aggregateInfo.put("DriverNum", perfInfo.get("DriverNum"));
-					aggregateInfo.put("DriverCount", perfInfo.get("DriverCount"));
-					aggregateInfo.put("TotalTxCount", perfInfo.get("TotalTxCount"));
-					aggregateInfo.put("ThreadCountPerDriver", threadCountPerDriver);
-
-					// Log perf results in the perf log file
-					perfLogger.info(aggregateInfo.toString(4, false, false));
-
-					// Publish the perf results to clients
-					PadoServerManager.getPadoServerManager().putMessage(MessageType.GridStatus, aggregateInfo);
-
 					Logger.info("StressTestBiz: Tx Tests Complete. [txCount=" + txCount + ", txCountPerServer="
 							+ txCountPerServer + ", txCountPerThread=" + txCountPerThread + "]");
 
@@ -346,7 +346,7 @@ public class StressTestBizImpl
 				}
 			}
 		});
-		return "[DriverName(ServerName)=" + serverName +"] Stress test started.";
+		return "[DriverName(ServerName)=" + serverName + "] Stress test started.";
 	}
 
 	@BizMethod

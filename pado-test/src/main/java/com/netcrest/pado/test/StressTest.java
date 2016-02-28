@@ -66,17 +66,6 @@ public class StressTest
 	private java.util.logging.Logger createLogger(String filePath, boolean suppressConsole)
 	{
 		java.util.logging.Logger logger = java.util.logging.Logger.getLogger(filePath);
-
-		// if (suppressConsole) {
-		// // suppress the logging output to the console
-		// java.util.logging.Handler[] handlers = logger.getHandlers();
-		// for (java.util.logging.Handler handler : handlers) {
-		// if (handlers[0] instanceof java.util.logging.ConsoleHandler) {
-		// logger.removeHandler(handler);
-		// }
-		// }
-		// }
-
 		logger.setLevel(java.util.logging.Level.INFO);
 		try {
 			java.util.logging.FileHandler fileTxt = new java.util.logging.FileHandler(filePath);
@@ -106,10 +95,12 @@ public class StressTest
 
 		List<String> statusList;
 		statusList = stressTestBiz.start(config);
-		
+		StringBuffer buffer = new StringBuffer(statusList.size() * 200);
 		for (String status : statusList) {
-			perfLogger.info(status);
+			buffer.append(status);
+			buffer.append("\n");
 		}
+		perfLogger.info(buffer.toString());
 
 		while (shouldRun) {
 			Thread.sleep(1000);
@@ -284,6 +275,7 @@ public class StressTest
 				list.add(pm);
 
 				if (pm.driverCount == list.size()) {
+					int loopNum = (Integer)jl.get("LoopNum");
 					int driverCount = pm.driverCount;
 
 					double highTimeTookInSec = Double.MIN_VALUE;
@@ -319,6 +311,7 @@ public class StressTest
 					buffer.append("\n");
 					buffer.append(testNum + ". Tx Test");
 					buffer.append("\n                           Token: " + token);
+					buffer.append("\n                            Loop: " + loopNum + "/" + loopCount);
 					buffer.append("\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
 					buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
 					buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
@@ -344,8 +337,10 @@ public class StressTest
 					metricMap.remove(token);
 					messageMap.remove(token);
 					
-					perfLogger.log(Level.INFO, "Tx Test Complete.");
-					shouldRun = false;
+					if (loopNum == loopCount) {
+						perfLogger.log(Level.INFO, "Tx Test Complete.");
+						shouldRun = false;
+					}
 				}
 			}
 
