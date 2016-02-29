@@ -135,7 +135,9 @@ public class StressTestBizImpl
 					for (int loopNum = 1; loopNum <= loopCount; loopNum++) {
 
 						// Run BulkLoaderTask in threads for each path.
+						int pathNum = 0;
 						for (Object obj : paths) {
+							pathNum++;
 							JsonLite pathConfig = (JsonLite) obj;
 							dataLoaderTaskList.clear();
 							for (int j = 1; j <= threadCountPerDriver; j++) {
@@ -183,6 +185,9 @@ public class StressTestBizImpl
 							aggregateInfo.put("Token", bulkLoadRequest.get("Token"));
 							aggregateInfo.put("TestType", bulkLoadRequest.get("TestType"));
 							aggregateInfo.put("LoopNum", loopNum);
+							aggregateInfo.put("LoopCount", loopCount);
+							aggregateInfo.put("PathNum", pathNum);
+							aggregateInfo.put("PathCount", pathCountPerLoop);
 							aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
 							aggregateInfo.put("LatencyInMsec", avgLatencyInMsec);
 							aggregateInfo.put("RateObjectsPerSec", rateObjectsPerSec);
@@ -314,6 +319,7 @@ public class StressTestBizImpl
 						aggregateInfo.put("Token", txRequest.get("Token"));
 						aggregateInfo.put("TestType", txRequest.get("TestType"));
 						aggregateInfo.put("LoopNum", loopNum);
+						aggregateInfo.put("LoopCount", loopCount);
 						aggregateInfo.put("HighTimeTookInSec", highTimeTookInSec);
 						aggregateInfo.put("LatencyInMsec", avgLatencyInMsec);
 						aggregateInfo.put("RateObjectsPerSec", rateObjectsPerSec);

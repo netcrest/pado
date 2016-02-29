@@ -164,6 +164,8 @@ public class StressTest
 
 							if (pm.driverCount == list.size()) {
 								int loopNum = (Integer)jl.get("LoopNum");
+								int pathNum = (Integer)jl.get("PathNum");
+								int pathCount = (Integer)jl.get("PathCount");
 								int driverCount = pm.driverCount;
 								int fieldSize = (Integer) jl.get("FieldSize");
 								int fieldCount = (Integer) jl.get("FieldCount");
@@ -202,20 +204,16 @@ public class StressTest
 								buffer.append("\n");
 								buffer.append(testNum + ". BulkLoad Test");
 								buffer.append("\n                           Token: " + jl.get("Token"));
-								buffer.append("\n                            Loop: " + loopNum + "/" + loopCount);
-								buffer.append("\n                            Path:" + path);
+								buffer.append("\n                     Loop Number: " + loopNum + "/" + loopCount);
+								buffer.append("\n                     Path Number: " + pathNum + "/" + pathCount);
+								buffer.append("\n                            Path: " + path);
 								buffer.append("\n PayloadSize (approximate chars): " + payloadSize);
-								buffer.append(
-										"\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
-								buffer.append("\n              Low Latency (msec): "
-										+ latencyFormat.format(lowLatencyInMsec));
-								buffer.append("\n             High Latency (msec): "
-										+ latencyFormat.format(highLatencyInMsec));
-								buffer.append(
-										"\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
+								buffer.append("\n           Averge Latency (msec): " + latencyFormat.format(avgLatency));
+								buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
+								buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
+								buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
 								buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
-								buffer.append("\n              Elapsed Time (sec): "
-										+ latencyFormat.format(highTimeTookInSec));
+								buffer.append("\n              Elapsed Time (sec): " + latencyFormat.format(highTimeTookInSec));
 								buffer.append("\n                     DriverCount: " + driverCount);
 								buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
 								buffer.append("\n               FieldSize (chars): " + fieldSize);
@@ -237,7 +235,7 @@ public class StressTest
 								metricMap.remove(path);
 								messageMap.remove(path);
 								
-								if (loopNum == loopCount) {
+								if (loopNum == loopCount && pathNum == pathCount) {
 									perfLogger.log(Level.INFO, "Bulk Loader Test Complete.");
 									shouldRun = false;
 								}
@@ -316,7 +314,7 @@ public class StressTest
 					buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
 					buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
 					buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
-					buffer.append("\n                 TotalEntryCount: " + totalEntryCount);
+					buffer.append("\n                 TotalTxCount: " + totalEntryCount);
 					buffer.append("\n              Elapsed Time (sec): " + latencyFormat.format(highTimeTookInSec));
 					buffer.append("\n                     DriverCount: " + driverCount);
 					buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
