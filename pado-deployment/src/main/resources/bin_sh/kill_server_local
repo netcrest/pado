@@ -49,7 +49,7 @@ done
 # kill the pids
 echo
 if [ "$spids" != "" ]; then
-   ssh -q -n $SSH_USER@$i "kill -9 $spids;" > /dev/null 2>&1
+   kill -9 $spids
    echo "Killed server: ${SERVER_ID} $spids"
 else
    echo "Kill canceled. Server is not running: ${SERVER_ID}"

@@ -34,6 +34,7 @@ public class WhichInfo
 	protected Object value;
 	protected boolean isPartitioned;
 	protected BucketInfo bucketInfo;
+	protected String redundancyZone;
 
 	public String getGridId()
 	{
@@ -125,6 +126,16 @@ public class WhichInfo
 		this.bucketInfo = bucketInfo;
 	}
 	
+	public String getRedundancyZone()
+	{
+		return redundancyZone;
+	}
+
+	public void setRedundancyZone(String redundancyZone)
+	{
+		this.redundancyZone = redundancyZone;
+	}
+	
 	public boolean isPrimary()
 	{
 		return isPartitioned && bucketInfo != null && bucketInfo.isPrimary();
@@ -134,7 +145,7 @@ public class WhichInfo
 	public String toString()
 	{
 		return "WhichInfo [gridId=" + gridId + ", serverName=" + serverName + ", serverId=" + serverId + ", host="
-				+ host + ", key=" + key + ", actualKey=" + actualKey + ", value=" + value + ", isPartitioned="
+				+ host + ", redundancyZone=" + redundancyZone + ", key=" + key + ", actualKey=" + actualKey + ", value=" + value + ", isPartitioned="
 				+ isPartitioned + ", isPrimary=" + isPrimary() + ", bucketInfo=" + bucketInfo + "]";
 	}
 }

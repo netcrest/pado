@@ -87,7 +87,7 @@ public class which implements ICommand
 		PadoShell.println("                   enumerated buffer row numbers. Use 'buffer <name>' to get the list");
 		PadoShell.println("                   of enumerated keys.");
 		PadoShell.println(
-				"     <row number list> format: num1 num2 num3-num5 ... e.g., 'get -buffer product 1 2 4 10-20'");
+				"     <row number list> format: num1 num2 num3-num5 ... e.g., 'which -buffer product 1 2 4 10-20'");
 	}
 
 	@Override
@@ -171,7 +171,7 @@ public class which implements ICommand
 			}
 
 			if (padoShell.isShowResults()) {
-				PrintUtil.printList(whichList);
+				PrintUtil.printList(whichList, 0, 1, whichList.size(), whichList.size(), null);
 			}
 			
 		} else {
@@ -194,7 +194,7 @@ public class which implements ICommand
 				for (Object key : keyMap.values()) {
 					List<WhichInfo> whichList = utilBiz.which(gridPath, key);
 					if (padoShell.isShowResults()) {
-						PrintUtil.printList(whichList);
+						PrintUtil.printList(whichList, 0, 1, whichList.size(), whichList.size(), null);
 					}
 				}
 			}

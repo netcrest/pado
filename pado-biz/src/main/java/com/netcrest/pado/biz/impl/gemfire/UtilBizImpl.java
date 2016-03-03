@@ -351,8 +351,8 @@ public class UtilBizImpl
 						Object tempKey = entry.getKey();
 						if (tempKey.hashCode() == key.hashCode() && tempKey.equals(key)) {
 							actualKey = tempKey;
-							bucketInfo = new GemfireBucketInfo(br.getId(), br.getBucketAdvisor().isPrimary(),
-									br.size(), br.getTotalBytes());
+							bucketInfo = new GemfireBucketInfo(br.getId(), br.getBucketAdvisor().isPrimary(), br.size(),
+									br.getTotalBytes());
 							value = entry.getValue();
 							break;
 						}
@@ -409,6 +409,8 @@ public class UtilBizImpl
 		whichInfo.setServerName(serverName);
 		whichInfo.setServerId(serverId);
 		whichInfo.setHost(member.getHost());
+		whichInfo.setRedundancyZone(CacheFactory
+						.getAnyInstance().getDistributedSystem().getProperties().getProperty("redundancy-zone"));
 
 		return whichInfo;
 	}
@@ -566,7 +568,8 @@ public class UtilBizImpl
 						if (tm != null) {
 							if (temporalWasEnabled) {
 								// block till done
-								tm.setEnabled(true, true, false /* spawn Thread */);
+								tm.setEnabled(true, true,
+										false /* spawn Thread */);
 							}
 						}
 					}

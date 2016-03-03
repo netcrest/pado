@@ -55,6 +55,7 @@ public class GemfireWhichInfo extends WhichInfo implements DataSerializable
 		value = DataSerializer.readObject(input);
 		isPartitioned = DataSerializer.readPrimitiveBoolean(input);
 		bucketInfo = DataSerializer.readObject(input);
+		redundancyZone = DataSerializer.readString(input);
 	}
 
 	/**
@@ -72,5 +73,6 @@ public class GemfireWhichInfo extends WhichInfo implements DataSerializable
 		DataSerializer.writeObject(value, output);
 		DataSerializer.writePrimitiveBoolean(isPartitioned, output);
 		DataSerializer.writeObject(bucketInfo, output);
+		DataSerializer.writeString(redundancyZone, output);
 	}
 }
