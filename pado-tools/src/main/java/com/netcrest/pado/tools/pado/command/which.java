@@ -25,7 +25,8 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
 import com.netcrest.pado.biz.IGridMapBiz;
-import com.netcrest.pado.util.GridUtil;
+import com.netcrest.pado.biz.IUtilBiz;
+import com.netcrest.pado.info.WhichInfo;
 import com.netcrest.pado.tools.pado.BufferInfo;
 import com.netcrest.pado.tools.pado.ICommand;
 import com.netcrest.pado.tools.pado.PadoShell;
@@ -33,11 +34,13 @@ import com.netcrest.pado.tools.pado.SharedCache;
 import com.netcrest.pado.tools.pado.util.ObjectUtil;
 import com.netcrest.pado.tools.pado.util.PrintUtil;
 import com.netcrest.pado.tools.pado.util.TimerUtil;
+import com.netcrest.pado.util.GridUtil;
 
-public class get implements ICommand
+public class which implements ICommand
 {
 	private PadoShell padoShell;
 	private static Options options = new Options();
+
 	static {
 		options.addOption("?", false, "");
 
@@ -62,9 +65,9 @@ public class get implements ICommand
 	@Override
 	public void help()
 	{
-		PadoShell.println("get [-path <path>] <key or key field list> | [-?]");
-		PadoShell.println("get -buffer <name> <number-list>");
-		PadoShell.println("   Get entries from the current or specified path.");
+		PadoShell.println("which [-path <path>] <key or key field list> | [-?]");
+		PadoShell.println("which -buffer <name> <number-list>");
+		PadoShell.println("   Show the servers that have the specified key.");
 		PadoShell.println("   Commands that use buffered results are:");
 		PadoShell.println("   " + padoShell.getBufferCommandSet());
 		PadoShell.println("      <key fields>: field=val1 and field2='val1' \\");
@@ -83,15 +86,16 @@ public class get implements ICommand
 		PadoShell.println("     -buffer <name> <row number list>  Get entries from the specified buffer using the");
 		PadoShell.println("                   enumerated buffer row numbers. Use 'buffer <name>' to get the list");
 		PadoShell.println("                   of enumerated keys.");
-		PadoShell.println("     <row number list> format: num1 num2 num3-num5 ... e.g., 'get -buffer product 1 2 4 10-20'");
+		PadoShell.println(
+				"     <row number list> format: num1 num2 num3-num5 ... e.g., 'get -buffer product 1 2 4 10-20'");
 	}
 
-	@Override 
+	@Override
 	public String getShortDescription()
 	{
 		return "Get one or more path values for specified keys.";
 	}
-	
+
 	@Override
 	public boolean isLoginRequired()
 	{
@@ -128,7 +132,6 @@ public class get implements ICommand
 			}
 			String input = (String) commandLine.getArgList().get(1);
 			Object key = null;
-			Object value;
 			if (input.startsWith("'")) {
 				int lastIndex = -1;
 				if (input.endsWith("'") == false) {
@@ -158,19 +161,17 @@ public class get implements ICommand
 			String fullPath = padoShell.getFullPath(path);
 			String gridPath = GridUtil.getChildPath(fullPath);
 			String gridId = SharedCache.getSharedCache().getGridId(fullPath);
-			IGridMapBiz gridMapBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IGridMapBiz.class, gridPath);
-			gridMapBiz.getBizContext().getGridContextClient().setGridIds(gridId);
-			value = gridMapBiz.get(key);
+			IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class, gridPath);
+			utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
+			List<WhichInfo> whichList = utilBiz.which(gridPath, key);
 	
-			if (value == null) {
+			if (whichList == null) {
 				PadoShell.printlnError(this, "Key not found.");
 				return;
 			}
 
-			HashMap map = new HashMap();
-			map.put(key, value);
 			if (padoShell.isShowResults()) {
-				PrintUtil.printEntries(map, map.size(), null);
+				PrintUtil.printList(whichList);
 			}
 			
 		} else {
@@ -188,10 +189,14 @@ public class get implements ICommand
 			}
 			Map<Integer, Object> keyMap = bufferInfo.getKeyMap(argList, 1);
 			if (keyMap.size() > 0) {
-				IGridMapBiz gridMapBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IGridMapBiz.class, gridPath);
-				gridMapBiz.getBizContext().getGridContextClient().setGridIds(gridId);
-				Map map = gridMapBiz.getAll(keyMap.values());
-				PrintUtil.printEntries(map, map.size(), null);
+				IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class, gridPath);
+				utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
+				for (Object key : keyMap.values()) {
+					List<WhichInfo> whichList = utilBiz.which(gridPath, key);
+					if (padoShell.isShowResults()) {
+						PrintUtil.printList(whichList);
+					}
+				}
 			}
 		}
 	}

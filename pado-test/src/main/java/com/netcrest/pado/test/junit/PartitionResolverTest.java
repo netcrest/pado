@@ -107,7 +107,7 @@ public class PartitionResolverTest
 		System.out.println();
 
 		// query
-		System.out.println("executeRoutingQueyr()");
+		System.out.println("executeRoutingQuery()");
 		for (int i = 0; i < 100; i++) {
 			List list = utilBiz.executeRoutingQuery("select * from /mock/" + gridPath, i + "");
 			System.out.print("   " + i + ". ");

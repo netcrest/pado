@@ -314,7 +314,7 @@ public class StressTest
 					buffer.append("\n              Low Latency (msec): " + latencyFormat.format(lowLatencyInMsec));
 					buffer.append("\n             High Latency (msec): " + latencyFormat.format(highLatencyInMsec));
 					buffer.append("\n  Aggregate Throughput (obj/sec): " + rateFormat.format(aggregateRate));
-					buffer.append("\n                 TotalTxCount: " + totalEntryCount);
+					buffer.append("\n                    TotalTxCount: " + totalEntryCount);
 					buffer.append("\n              Elapsed Time (sec): " + latencyFormat.format(highTimeTookInSec));
 					buffer.append("\n                     DriverCount: " + driverCount);
 					buffer.append("\n            ThreadCountPerDriver: " + threadCountPerDriver);
