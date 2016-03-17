@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.test.biz.impl.gemfire;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -40,10 +41,19 @@ public class StressTestBizImpl
 	private IBizContextServer bizContext;
 	private static volatile boolean isComplete = true;
 
-	private final java.util.logging.Logger perfLogger;
+	private java.util.logging.Logger perfLogger;
 
 	public StressTestBizImpl()
 	{
+		
+	}
+	
+	private synchronized void setupDriverLogger()
+	{
+		if (perfLogger != null) {
+			return;
+		}
+		
 		perfLogger = java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
 		// suppress the logging output to the console
 		java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
@@ -56,8 +66,12 @@ public class StressTestBizImpl
 		perfLogger.setLevel(java.util.logging.Level.INFO);
 		try {
 			String homeDir = PadoUtil.getProperty(Constants.PROP_HOME_DIR);
+			File perfLogDir = new File(homeDir, "perf");
+			if (perfLogDir.exists() == false) {
+				perfLogDir.mkdirs();
+			}
 			java.util.logging.FileHandler fileTxt = new java.util.logging.FileHandler(
-					homeDir + "/perf/driver_perf.log");
+					perfLogDir.getAbsolutePath() + "/driver_perf.log");
 			java.util.logging.SimpleFormatter formatterTxt = new java.util.logging.SimpleFormatter();
 			fileTxt.setFormatter(formatterTxt);
 			perfLogger.addHandler(fileTxt);
@@ -69,6 +83,8 @@ public class StressTestBizImpl
 	@BizMethod
 	public String __start(final JsonLite request)
 	{
+		setupDriverLogger();
+		
 		String testType = (String) request.get("TestType");
 		if (testType.equalsIgnoreCase("BulkLoad")) {
 			return startBulkLoad(request);

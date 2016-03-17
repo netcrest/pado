@@ -18,6 +18,8 @@ package com.netcrest.pado.temporal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.netcrest.pado.IRoutingKey;
+
 /**
  * TemporalKey is the composite key class that holds the following temporal
  * information:
@@ -47,11 +49,6 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	 * Identity key
 	 */
 	protected K identityKey;
-
-	/**
-	 * Routing key. If not defined, identityKey is assgined.
-	 */
-	protected Object routingKey;
 
 	/**
 	 * Start valid time in msec
@@ -107,7 +104,6 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 		this.endValidTime = endValidTime;
 		this.writtenTime = writtenTime;
 		this.username = username;
-		this.routingKey = identityKey;
 	}
 
 	/**
@@ -220,7 +216,7 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	public String toString()
 	{
 		StringBuffer buffer = new StringBuffer(100).append("TemporalKey[").append("identityKey=")
-				.append(this.identityKey).append(", routingKey=").append(routingKey).append(", writtenTime=")
+				.append(this.identityKey).append(", writtenTime=")
 				.append(this.writtenTime).append(", startValidTime=").append(this.startValidTime)
 				.append(", endValidTime=").append(this.endValidTime).append("]");
 		return buffer.toString();
@@ -232,7 +228,7 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	public String toStringDate()
 	{
 		StringBuffer buffer = new StringBuffer(100).append("TemporalKey[").append("identityKey=")
-				.append(this.identityKey).append(", routingKey=").append(routingKey).append(", writtenTime=")
+				.append(this.identityKey).append(", routingKey=").append(", writtenTime=")
 				.append(dateFormatter.format(new Date(this.writtenTime))).append(", startValidTime=")
 				.append(dateFormatter.format(new Date(this.startValidTime))).append(", endValidTime=")
 				.append(dateFormatter.format(new Date(this.endValidTime))).append("]");

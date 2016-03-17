@@ -344,7 +344,7 @@ public class CsvFileLoader implements IFileLoader
 				}
 			}
 		}
-		
+
 		// CSV parser from uniVocity
 		CsvParserSettings settings = new CsvParserSettings();
 		settings.getFormat().setLineSeparator(schemaInfo.getLineSeparator());
@@ -404,8 +404,8 @@ public class CsvFileLoader implements IFileLoader
 									keyObject = UUID.randomUUID().toString();
 								} else {
 									if (dataObject instanceof KeyMap) {
-										keyObject = createKey(schemaInfo.getKeyClass(), schemaInfo.getPkColumnNames(),
-												(KeyMap) dataObject);
+										keyObject = createKey(schemaInfo.getKeyClass(), pkClassSetters,
+												schemaInfo.getPkColumnNames(), (KeyMap) dataObject);
 									} else {
 										keyObject = createKey(schemaInfo.getKeyClass(), pkClassSetters,
 												schemaInfo.getPkColumnNames(), schemaInfo.getValueClass(),
@@ -445,16 +445,16 @@ public class CsvFileLoader implements IFileLoader
 							Object data = entry.getValue();
 							if (key instanceof ITemporalKey) {
 								if (data instanceof ITemporalData) {
-									((ITemporalBulkLoader)bulkLoader).put((ITemporalKey) key, (ITemporalData) data);
+									((ITemporalBulkLoader) bulkLoader).put((ITemporalKey) key, (ITemporalData) data);
 								} else {
-									((ITemporalBulkLoader)bulkLoader).put((ITemporalKey) key, data, null);
+									((ITemporalBulkLoader) bulkLoader).put((ITemporalKey) key, data, null);
 								}
 							} else {
 								bulkLoader.put(key, data);
 							}
 						}
 					} else {
-						((ITemporalBulkLoader)bulkLoader).put((ITemporalKey)tk, (ITemporalData)td);
+						((ITemporalBulkLoader) bulkLoader).put((ITemporalKey) tk, (ITemporalData) td);
 					}
 				} else {
 					if (entryFilter != null) {
@@ -481,8 +481,8 @@ public class CsvFileLoader implements IFileLoader
 
 		} catch (Exception ex) {
 			Logger.error(ex);
-			throw new FileLoaderException(
-					"Error occured while loading data: " + ex.getClass() + ", line=" + lineNumber + ": " + Arrays.toString(tokens), ex);
+			throw new FileLoaderException("Error occured while loading data: " + ex.getClass() + ", line=" + lineNumber
+					+ ": " + Arrays.toString(tokens), ex);
 		} finally {
 			if (parser != null) {
 				parser.stopParsing();
@@ -499,6 +499,7 @@ public class CsvFileLoader implements IFileLoader
 		return entryCountListener.getTotalCount();
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private ITemporalKey createTemporalKey(Object identityKey, String[] tokens, int temporalStartIndex)
 			throws ParseException
 	{
@@ -514,7 +515,9 @@ public class CsvFileLoader implements IFileLoader
 
 	// TODO: Support other than String
 	@SuppressWarnings("rawtypes")
-	private Object createKey(Class<?> keyClass, String[] keyNames, KeyMap keyMap)
+	private Object createKey(Class<?> keyClass, Object[] pkClassSetters, String[] keyNames, KeyMap keyMap)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			ParseException
 	{
 		Object key = null;
 		if (keyNames.length == 1) {
@@ -533,6 +536,8 @@ public class CsvFileLoader implements IFileLoader
 					}
 				}
 				key = strKey;
+			} else if (keyClass.isPrimitive() == false && isPrimitiveWrapper(keyClass) == false) {
+				key = createObject(schemaInfo.getKeyClass(), pkClassSetters, keyNames, keyMap);
 			}
 		}
 		return key;
@@ -542,6 +547,11 @@ public class CsvFileLoader implements IFileLoader
 			Object[] valueClassGetters, Object dataObject)
 	{
 		return null;
+	}
+
+	private static <T> boolean isPrimitiveWrapper(Class<T> klass)
+	{
+		return Character.class == klass || Boolean.class == klass || klass.isAssignableFrom(Number.class);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -618,6 +628,56 @@ public class CsvFileLoader implements IFileLoader
 			} else {
 				Method method = (Method) object;
 				value = getValue(stringValue, method);
+				method.invoke(dataObject, value);
+			}
+		}
+
+		return dataObject;
+	}
+
+	/**
+	 * Creates an object for the specified class.
+	 * 
+	 * @param clazz
+	 *            Class to be instantiated
+	 * @param clazzSetters
+	 *            Setters of the specified class that may be mixed with public
+	 *            fields and methods
+	 * @param keyNames
+	 *            Key names in KeyMap. The order this array must match the order
+	 *            of clazzSetter.
+	 * @param keyMap
+	 *            KeyMap object containing values to be extracted and assigned
+	 *            the setters.
+	 * @return A new instance of the specified class with values in KeyMap
+	 *         assigned.
+	 * @throws InstantiationException 
+	 * @throws IllegalAccessException
+	 * @throws ParseException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 */
+	@SuppressWarnings("rawtypes")
+	private Object createObject(Class<?> clazz, Object[] clazzSetters, String[] keyNames, KeyMap keyMap)
+			throws InstantiationException, IllegalAccessException, ParseException, IllegalArgumentException,
+			InvocationTargetException
+	{
+		Object dataObject = clazz.newInstance();
+		for (int i = 0; i < clazzSetters.length; i++) {
+			String keyName = keyNames[i];
+			Object object = clazzSetters[i];
+			if (object == null) {
+				continue;
+			}
+
+			// Invoke setter
+			if (object instanceof Field) {
+				Field field = (Field) object;
+				Object value = keyMap.get(keyName);
+				field.set(dataObject, value);
+			} else {
+				Method method = (Method) object;
+				Object value = keyMap.get(keyName);
 				method.invoke(dataObject, value);
 			}
 		}

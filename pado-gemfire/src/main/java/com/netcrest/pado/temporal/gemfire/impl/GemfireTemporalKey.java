@@ -26,6 +26,7 @@ import com.gemstone.gemfire.DataSerializable;
 import com.gemstone.gemfire.DataSerializer;
 import com.gemstone.gemfire.cache.EntryOperation;
 import com.gemstone.gemfire.cache.PartitionResolver;
+import com.netcrest.pado.IRoutingKey;
 import com.netcrest.pado.gemfire.util.DataSerializerEx;
 import com.netcrest.pado.temporal.TemporalKey;
 
@@ -46,7 +47,8 @@ public class GemfireTemporalKey<K> extends TemporalKey<K> implements PartitionRe
 	public void toData(DataOutput out) throws IOException
 	{
 		DataSerializer.writeObject(this.identityKey, out);
-		DataSerializer.writeObject(this.routingKey, out);
+		// place holder for compability issue
+		DataSerializer.writeObject(null, out);
 		out.writeLong(this.writtenTime);
 		out.writeLong(this.startValidTime);
 		out.writeLong(this.endValidTime);
@@ -56,7 +58,8 @@ public class GemfireTemporalKey<K> extends TemporalKey<K> implements PartitionRe
 	public void fromData(DataInput in) throws IOException, ClassNotFoundException
 	{
 		this.identityKey = DataSerializer.readObject(in);
-		this.routingKey = DataSerializer.readObject(in);
+		// place holder for compability issue
+		DataSerializer.readObject(in);
 		this.writtenTime = in.readLong();
 		this.startValidTime = in.readLong();
 		this.endValidTime = in.readLong();
@@ -80,7 +83,11 @@ public class GemfireTemporalKey<K> extends TemporalKey<K> implements PartitionRe
 
 	public Serializable getRoutingObject(EntryOperation opDetails)
 	{
-		return (Serializable)identityKey;
+		if (identityKey instanceof IRoutingKey) {
+			return (Serializable)((IRoutingKey)identityKey).getRoutingKey();
+		} else {
+			return (Serializable)identityKey;
+		}
 	}
 	
 	public void close()

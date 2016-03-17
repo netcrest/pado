@@ -28,7 +28,6 @@ RoutingKeyClass=java.lang.String
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
-# UcnMasterFilter left-trims UCN numbers by removing 0's.
 #EntryFilterClass=
 
 # Delimiter is ${DELIMITER_COMMENT}

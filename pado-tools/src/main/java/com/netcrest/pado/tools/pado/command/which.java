@@ -15,7 +15,6 @@
  */
 package com.netcrest.pado.tools.pado.command;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +23,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
-import com.netcrest.pado.biz.IGridMapBiz;
 import com.netcrest.pado.biz.IUtilBiz;
 import com.netcrest.pado.info.WhichInfo;
 import com.netcrest.pado.tools.pado.BufferInfo;
@@ -109,7 +107,7 @@ public class which implements ICommand
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	public void run(CommandLine commandLine, String command) throws Exception
 	{
 		String path = commandLine.getOptionValue("path");
@@ -123,7 +121,7 @@ public class which implements ICommand
 		if (path == null && bufferName == null) {
 			path = padoShell.getCurrentPath();
 		}
-		
+
 		if (path != null) {
 
 			if (commandLine.getArgList().size() < 2) {
@@ -161,10 +159,11 @@ public class which implements ICommand
 			String fullPath = padoShell.getFullPath(path);
 			String gridPath = GridUtil.getChildPath(fullPath);
 			String gridId = SharedCache.getSharedCache().getGridId(fullPath);
-			IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class, gridPath);
+			IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class,
+					gridPath);
 			utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
 			List<WhichInfo> whichList = utilBiz.which(gridPath, key);
-	
+
 			if (whichList == null) {
 				PadoShell.printlnError(this, "Key not found.");
 				return;
@@ -173,7 +172,7 @@ public class which implements ICommand
 			if (padoShell.isShowResults()) {
 				PrintUtil.printList(whichList, 0, 1, whichList.size(), whichList.size(), null);
 			}
-			
+
 		} else {
 			// Get key from the buffer
 			BufferInfo bufferInfo = SharedCache.getSharedCache().getBufferInfo(bufferName);
@@ -189,7 +188,8 @@ public class which implements ICommand
 			}
 			Map<Integer, Object> keyMap = bufferInfo.getKeyMap(argList, 1);
 			if (keyMap.size() > 0) {
-				IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class, gridPath);
+				IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class,
+						gridPath);
 				utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
 				for (Object key : keyMap.values()) {
 					List<WhichInfo> whichList = utilBiz.which(gridPath, key);
