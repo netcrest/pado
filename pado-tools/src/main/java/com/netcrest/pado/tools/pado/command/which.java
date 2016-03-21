@@ -15,8 +15,10 @@
  */
 package com.netcrest.pado.tools.pado.command;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -25,6 +27,7 @@ import org.apache.commons.cli.Options;
 
 import com.netcrest.pado.biz.IUtilBiz;
 import com.netcrest.pado.info.WhichInfo;
+import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.tools.pado.BufferInfo;
 import com.netcrest.pado.tools.pado.ICommand;
 import com.netcrest.pado.tools.pado.PadoShell;
@@ -51,6 +54,8 @@ public class which implements ICommand
 		opt.setArgs(1);
 		opt.setOptionalArg(true);
 		options.addOption(opt);
+
+		options.addOption("r", false, "");
 	}
 
 	@Override
@@ -63,9 +68,10 @@ public class which implements ICommand
 	@Override
 	public void help()
 	{
-		PadoShell.println("which [-path <path>] <key or key field list> | [-?]");
+		PadoShell.println("which [-path <path>] <key> | [-?]");
 		PadoShell.println("which -buffer <name> <number-list>");
-		PadoShell.println("   Show the servers that have the specified key.");
+		PadoShell.println("which -r <routing key>");
+		PadoShell.println("   Show the server(s) that have the specified key or targetted by the specified routing key.");
 		PadoShell.println("   Commands that use buffered results are:");
 		PadoShell.println("   " + padoShell.getBufferCommandSet());
 		PadoShell.println("      <key fields>: field=val1 and field2='val1' \\");
@@ -84,6 +90,7 @@ public class which implements ICommand
 		PadoShell.println("     -buffer <name> <row number list>  Get entries from the specified buffer using the");
 		PadoShell.println("                   enumerated buffer row numbers. Use 'buffer <name>' to get the list");
 		PadoShell.println("                   of enumerated keys.");
+		PadoShell.println("     -r   Show the server that is targetted by the specified routing key.");
 		PadoShell.println(
 				"     <row number list> format: num1 num2 num3-num5 ... e.g., 'which -buffer product 1 2 4 10-20'");
 	}
@@ -112,6 +119,7 @@ public class which implements ICommand
 	{
 		String path = commandLine.getOptionValue("path");
 		String bufferName = commandLine.getOptionValue("buffer");
+		boolean isRoutingKey = commandLine.hasOption('r');
 		List<String> argList = commandLine.getArgList();
 
 		if (path != null && bufferName != null) {
@@ -162,15 +170,33 @@ public class which implements ICommand
 			IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class,
 					gridPath);
 			utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
-			List<WhichInfo> whichList = utilBiz.which(gridPath, key);
+			if (isRoutingKey) {
+				WhichInfo whichInfo = utilBiz.whichRoutingKey(gridPath, key);
+				if (whichInfo == null) {
+					PadoShell.printlnError(this, "Routing key not found.");
+					return;
+				}
+				if (padoShell.isShowResults()) {
 
-			if (whichList == null) {
-				PadoShell.printlnError(this, "Key not found.");
-				return;
-			}
-
-			if (padoShell.isShowResults()) {
-				PrintUtil.printList(whichList, 0, 1, whichList.size(), whichList.size(), null);
+					List<Map<String, Object>> whichMapList = new ArrayList<Map<String, Object>>(1);
+					TreeMap<String, Object> map = new TreeMap<String, Object>();
+					whichMapList.add(map);
+					map.put("GridId", whichInfo.getGridId());
+					map.put("Host", whichInfo.getHost());
+					map.put("ServerName", whichInfo.getServerName());
+//					map.put("ServerId", whichInfo.getServerId());
+					map.put("RedundancyZone", whichInfo.getRedundancyZone());
+					PrintUtil.printList(whichMapList, 0, 1, whichMapList.size(), whichMapList.size(), null);
+				}
+			} else {
+				List<WhichInfo> whichList = utilBiz.which(gridPath, key);
+				if (whichList == null) {
+					PadoShell.printlnError(this, "Key not found.");
+					return;
+				}
+				if (padoShell.isShowResults()) {
+					printWhichInfoList(whichList);
+				}
 			}
 
 		} else {
@@ -193,11 +219,41 @@ public class which implements ICommand
 				utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
 				for (Object key : keyMap.values()) {
 					List<WhichInfo> whichList = utilBiz.which(gridPath, key);
-					if (padoShell.isShowResults()) {
-						PrintUtil.printList(whichList, 0, 1, whichList.size(), whichList.size(), null);
-					}
+					printWhichInfoList(whichList);
 				}
 			}
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void printWhichInfoList(List<WhichInfo> whichInfoList) throws Exception
+	{
+		List<Map<String, Object>> whichMapList = new ArrayList<Map<String, Object>>(whichInfoList.size());
+		for (WhichInfo whichInfo : whichInfoList) {
+			TreeMap<String, Object> map = new TreeMap<String, Object>();
+			whichMapList.add(map);
+			map.put("GridId", whichInfo.getGridId());
+			map.put("Host", whichInfo.getHost());
+			map.put("ServerName", whichInfo.getServerName());
+//			map.put("ServerId", whichInfo.getServerId());
+			map.put("RedundancyZone", whichInfo.getRedundancyZone());
+			map.put("BucketId", whichInfo.getBucketInfo().getBucketId());
+			map.put("BucktSize", whichInfo.getBucketInfo().getSize());
+			map.put("BucktSize", whichInfo.getBucketInfo().getTotalBytes());
+			map.put("IsPrimary", whichInfo.getBucketInfo().isPrimary());
+			Object key = whichInfo.getKey();
+			if (key != null) {
+				if (key instanceof ITemporalKey) {
+					ITemporalKey tk = (ITemporalKey)key;
+					map.put("IdentityKey", tk.getIdentityKey());
+				} else {
+					map.put("Key", key);
+				}
+			} else {
+				map.put("Key", key);
+			}
+			
+		}
+		PrintUtil.printList(whichMapList, 0, 1, whichMapList.size(), whichMapList.size(), null);
 	}
 }

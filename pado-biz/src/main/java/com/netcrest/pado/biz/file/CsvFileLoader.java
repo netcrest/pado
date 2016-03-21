@@ -43,15 +43,16 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.netcrest.pado.IGridMapBizLink;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.biz.IGridMapBiz;
 import com.netcrest.pado.biz.ITemporalAdminBiz;
+import com.netcrest.pado.biz.IUtilBiz;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.index.provider.lucene.DateTool;
 import com.netcrest.pado.internal.util.ClassUtil;
 import com.netcrest.pado.log.Logger;
-import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.ITemporalAdminBizLink;
 import com.netcrest.pado.temporal.ITemporalBulkLoader;
 import com.netcrest.pado.temporal.ITemporalData;
@@ -215,16 +216,23 @@ public class CsvFileLoader implements IFileLoader
 		if (schemaInfo.getValueColumnNames() == null) {
 			throw new FileLoaderException("The passed in colum name arrary is null");
 		}
-		// Primary key property name of the data class. It is expected
-		// that the specified data class has the primary key getter
-		// method which returns the key that uniquely maps the data
-		// object.
-		if (schemaInfo.getPkColumnNames() != null) {
-			if (schemaInfo.getKeyClass() == null) {
-				throw new FileLoaderException(
-						"The passed in primary key class is null and the number of primary key column names is greater than 1");
-			}
-		} else {
+		// // Primary key property name of the data class. It is expected
+		// // that the specified data class has the primary key getter
+		// // method which returns the key that uniquely maps the data
+		// // object.
+		// if (schemaInfo.getPkColumnNames() != null &&
+		// schemaInfo.getPkColumnNames().length > 0) {
+		// if (throw new FileLoaderException("The passed in primary key column
+		// name is null");) {
+		// throw new FileLoaderException(
+		// "The passed in primary key class is null and the number of primary
+		// key column names is greater than 1");
+		// }
+		// } else {
+		// throw new FileLoaderException("The passed in primary key column name
+		// is null");
+		// }
+		if (schemaInfo.getPkColumnNames() == null) {
 			throw new FileLoaderException("The passed in primary key column name is null");
 		}
 	}
@@ -257,21 +265,21 @@ public class CsvFileLoader implements IFileLoader
 
 		// For server-side, do not use IBiz which fails due to class loader
 		// conflicts.
-		if (PadoServerManager.getPadoServerManager() != null) {
-			bulkLoader = schemaInfo.createBulkLoader();
-			bulkLoader.setPath(schemaInfo.getGridPath());
-			bulkLoader.setBatchSize(schemaInfo.getBatchSize());
-		} else {
+//		if (PadoServerManager.getPadoServerManager() != null) {
+//			bulkLoader = schemaInfo.createBulkLoader();
+//			bulkLoader.setPath(schemaInfo.getGridPath());
+//			bulkLoader.setBatchSize(schemaInfo.getBatchSize());
+//		} else {
 			if (schemaInfo.isTemporal()) {
 				temporalAdminBiz = pado.getCatalog().newInstance(ITemporalAdminBiz.class, schemaInfo.getGridPath());
 				bulkLoader = temporalAdminBiz.createBulkLoader(schemaInfo.getBatchSize());
 				((ITemporalBulkLoader) bulkLoader).setDiffEnabled(schemaInfo.isHistory());
 				((ITemporalBulkLoader) bulkLoader).setDiffTemporalTime(temporalTime);
 			} else {
-				IGridMapBiz gridMapBiz = pado.getCatalog().newInstance(IGridMapBiz.class, schemaInfo.getGridPath());
+				IGridMapBizLink gridMapBiz = pado.getCatalog().newInstance(IGridMapBiz.class, schemaInfo.getGridPath());
 				bulkLoader = gridMapBiz.getBulkLoader(schemaInfo.getBatchSize());
 			}
-		}
+//		}
 		EntryCountListener entryCountListener = new EntryCountListener();
 		bulkLoader.addBulkLoaderListener(entryCountListener);
 
@@ -345,6 +353,32 @@ public class CsvFileLoader implements IFileLoader
 			}
 		}
 
+		// Primary key index names
+		String[] pkIndexNames = schemaInfo.getPkIndexNames();
+
+		// Set routing key indexes if defined. schemaInfo.getRoutingKeyIndexes()
+		// overrides
+		// schemaInfo.getRoutingKeyIndexNames().
+		// A routing key index name must be a primary field name.
+		int[] routingKeyIndexes = schemaInfo.getRoutingKeyIndexes();
+		if (routingKeyIndexes.length == 0) {
+			String[] routingKeyIndexNames = schemaInfo.getRoutingKeyIndexNames();
+			if (routingKeyIndexNames.length > 0) {
+				routingKeyIndexes = new int[routingKeyIndexNames.length];
+			}
+			int j = 0;
+			for (String routingKeyIndexName : routingKeyIndexNames) {
+				for (int i = 0; i < pkIndexNames.length; i++) {
+					if (routingKeyIndexName.equals(pkIndexNames[i])) {
+						routingKeyIndexes[j++] = i;
+					}
+				}
+			}
+		}
+		IUtilBiz utilBiz = pado.getCatalog().newInstance(IUtilBiz.class);
+		utilBiz.setCompositeKeyInfo(schemaInfo.getGridPath(),
+				new CompositeKeyInfo(routingKeyIndexes, schemaInfo.getCompositeKeyDelimiter()));
+
 		// CSV parser from uniVocity
 		CsvParserSettings settings = new CsvParserSettings();
 		settings.getFormat().setLineSeparator(schemaInfo.getLineSeparator());
@@ -405,10 +439,11 @@ public class CsvFileLoader implements IFileLoader
 								} else {
 									if (dataObject instanceof KeyMap) {
 										keyObject = createKey(schemaInfo.getKeyClass(), pkClassSetters,
-												schemaInfo.getPkColumnNames(), (KeyMap) dataObject);
+												schemaInfo.getPkIndexNames(), (KeyMap) dataObject,
+												schemaInfo.getCompositeKeyDelimiter());
 									} else {
 										keyObject = createKey(schemaInfo.getKeyClass(), pkClassSetters,
-												schemaInfo.getPkColumnNames(), schemaInfo.getValueClass(),
+												schemaInfo.getPkIndexNames(), schemaInfo.getValueClass(),
 												valueClassGetters, dataObject);
 									}
 								}
@@ -513,17 +548,16 @@ public class CsvFileLoader implements IFileLoader
 		return tk;
 	}
 
-	// TODO: Support other than String
 	@SuppressWarnings("rawtypes")
-	private Object createKey(Class<?> keyClass, Object[] pkClassSetters, String[] keyNames, KeyMap keyMap)
-			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			ParseException
+	private Object createKey(Class<?> keyClass, Object[] pkClassSetters, String[] keyNames, KeyMap keyMap,
+			String compositeKeyDelimiter) throws InstantiationException, IllegalAccessException,
+					IllegalArgumentException, InvocationTargetException, ParseException
 	{
 		Object key = null;
 		if (keyNames.length == 1) {
 			key = keyMap.get(keyNames[0]);
 		} else {
-			if (keyClass == String.class) {
+			if (keyClass == null || keyClass == String.class) {
 				String strKey = null;
 				for (String keyName : keyNames) {
 					Object val = keyMap.get(keyName);
@@ -531,12 +565,12 @@ public class CsvFileLoader implements IFileLoader
 						if (strKey == null) {
 							strKey = val.toString();
 						} else {
-							strKey += "." + val;
+							strKey += compositeKeyDelimiter + val;
 						}
 					}
 				}
 				key = strKey;
-			} else if (keyClass.isPrimitive() == false && isPrimitiveWrapper(keyClass) == false) {
+			} else if (ClassUtil.isPrimitiveBase(keyClass) == false) {
 				key = createObject(schemaInfo.getKeyClass(), pkClassSetters, keyNames, keyMap);
 			}
 		}
@@ -547,11 +581,6 @@ public class CsvFileLoader implements IFileLoader
 			Object[] valueClassGetters, Object dataObject)
 	{
 		return null;
-	}
-
-	private static <T> boolean isPrimitiveWrapper(Class<T> klass)
-	{
-		return Character.class == klass || Boolean.class == klass || klass.isAssignableFrom(Number.class);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -651,7 +680,7 @@ public class CsvFileLoader implements IFileLoader
 	 *            the setters.
 	 * @return A new instance of the specified class with values in KeyMap
 	 *         assigned.
-	 * @throws InstantiationException 
+	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 * @throws ParseException
 	 * @throws IllegalArgumentException

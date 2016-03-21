@@ -27,6 +27,7 @@ import com.netcrest.pado.annotation.OnServer;
 import com.netcrest.pado.annotation.RouterType;
 import com.netcrest.pado.annotation.WithGridCollector;
 import com.netcrest.pado.biz.data.ServerLoad;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
 import com.netcrest.pado.info.CacheDumpInfo;
 import com.netcrest.pado.info.WhichInfo;
 import com.netcrest.pado.link.IUtilBizLink;
@@ -264,7 +265,7 @@ public interface IUtilBiz extends IUtilBizLink
 	 * @param gridPath
 	 *            Grid path
 	 * @param routingKey
-	 *            Routing key that determines the server in which the pertient
+	 *            Routing key that determines the server in which the pertinent
 	 *            data exists.
 	 * @return A WhichInfo that contains the server info. Note that the returned
 	 *         object does not include the value and bucket info. To get a
@@ -273,4 +274,29 @@ public interface IUtilBiz extends IUtilBizLink
 	@BizMethod
 	@OnPath
 	public WhichInfo whichRoutingKey(String gridPath, Object routingKey);
+
+	/**
+	 * Sets the routing key attributes for targeting servers when executing
+	 * {@link OnPath} and other partitioned path operations. This method only
+	 * applies to String composite keys.
+	 * 
+	 * @param gridPath
+	 *            Grid path
+	 * @param compositeKeyInfo
+	 *            Composite key info
+	 */
+	@BizMethod
+	@OnServer(broadcast = true)
+	public void setCompositeKeyInfo(String gridPath, CompositeKeyInfo compositeKeyInfo);
+
+	/**
+	 * Returns the composite key info of the specified grid path.
+	 * 
+	 * @param gridPath
+	 *            Grid path
+	 * @return Null if composite key is undefined.
+	 */
+	@BizMethod
+	@OnServer
+	public CompositeKeyInfo getCompositeKeyInfo(String gridPath);
 }

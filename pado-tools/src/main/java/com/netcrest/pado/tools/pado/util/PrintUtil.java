@@ -1708,7 +1708,7 @@ public class PrintUtil {
 
 		if (isTableFormat() == false) {
 			return SimplePrintUtil.printList(list, startIndex, startRowNum,
-					rowCount, actualSize, keyList);
+					rowCount, actualSize);
 		}
 
 		// Determine max column lengths

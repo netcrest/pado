@@ -91,7 +91,7 @@ public class OutputUtilTest
 		String gridPath = "account";
 		try {
 			PrintWriter schemaWriter = new PrintWriter(schemaFile);
-			OutputUtil.printSchema(schemaWriter, gridPath, key, data, keyList, OutputUtil.TYPE_KEYS_VALUES, ",", iso8601DateFormat, true, true);
+			OutputUtil.printSchema(schemaWriter, gridPath, key, data, keyList, OutputUtil.TYPE_KEYS_VALUES, ",", iso8601DateFormat, true, true, null);
 			schemaWriter.flush();
 			schemaWriter.close();
 			PrintWriter csvWriter = new PrintWriter(csvFile);

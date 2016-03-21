@@ -12,10 +12,29 @@ IsKeyColumns=false
 # automatically generate UUID keys.
 IsKeyAutoGen=${IS_KEY_AUTO_GEN}
 
+# CompositeKeyDelimiter is a separator for a String composite key
+# constructed with multiple primary fields defined. Default: . (period)
+CompositeKeyDelimiter=.
+
+# RoutingKeyIndexes is a comma-separated list of routing key indexes
+# of the String compoisite key. For example, if a composite key is
+# "newco.it.ct" and the routing indexes are "2,1" then the routing key
+# extracted is "ct.it". 2 is for "ct", 1 is for "it".
+# RoutingKeyIndexes always overrides PrimaryRouting defined in the field
+# list.
+#RoutingKeyIndexes=
+
 # KeyClass defines the class of the key objects that are inserted
 # in the underlying data grid path. If temporal, then this class
-# is wrapped in ITemporalKey as the identity key.
-KeyClass=java.lang.String
+# is wrapped in ITemporalKey as the identity key. If KeyClass is String
+# or undefined and IsKeyAutoGen is false then String keys are created.
+# If KeyClass is a composite class then the property name must exactly
+# match the field names defined in this file. For example, for the
+# field name, "CoMpany", the composite class must define the method
+# name set/getCoMpany(). Note that all composite key classes other
+# than the String type must implement com.netcrest.pado.IRouterKey.
+KeyClass=String
+
 # ValueClass defines the class of the value objects that are inserted
 # in the underlying data grid path. If temporal, then this class is
 # wrapped in ITemporalData.
@@ -23,8 +42,6 @@ ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 
 # KeyTypeClass defines the schema class for JsonLite. 
 #KeyTypeClass=
-
-RoutingKeyClass=java.lang.String
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
@@ -66,6 +83,7 @@ Charset=US-ASCII
 # If IsTemporal is false then all other temporal properties except
 # IdentityKey are ignored and non-temporal objects are created. 
 IsTemporal=${IS_TEMPORAL}
+
 # TemporalType must be one of eternal, forever, mortal
 # If eternal, then temporal times are not required.
 # If times are defined then TemporalType is ignored.
@@ -77,11 +95,10 @@ TemporalStartTime=19700101
 TemporalEndTime=20991231
 TemporalWrittenTime=19700101
 
-# Username is optional. If specified then it overwrites the Pado login user name.
+# Username is optional. If specified then it overrides the Pado login user name.
 #Username=
 
-# List the columns specified in the Columns property to be skipped.
-# Skipped columns are not included in the data object.
+# List comma-separted column names to exclude from the data object.
 SkipColumns=
 
 IsCaseSensitive=false
@@ -89,13 +106,73 @@ IsCaseSensitive=false
 # Default: 1
 StartRow=${START_ROW}
 
-# Define the field types. The fields must be in the same order as the columns
-# in the CSV data file.
-# If the primary key is a primitive type then use the category id, Primary;
-# otherwise, define the field names of the primary key class.
-# The temporal attributes are optional as they are predetermined.
-# List field names of the value class. If JsonLite, then list the KeyType names.
-# Note that if the value type is KeyType or POJO, then the field types defined
-# here are ignored and the fields defined by KeyType or POJO are used instead.
-# Format: <field-name>, <field-type>, [Primary|Temporal|Value]
+# ------------------------------------------------------------------------------
+# Field:
+#    Define the field types. The fields must be in the same order as the columns
+#    in the CSV data file. List field names of the value class. If JsonLite, 
+#    then list the KeyType names.  Note that if the value type is KeyType or
+#    POJO, then the field types defined here are ignored and the fields defined
+#    by KeyType or POJO are used instead.
+# Primary:
+#    If a field is part of the primary key then define it with the cagegory id,
+#    Primary. The field order of the composite primary key can be defined by
+#    specifying the primary indexes beginning from 0. If primary indexes are not
+#    specified then the field list order determines the construction of the 
+#    composite key. If a composite key class is defined by setting KeyClass then
+#    the field names listed here must match the composite key class properties
+#    (getters and setters). Note that primary indexes do not applied to the
+#    composite key class and they are ignored.
+# PrimaryRouting:
+#    By default, the key is the routing key. If a part of the key is to be
+#    used to construct the routing key then define such fields with the
+#    category id, PrimaryRouting.
+# Temporal: 
+#    The temporal attributes are predetermined and therefore must strictly
+#    define in the following field order:
+#    - Identity key fields must be defined first at the beginning of the field
+#      list.
+#    - Define the resto temporal fields in the order of 
+#      StartValidTime, EndValidTime, WrittenTime, Username. 
+#    - Define other fields from the value class.
+# Temporal Example:
+#    Key, java.lang.String, Primary
+#    StartValidTime, Date, Temporal
+#    EndValidTime, Date, Temporal
+#    WrittenTime, Date, Temporal
+#    Username, String, Temporal
+#    Field1, String
+#    Field2, int
+#    ...
+# Path Coloation Example:
+#    By specifying PrimaryRouting, grid paths can be co-located without introducing
+#    custom IRoutingKey classes. In the example below, the region path colocated
+#    with the company path with the Country field as the rounting key. All of
+#    "us" entries for both company and region are stored in the same server.
+#
+#    Path    Colocated With Composite Key Fields RoutingKey Example
+#    ------- -------------  -------------------- ---------- -------
+#    company                ComanyName.Country   Country    "newco.us"
+#    region  company        State.Country        Country    "ct.us"
+#    
+#
+# Format: <field-name>, [<field-type>], [Primary|PrimaryRouting|Temporal|Value], [<primary index>]
+#    <field-name>   Name of the field
+#    [<field-type>] Field data type, primitives, primitive wrappers, String, Date, BigDecimal
+#                   Default: String
+#    [Primary|PrimaryRouting|Temporal|Value] 
+#                   Primary - a primary field
+#                   PrimaryRouting - a primary field that is part of the routing key.
+#                                    If none of the fields are PrimaryRouting then the key
+#                                    is used as the routing key.
+#                   Temporal - a temporal value
+#                   Value - a value
+#                   Default: Value
+#   [<primary index>]  Primary field index. Composite key is constructed in the
+#                      order of primary field indexes. It must begin from 0.
+#                      If undefined, then the order in which Primary field names
+#                      are defined is assumed.
+#   [RoutingKey] If specified, then the primary key is used as part of the
+#                routing key for targetting the server to store the key.
+#                RoutingKey m
+# ------------------------------------------------------------------------------
 ${FIELDS}

@@ -66,6 +66,7 @@ public class SchemaInfo
 	public final static String PROP_TEMPORAL_TIME_RESOLUTION = "TemporalTimeResolution";
 	public final static String PROP_USER_NAME = "Username";
 	public final static String PROP_SKIP_COLUMNS = "SkipColumns";
+	public final static String PROP_ROUTING_KEY_INDEXES = "RoutingKeyIndexes";
 	public final static String PROP_START_ROW = "StartRow";
 	public final static String PROP_END_ROW = "EndRow";
 	public final static String PROP_IS_SPLIT = "IsSplit";
@@ -74,6 +75,7 @@ public class SchemaInfo
 	public final static String PROP_CHARSET = "Charset";
 	public final static String PROP_LINE_SEPARATOR = "LineSeparator";
 	public final static String PROP_QUOTE_ESCAPE = "QuoteEscape";
+	public final static String PROP_COMPOSITE_KEY_DELIMITER = "CompositeKeyDelimiter";
 
 	private final static String DEFAULT_BULK_LOADER_CLASS_NAME = PadoUtil.getProperty(
 			Constants.PROP_LOADER_DATA_BULK_LOADER_CLASS,
@@ -90,8 +92,8 @@ public class SchemaInfo
 	private String gridPath;
 	private char delimiter = 29; // default is ASCII ALT (029)
 	private char quoteEscape = '"';
-	private String lineSeparator = "\n"; 
-	private Class<?> keyClass;
+	private String lineSeparator = "\n";
+	private Class<?> keyClass = String.class;
 	private Class<?> valueClass;
 	private KeyType keyType;
 	private String keyTypeClassName;
@@ -99,19 +101,22 @@ public class SchemaInfo
 	private ColumnItem[] allColumnItems;
 	private HashSet<String> skipColumnSet = new HashSet<String>(1);
 	private String[] pkColumnNames;
+	private String[] pkIndexNames;
+	private String[] routingKeyIndexNames = new String[0];
+	private int[] routingKeyIndexes = new int[0];
 	private String[] valueColumnNames;
 	private Class<?>[] valueColumnTypes;
 	private Class<?> bulkLoaderClass;
 	private Class<?> fileLoaderClass;
 	private Class<?> rowFilterClass;
 	private Class<?> entryFilterClass;
-	private int batchSize = Integer.parseInt(PadoUtil.getProperty(Constants.PROP_LOADER_DATA_BULK_LOAD_BATCH_SIZE,
-			"5000"));
+	private int batchSize = Integer
+			.parseInt(PadoUtil.getProperty(Constants.PROP_LOADER_DATA_BULK_LOAD_BATCH_SIZE, "5000"));
 	private String dateFormat = "MM/dd/yyyy HH:mm:ss";
 	private boolean columnNamesCaseSensitive = true;
 	private boolean isSplit = true;
 	private String charset = "US-ASCII";
-	
+	private String compositeKeyDelimiter = ".";
 
 	private boolean isTemporal = true;
 	private String temporalType = "eternal";
@@ -158,6 +163,8 @@ public class SchemaInfo
 			ArrayList<ColumnItem> columnItemList = new ArrayList<ColumnItem>();
 			ArrayList<String> pkList = new ArrayList<String>(4);
 			ArrayList<String> temporalList = new ArrayList<String>(4);
+			ArrayList<ColumnItem> pkColumnItemList = new ArrayList<ColumnItem>(4);
+			ArrayList<String> routingKeyList = new ArrayList<String>(4);
 			ArrayList<String> valueColumnNameList = new ArrayList<String>();
 			ArrayList<Class<?>> valueColumnTypeList = new ArrayList<Class<?>>();
 			while ((line = reader.readLine()) != null) {
@@ -188,7 +195,7 @@ public class SchemaInfo
 					if (property.equalsIgnoreCase(PROP_IS_KEY_COLUMNS)) {
 						this.isKeyColumns = value.equalsIgnoreCase("true");
 					} else if (property.equalsIgnoreCase(PROP_IS_KEY_AUTO_GEN)) {
-							this.isKeyAutoGen = value.equalsIgnoreCase("true");
+						this.isKeyAutoGen = value.equalsIgnoreCase("true");
 					} else if (property.equalsIgnoreCase(PROP_DELIMITER)) {
 						char[] carray = value.toCharArray();
 						if (carray != null && carray.length > 0) {
@@ -262,11 +269,17 @@ public class SchemaInfo
 						username = value;
 					} else if (property.equalsIgnoreCase(PROP_SKIP_COLUMNS)) {
 						String skipColumns[] = getTokens(value, ',');
-						skipColumnSet = new HashSet(skipColumns.length, 1f);
+						skipColumnSet = new HashSet<String>(skipColumns.length, 1f);
 						if (skipColumns != null) {
 							for (String column : skipColumns) {
 								skipColumnSet.add(column.trim());
 							}
+						}
+					} else if (property.equalsIgnoreCase(PROP_ROUTING_KEY_INDEXES)) {
+						String rkarray[] = getTokens(value, ',');
+						routingKeyIndexes = new int[rkarray.length];
+						for (int i = 0; i < rkarray.length; i++) {
+							routingKeyIndexes[i] = Integer.parseInt(rkarray[i]);
 						}
 					} else if (property.equalsIgnoreCase(PROP_START_ROW)) {
 						this.startRow = Integer.parseInt(value);
@@ -281,6 +294,8 @@ public class SchemaInfo
 						if (carray != null && carray.length > 0) {
 							this.quoteEscape = carray[0];
 						}
+					} else if (property.equalsIgnoreCase(PROP_COMPOSITE_KEY_DELIMITER)) {
+						this.compositeKeyDelimiter = value;
 					}
 				} else {
 					String tokens[] = getTokens(line, schemaFileDelimiter);
@@ -306,6 +321,16 @@ public class SchemaInfo
 										valueColumnNameList.add(ci.name);
 										valueColumnTypeList.add(ci.type);
 									}
+								}
+								if (token.equalsIgnoreCase(ColumnCategory.PrimaryRouting.name())) {
+									ci.category = ColumnCategory.PrimaryRouting;
+									pkList.add(ci.name);
+									if (isKeyColumns == false) {
+										valueColumnNameList.add(ci.name);
+										valueColumnTypeList.add(ci.type);
+									}
+									ci.isRoutingKey = true;
+									routingKeyList.add(ci.name);
 								} else if (token.equalsIgnoreCase(ColumnCategory.Temporal.name())) {
 									ci.category = ColumnCategory.Temporal;
 									temporalList.add(ci.name);
@@ -322,12 +347,32 @@ public class SchemaInfo
 								valueColumnNameList.add(ci.name);
 								valueColumnTypeList.add(ci.type);
 							}
+							// PrimaryKeyIndex
+							if (tokens.length > 3) {
+								String token = tokens[3].trim();
+								if (token.length() > 0) {
+									int primaryKeyIndex = Integer.parseInt(token);
+									ci.primaryKeyIndex = primaryKeyIndex;
+								}
+								if (ci.primaryKeyIndex != -1) {
+									pkColumnItemList.add(ci);
+								}
+							}
 						}
 					}
 				}
 			}
 			this.allColumnItems = columnItemList.toArray(new ColumnItem[columnItemList.size()]);
 			this.pkColumnNames = pkList.toArray(new String[pkList.size()]);
+
+			// pkIndexNames must in the sequence that is defined by the index
+			// numbers in the schema file
+			this.pkIndexNames = new String[pkColumnItemList.size()];
+			for (ColumnItem ci : pkColumnItemList) {
+				pkIndexNames[ci.getPrimaryKeyIndex()] = ci.name;
+			}
+
+			this.routingKeyIndexNames = routingKeyList.toArray(new String[routingKeyList.size()]);
 			this.valueColumnNames = valueColumnNameList.toArray(new String[valueColumnNameList.size()]);
 			this.valueColumnTypes = valueColumnTypeList.toArray(new Class[valueColumnTypeList.size()]);
 			if (this.bulkLoaderClass == null) {
@@ -362,13 +407,14 @@ public class SchemaInfo
 			} else {
 				valueStartIndex = 0;
 			}
-			
+
 			if (keyType != null) {
 				Set<String> nameSet = keyType.getNameSet();
 				for (String columnName : valueColumnNames) {
-					if (isSkipColumn(columnName)==false && nameSet.contains(columnName) == false) {
-						throw new FileLoaderException("Error occurred while reading file schema file " 
-								+ schemaFile.getAbsolutePath() + ". Field name undefined in " + keyTypeClassName + ": " + columnName);
+					if (isSkipColumn(columnName) == false && nameSet.contains(columnName) == false) {
+						throw new FileLoaderException(
+								"Error occurred while reading file schema file " + schemaFile.getAbsolutePath()
+										+ ". Field name undefined in " + keyTypeClassName + ": " + columnName);
 					}
 				}
 			}
@@ -424,15 +470,20 @@ public class SchemaInfo
 	{
 		return delimiter;
 	}
-	
+
 	public String getLineSeparator()
 	{
 		return lineSeparator;
 	}
-	
+
 	public char getQuoteEscape()
 	{
 		return quoteEscape;
+	}
+
+	public String getCompositeKeyDelimiter()
+	{
+		return compositeKeyDelimiter;
 	}
 
 	public Class<?> getKeyClass()
@@ -448,6 +499,31 @@ public class SchemaInfo
 	public String[] getPkColumnNames()
 	{
 		return pkColumnNames;
+	}
+
+	public String[] getPkIndexNames()
+	{
+		return pkIndexNames;
+	}
+
+	/**
+	 * Returns routing key index names. Always returns a non-null array. The
+	 * array length is zero if undefined. Routing key indexes overrides routing
+	 * key index names.
+	 */
+	public String[] getRoutingKeyIndexNames()
+	{
+		return routingKeyIndexNames;
+	}
+
+	/**
+	 * Returns routing key indexes. Always returns a non-null array. The array
+	 * length is zero undefined. Routing key indexes overrides routing key index
+	 * names.
+	 */
+	public int[] getRoutingKeyIndexes()
+	{
+		return routingKeyIndexes;
 	}
 
 	public String[] getValueColumnNames()
@@ -484,7 +560,7 @@ public class SchemaInfo
 	{
 		return isKeyColumns;
 	}
-	
+
 	public boolean isKeyAutoGen()
 	{
 		return isKeyAutoGen;
@@ -499,12 +575,12 @@ public class SchemaInfo
 	{
 		return valueClass;
 	}
-	
+
 	public Class<?> getRowFilterClass()
 	{
 		return rowFilterClass;
 	}
-	
+
 	public Class<?> getEntryFilterClass()
 	{
 		return entryFilterClass;
@@ -529,7 +605,7 @@ public class SchemaInfo
 	{
 		return skipColumnSet.contains(columnName);
 	}
-	
+
 	public Set<String> getSkipColumnSet()
 	{
 		return skipColumnSet;
@@ -564,7 +640,7 @@ public class SchemaInfo
 	{
 		return temporalTimeResolution;
 	}
-	
+
 	public String getUsername()
 	{
 		return username;
@@ -574,7 +650,7 @@ public class SchemaInfo
 	{
 		return startRow;
 	}
-	
+
 	public void setStartRow(int startRow)
 	{
 		if (startRow <= 0) {
@@ -588,7 +664,7 @@ public class SchemaInfo
 	{
 		return endRow;
 	}
-	
+
 	public boolean isHistory()
 	{
 		return isHistory;
@@ -608,19 +684,19 @@ public class SchemaInfo
 	{
 		return valueStartIndex;
 	}
-	
+
 	public boolean isSplit()
 	{
 		return isSplit;
 	}
-	
+
 	public String getCharset()
 	{
 		return charset;
 	}
 
 	@Override
-	public String toString() 
+	public String toString()
 	{
 		return "SchemaInfo [schemaFileDelimiter=" + schemaFileDelimiter + ", schemaType=" + schemaType
 				+ ", isKeyColumns=" + isKeyColumns + ", isKeyAutoGen=" + isKeyAutoGen + ", gridPath=" + gridPath
@@ -628,17 +704,20 @@ public class SchemaInfo
 				+ ", keyClass=" + keyClass + ", valueClass=" + valueClass + ", keyType=" + keyType
 				+ ", keyTypeClassName=" + keyTypeClassName + ", routingKeyClass=" + routingKeyClass
 				+ ", allColumnItems=" + Arrays.toString(allColumnItems) + ", skipColumnSet=" + skipColumnSet
-				+ ", pkColumnNames=" + Arrays.toString(pkColumnNames) + ", valueColumnNames="
+				+ ", pkColumnNames=" + Arrays.toString(pkColumnNames) + ", pkIndexNames="
+				+ Arrays.toString(pkIndexNames) + ", routingKeyIndexNames=" + Arrays.toString(routingKeyIndexNames)
+				+ ", routingKeyIndexes=" + Arrays.toString(routingKeyIndexes) + ", valueColumnNames="
 				+ Arrays.toString(valueColumnNames) + ", valueColumnTypes=" + Arrays.toString(valueColumnTypes)
 				+ ", bulkLoaderClass=" + bulkLoaderClass + ", fileLoaderClass=" + fileLoaderClass + ", rowFilterClass="
 				+ rowFilterClass + ", entryFilterClass=" + entryFilterClass + ", batchSize=" + batchSize
 				+ ", dateFormat=" + dateFormat + ", columnNamesCaseSensitive=" + columnNamesCaseSensitive + ", isSplit="
-				+ isSplit + ", charset=" + charset + ", isTemporal=" + isTemporal + ", temporalType=" + temporalType
-				+ ", temporalStartTime=" + temporalStartTime + ", temporalEndTime=" + temporalEndTime
-				+ ", temporalWrittenTime=" + temporalWrittenTime + ", temporalTimeResolution=" + temporalTimeResolution
-				+ ", username=" + username + ", startRow=" + startRow + ", endRow=" + endRow + ", isHistory="
-				+ isHistory + ", keyStartIndex=" + keyStartIndex + ", temporalStartIndex=" + temporalStartIndex
-				+ ", valueStartIndex=" + valueStartIndex + "]";
+				+ isSplit + ", charset=" + charset + ", compositeKeyDelimiter=" + compositeKeyDelimiter
+				+ ", isTemporal=" + isTemporal + ", temporalType=" + temporalType + ", temporalStartTime="
+				+ temporalStartTime + ", temporalEndTime=" + temporalEndTime + ", temporalWrittenTime="
+				+ temporalWrittenTime + ", temporalTimeResolution=" + temporalTimeResolution + ", username=" + username
+				+ ", startRow=" + startRow + ", endRow=" + endRow + ", isHistory=" + isHistory + ", keyStartIndex="
+				+ keyStartIndex + ", temporalStartIndex=" + temporalStartIndex + ", valueStartIndex=" + valueStartIndex
+				+ "]";
 	}
 
 	private static String[] getTokens(String line, char delimiter)
@@ -646,7 +725,8 @@ public class SchemaInfo
 		if (line.length() == 0) {
 			return null;
 		}
-		// HBAN,23.82,300,23.79,800,"Thu, ""test"", 'hello' Jun 08 09:41:19 EDT 2006",99895,1094931009,82,99895,8,HBAN
+		// HBAN,23.82,300,23.79,800,"Thu, ""test"", 'hello' Jun 08 09:41:19 EDT
+		// 2006",99895,1094931009,82,99895,8,HBAN
 		ArrayList<String> list = new ArrayList<String>();
 		boolean openQuote = false;
 		String value = "";
@@ -678,7 +758,7 @@ public class SchemaInfo
 
 	enum ColumnCategory
 	{
-		Primary, Temporal, Value
+		Primary, PrimaryRouting, Temporal, Value
 	}
 
 	class ColumnItem
@@ -686,6 +766,8 @@ public class SchemaInfo
 		private String name;
 		private Class<?> type;
 		private ColumnCategory category = ColumnCategory.Value;
+		private boolean isRoutingKey;
+		private int primaryKeyIndex = -1;
 
 		public String getName()
 		{
@@ -700,6 +782,16 @@ public class SchemaInfo
 		public ColumnCategory getCategory()
 		{
 			return category;
+		}
+
+		public boolean isRoutingKey()
+		{
+			return isRoutingKey;
+		}
+
+		public int getPrimaryKeyIndex()
+		{
+			return primaryKeyIndex;
 		}
 
 		@Override

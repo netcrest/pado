@@ -228,7 +228,7 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	public String toStringDate()
 	{
 		StringBuffer buffer = new StringBuffer(100).append("TemporalKey[").append("identityKey=")
-				.append(this.identityKey).append(", routingKey=").append(", writtenTime=")
+				.append(this.identityKey).append(", writtenTime=")
 				.append(dateFormatter.format(new Date(this.writtenTime))).append(", startValidTime=")
 				.append(dateFormatter.format(new Date(this.startValidTime))).append(", endValidTime=")
 				.append(dateFormatter.format(new Date(this.endValidTime))).append("]");

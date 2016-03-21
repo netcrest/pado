@@ -29,6 +29,9 @@ import org.apache.commons.cli.Options;
 
 import com.gemstone.gemfire.cache.query.Struct;
 import com.netcrest.pado.biz.IPathBiz;
+import com.netcrest.pado.biz.IUtilBiz;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
+import com.netcrest.pado.gemfire.util.RegionUtil;
 import com.netcrest.pado.index.service.IScrollableResultSet;
 import com.netcrest.pado.internal.util.OutputUtil;
 import com.netcrest.pado.tools.pado.ICommand;
@@ -86,6 +89,7 @@ public class export implements ICommand
 		PadoShell.println("      -v  Export values only.");
 		PadoShell.println("      -kv Export both keys and values. Same as not specifying -k and -v");
 		PadoShell.println("      -refresh Refresh the contents by forcing the grid to rebuild the index matrix.");
+		PadoShell.println("   Default: export -kv <from-path> <to-file>");
 	}
 
 	@Override 
@@ -147,7 +151,7 @@ public class export implements ICommand
 			csvFile = new File(toFilePath);
 		}
 		String fn = csvFile.getName().substring(0, csvFile.getName().lastIndexOf(".csv"));
-		File schemaFile = new File(fn + ".schema");
+		File schemaFile = new File(csvFile.getParent(), fn + ".schema");
 		
 		if (isForce == false && padoShell.isInteractiveMode() && csvFile.exists()) {
 			PadoShell.println(this, toFilePath + ": File exists. Do you want to overwrite?");
@@ -165,18 +169,26 @@ public class export implements ICommand
 			Object key = struct.getFieldValues()[0];
 			Object value = struct.getFieldValues()[1];
 			PrintWriter schemaWriter = new PrintWriter(schemaFile);
-			List keyList = null;
-			if (value instanceof Map) {
-				// Must iterate the entire map to get all unique keys
-				Map valueMap = (Map) value;
-				Set keySet = valueMap.keySet();
-				HashSet set = new HashSet(keySet.size(), 1f);
-				set.addAll(keySet);
-				keyList = new ArrayList(set);
-				Collections.sort(keyList);
+			try {
+				List keyList = null;
+				if (value instanceof Map) {
+					// Must iterate the entire map to get all unique keys
+					Map valueMap = (Map) value;
+					Set keySet = valueMap.keySet();
+					HashSet set = new HashSet(keySet.size(), 1f);
+					set.addAll(keySet);
+					keyList = new ArrayList(set);
+					Collections.sort(keyList);
+				}
+				IUtilBiz utilBiz = SharedCache.getSharedCache().getPado().getCatalog().newInstance(IUtilBiz.class,
+						gridPath);
+				CompositeKeyInfo compositeKeyInfo = utilBiz.getCompositeKeyInfo(gridPath);
+				OutputUtil.printSchema(schemaWriter, gridPath, key, value, keyList, OutputUtil.TYPE_KEYS_VALUES, ",", PadoShellUtil.getIso8601DateFormat(), true, true, compositeKeyInfo);		
+			} finally {
+				if (schemaWriter != null) {
+					schemaWriter.close();
+				}
 			}
-			OutputUtil.printSchema(schemaWriter, gridPath, key, value, keyList, OutputUtil.TYPE_KEYS_VALUES, ",", PadoShellUtil.getIso8601DateFormat(), true, true);
-			schemaWriter.close();
 		}
 		
 		PrintWriter csvWriter = new PrintWriter(csvFile);

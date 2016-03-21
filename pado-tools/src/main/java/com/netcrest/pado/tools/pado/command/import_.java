@@ -49,7 +49,7 @@ public class import_ implements ICommand
 		PadoShell.println("   must co-exist with the specified CSV file in the same directory.");
 		PadoShell.println("   See the 'export' command for exporting schema and CSV files.");
 		PadoShell.println("   IMPORTANT: The importing file must contain both keys and values, i.e.,");
-		PadoShell.println("              it must have been created by 'import -kv ...'");
+		PadoShell.println("              it must have been created by 'export -kv ...'");
 	}
 
 	@Override 

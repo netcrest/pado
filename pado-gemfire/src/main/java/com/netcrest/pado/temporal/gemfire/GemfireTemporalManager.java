@@ -243,7 +243,7 @@ public class GemfireTemporalManager extends TemporalManager
 	 * Adds temporal attributes to the specified region and partition attributes
 	 * factories. After this call the specified factories include all of the
 	 * required temporal attributes for creating a temporal region. If either rf
-	 * or pa is null then no attributes are set. This method essentially adds
+	 * or paf is null then no attributes are set. This method essentially adds
 	 * event listeners pertaining to managing temporal data. As such, the
 	 * specified factories must not include any temporal data specific event
 	 * listeners, otherwise, duplicate events may occur.
@@ -252,7 +252,7 @@ public class GemfireTemporalManager extends TemporalManager
 	 *            Full path of region
 	 * @param rf
 	 *            Region factory
-	 * @param pa
+	 * @param paf
 	 *            Partition attributes factory
 	 */
 	@SuppressWarnings("unchecked")

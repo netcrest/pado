@@ -44,6 +44,7 @@ import com.gemstone.gemfire.management.MemberMXBean;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.biz.data.ServerLoad;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
 import com.netcrest.pado.biz.file.CsvFileLoader;
 import com.netcrest.pado.biz.file.SchemaInfo;
 import com.netcrest.pado.exception.PadoServerException;
@@ -53,6 +54,7 @@ import com.netcrest.pado.gemfire.info.GemfireBucketInfo;
 import com.netcrest.pado.gemfire.info.GemfireRegionInfo;
 import com.netcrest.pado.gemfire.info.GemfireWhichInfo;
 import com.netcrest.pado.gemfire.util.GemfireGridUtil;
+import com.netcrest.pado.gemfire.util.RegionUtil;
 import com.netcrest.pado.index.provider.gemfire.OqlSearch;
 import com.netcrest.pado.info.BucketInfo;
 import com.netcrest.pado.info.CacheDumpInfo;
@@ -67,6 +69,7 @@ import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.TemporalData;
 import com.netcrest.pado.temporal.TemporalManager;
+import com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver;
 import com.netcrest.pado.util.GridUtil;
 
 public class UtilBizImpl
@@ -242,7 +245,8 @@ public class UtilBizImpl
 
 			// Get the first entry in the region.
 			// TODO: Scan the entire region to get the full set of keys if
-			// the object is non-KeyMap Map.
+			// the object is non-KeyMap Map. This is required since
+			// the key may not exist in non-KeyMap map.
 			Iterator iterator = map.entrySet().iterator();
 			if (iterator.hasNext()) {
 				Map.Entry entry = (Map.Entry) iterator.next();
@@ -273,8 +277,10 @@ public class UtilBizImpl
 				keyList = new ArrayList(set);
 				Collections.sort(keyList);
 			}
+			String fullPath = GridUtil.getFullPath(gridPath);
+			CompositeKeyInfo compositeKeyInfo = RegionUtil.getCompositeKeyInfoForIdentityKeyPartionResolver(fullPath);
 			OutputUtil.printSchema(schemaWriter, gridPath, key, data, keyList, OutputUtil.TYPE_KEYS_VALUES, ",",
-					iso8601DateFormat, true, true);
+					iso8601DateFormat, true, true, compositeKeyInfo);
 			schemaWriter.flush();
 
 			if (region instanceof PartitionedRegion) {
@@ -778,4 +784,18 @@ public class UtilBizImpl
 	// }
 	// return filePathList;
 	// }
+	
+	@BizMethod
+	public void setCompositeKeyInfo(String gridPath, CompositeKeyInfo compositeKeyInfo)
+	{
+		String fullPath = GridUtil.getFullPath(gridPath);
+		RegionUtil.setCompositeKeyInfoForIdentityKeyPartionResolver(fullPath, compositeKeyInfo);
+	}
+	
+	@BizMethod
+	public CompositeKeyInfo getCompositeKeyInfo(String gridPath)
+	{
+		String fullPath = GridUtil.getFullPath(gridPath);
+		return RegionUtil.getCompositeKeyInfoForIdentityKeyPartionResolver(fullPath);
+	}
 }

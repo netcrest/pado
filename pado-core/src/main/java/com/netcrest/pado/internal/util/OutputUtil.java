@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.gemstone.gemfire.cache.query.Struct;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
 import com.netcrest.pado.biz.file.SchemaInfo;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
@@ -141,6 +142,7 @@ public class OutputUtil
 
 	/**
 	 * IMPORTANT: Currently supports only Map objects in the specified map.
+	 * 
 	 * @param writer
 	 * @param map
 	 * @param fieldTerminator
@@ -177,7 +179,7 @@ public class OutputUtil
 			// Print keys
 			if (isPrintColumnHeader) {
 				printCsvHeader(writer, key, rmd.keyGetters, rmd.keyList, fieldTerminator, "Key");
-//				writer.print(fieldTerminator);
+				// writer.print(fieldTerminator);
 				writer.println();
 			}
 			if (rmd.temporalKey == null) {
@@ -275,8 +277,8 @@ public class OutputUtil
 	 * @param fieldTerminator
 	 * @param printType
 	 *            If KEYS_VALUES then the specified list must contain keys and
-	 *            values in GemFire Struct form. Otherwise, the list must contain
-	 *            non-Struct types.
+	 *            values in GemFire Struct form. Otherwise, the list must
+	 *            contain non-Struct types.
 	 * @param dateFormat
 	 * @param isPrintColumnHeader
 	 */
@@ -298,7 +300,7 @@ public class OutputUtil
 				rmd = getMetaData(key, null);
 				if (isPrintColumnHeader) {
 					printCsvHeader(writer, key, rmd.keyGetters, rmd.keyList, fieldTerminator, "Key");
-//					writer.print(fieldTerminator);
+					// writer.print(fieldTerminator);
 					writer.println();
 				}
 				if (rmd.temporalKey == null) {
@@ -412,7 +414,7 @@ public class OutputUtil
 
 	public static void printSchema(PrintWriter writer, String gridPath, Object key, Object value, List keyList,
 			int printType, String fieldTerminator, SimpleDateFormat dateFormat, boolean isCsvFileHeader,
-			boolean printHeader)
+			boolean printHeader, CompositeKeyInfo compositeKeyInfo)
 	{
 		Object keyObject = null;
 		Method[] keyGetters = null;
@@ -453,6 +455,25 @@ public class OutputUtil
 				writer.println(SchemaInfo.PROP_BATCH_SIZE + "=5000");
 				writer.println(SchemaInfo.PROP_DATE_FORMAT + "=" + dateFormat.toPattern());
 				writer.println(SchemaInfo.PROP_IS_CASE_SENSITIVE + "=true");
+				String indexStr = "";
+				if (compositeKeyInfo != null) {
+					int[] routingKeyIndexes = compositeKeyInfo.getRoutingKeyIndexes();
+					for (int i = 0; i < routingKeyIndexes.length; i++) {
+						if (i == 0) {
+							indexStr = routingKeyIndexes[i] + "";
+						} else {
+							indexStr += "," + routingKeyIndexes[i];
+						}
+					}
+					if (indexStr.length() > 0) {
+						writer.println(SchemaInfo.PROP_ROUTING_KEY_INDEXES + "=" + indexStr);
+					}
+					String compositeKeyDelimiter = compositeKeyInfo.getCompositeKeyDelimiter();
+					if (compositeKeyDelimiter != null) {
+						writer.println(SchemaInfo.PROP_COMPOSITE_KEY_DELIMITER + "=" + compositeKeyDelimiter);
+					}
+				}
+
 				int startRow = 1;
 				if (isCsvFileHeader) {
 					startRow = 2;
@@ -646,11 +667,11 @@ public class OutputUtil
 				writer.print(value);
 			}
 
-		} else if (object.getClass().isPrimitive() || object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class || object.getClass() == Character.class
-				|| object.getClass() == Short.class || object.getClass() == Integer.class
-				|| object.getClass() == Long.class || object.getClass() == Float.class
-				|| object.getClass() == Double.class) {
+		} else
+			if (object.getClass().isPrimitive() || object.getClass() == Boolean.class || object.getClass() == Byte.class
+					|| object.getClass() == Character.class || object.getClass() == Short.class
+					|| object.getClass() == Integer.class || object.getClass() == Long.class
+					|| object.getClass() == Float.class || object.getClass() == Double.class) {
 			writer.print(object.toString());
 
 		} else if (object instanceof Date) {
@@ -734,8 +755,8 @@ public class OutputUtil
 		}
 	}
 
-	private static void printTemporalKey(PrintWriter writer, Method methods[], ITemporalKey key,
-			String fieldTerminator, SimpleDateFormat dateFormat)
+	private static void printTemporalKey(PrintWriter writer, Method methods[], ITemporalKey key, String fieldTerminator,
+			SimpleDateFormat dateFormat)
 	{
 		printObject(writer, methods, key.getIdentityKey(), fieldTerminator, dateFormat);
 		writer.print(fieldTerminator);

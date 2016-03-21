@@ -41,7 +41,9 @@ import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.DataPolicy;
 import com.gemstone.gemfire.cache.EntryNotFoundException;
 import com.gemstone.gemfire.cache.MirrorType;
+import com.gemstone.gemfire.cache.PartitionAttributes;
 import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.RegionAttributes;
 import com.gemstone.gemfire.cache.RegionFactory;
 import com.gemstone.gemfire.cache.RegionShortcut;
 import com.gemstone.gemfire.cache.Scope;
@@ -52,7 +54,9 @@ import com.gemstone.gemfire.cache.client.ClientRegionShortcut;
 import com.gemstone.gemfire.cache.client.Pool;
 import com.gemstone.gemfire.cache.util.BridgeClient;
 import com.gemstone.gemfire.distributed.DistributedSystem;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
 import com.netcrest.pado.gemfire.exception.NestedRegionExistsException;
+import com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver;
 
 /**
  * <p>
@@ -68,9 +72,9 @@ import com.netcrest.pado.gemfire.exception.NestedRegionExistsException;
 public class RegionUtil
 {
 	/**
-	 * Creates and returns a replicated parent region of the specified full path. It creates
-	 * all non-existing sug-regions as replicated regions. The leaf path is not
-	 * created.
+	 * Creates and returns a replicated parent region of the specified full
+	 * path. It creates all non-existing sug-regions as replicated regions. The
+	 * leaf path is not created.
 	 * 
 	 * @param fullPath
 	 */
@@ -105,7 +109,7 @@ public class RegionUtil
 		if (fullPath.startsWith("/") == false) {
 			return null;
 		}
-		
+
 		// First element is always an empty string due to the leading '/'
 		String split[] = fullPath.split("\\/");
 		if (split.length <= 1) {
@@ -278,7 +282,8 @@ public class RegionUtil
 	 * <p>
 	 * <li>readTimeout (optional: default 10000)</li>
 	 * <li>allowableServerTimeouts (optional: default 7 timeouts)</li>
-	 * <li>allowableServerTimeoutPeriod (optional: default: 10000 milliseconds)</li>
+	 * <li>allowableServerTimeoutPeriod (optional: default: 10000 milliseconds)
+	 * </li>
 	 * <li>retryAttempts (optional: default 5)</li>
 	 * <li>retryInterval (optional: default 10000)</li>
 	 * <li>LBPolicy (optional: default "Sticky")</li>
@@ -296,7 +301,7 @@ public class RegionUtil
 	 */
 	public static Region getRegion(String regionPath, Scope scope, DataPolicy dataPolicy, String endpoints,
 			boolean enableBridgeConflation, String diskDir) // nk94960
-			throws CacheException
+					throws CacheException
 	{
 		Cache cache = null;
 		Region region = null;
@@ -1016,5 +1021,74 @@ public class RegionUtil
 			}
 		}
 		region.localDestroyRegion();
+	}
+
+	/**
+	 * Sets the routing key indexes and composite key delimiter for
+	 * {@link IdentityKeyPartitionResolver}
+	 * 
+	 * @param fullPath
+	 *            Full path of region
+	 * @param routingKeyIndexes
+	 *            routing key indexes. If null, then unsets the routing key.
+	 * @param compositeKeyDelimiter
+	 *            String composite key delimiter
+	 */
+	public final static void setCompositeKeyInfoForIdentityKeyPartionResolver(String fullPath,
+			CompositeKeyInfo compositeKeyInfo)
+	{
+		IdentityKeyPartitionResolver resolver = getIdentityKeyPartitionResolver(fullPath);
+		if (resolver == null) {
+			return;
+		}
+		resolver.setCompositeKeyInfo(compositeKeyInfo);
+	}
+
+	/**
+	 * Returns the composite key info of the specified path.
+	 * 
+	 * @param fullPath
+	 *            Full path
+	 * @return Null if IdentityKeyPartitionResolver is undefined for the
+	 *         specified path
+	 */
+	public final static CompositeKeyInfo getCompositeKeyInfoForIdentityKeyPartionResolver(String fullPath)
+	{
+		IdentityKeyPartitionResolver resolver = getIdentityKeyPartitionResolver(fullPath);
+		if (resolver == null) {
+			return null;
+		}
+		return resolver.getCompositeKeyInfo();
+	}
+
+	/**
+	 * Returns the IdentityKeyPartitionResolver that is defined for the
+	 * specified full path. Returns null if undefined or the resolver is not of
+	 * type IdentityKeyPartitionResolver.
+	 * 
+	 * @param fullPath
+	 *            full path of region
+	 */
+	public final static IdentityKeyPartitionResolver getIdentityKeyPartitionResolver(String fullPath)
+	{
+		if (fullPath == null) {
+			return null;
+		}
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			return null;
+		}
+
+		IdentityKeyPartitionResolver resolver = null;
+		RegionAttributes ra = region.getAttributes();
+		if (ra != null) {
+			PartitionAttributes pa = ra.getPartitionAttributes();
+			if (pa != null) {
+				if (pa.getPartitionResolver() instanceof IdentityKeyPartitionResolver) {
+					resolver = (IdentityKeyPartitionResolver) pa.getPartitionResolver();
+				}
+			}
+		}
+		return resolver;
 	}
 }

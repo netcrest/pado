@@ -132,7 +132,6 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		return indexes;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public IGridResults<Object> retrieveEntities(GridQuery query, IndexMatrix indexMatrix) throws GridQueryException
 	{
@@ -151,7 +150,8 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 					// over-commit the end index using the page size so that
 					// we can get all remaining results
 					if (startIndexes[i] != -1) {
-						nextStartIndexes[i] = startIndexes[i] + (query.getEndPageIndex() - query.getStartPageIndex() + 1) * indexMatrix.getPageSize();
+						nextStartIndexes[i] = startIndexes[i]
+								+ (query.getEndPageIndex() - query.getStartPageIndex() + 1) * indexMatrix.getPageSize();
 					}
 				}
 			}
@@ -177,7 +177,6 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		return (IGridResults<Object>) rc.getResult();
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Comparator<?> getComparator(Object result, String sortField, boolean ascending, boolean sortKey)
 	{
@@ -188,18 +187,21 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
 	protected IGridResults executeQueryEntityRemote(GridQuery query) throws GridQueryException
 	{
 		IndexBuilderMemberResultCollector indexMemberResultCollector = new IndexBuilderMemberResultCollector(query,
 				this);
-		ResultCollector rc = executeFunctionQueryEntityRemote(query, null, query, indexMemberResultCollector);
+		Set filterSet = null;
+		Integer routingBucketId = (Integer) query.getParam("RoutingBucketId");
+		if (routingBucketId != null) {
+			filterSet = Collections.singleton(routingBucketId);
+		}
+		ResultCollector rc = executeFunctionQueryEntityRemote(query, filterSet, query, indexMemberResultCollector);
 		entityRun = indexMemberResultCollector;
 		// return indexMemberResultCollector.getResult();
 		return (IGridResults) rc.getResult();
 	}
 
-	@SuppressWarnings("rawtypes")
 	protected IGridResults executeQueryKeyRemote(GridQuery query) throws GridQueryException
 	{
 		IndexBuilderMemberResultCollector indexMemberResultCollector = null;
@@ -218,7 +220,6 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		return results;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public IGridResults<ResultItem<Object>> executeQuery(final GridQuery criteria) throws GridQueryException
 	{
@@ -230,7 +231,7 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		}
 		return results;
 	}
-	
+
 	@Override
 	public void executeNextPageQuery(final IGridResults<ResultItem<Object>> results, final GridQuery criteria)
 	{
@@ -247,7 +248,6 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public void buildRemainingIndexMatrix(final IGridResults<ResultItem<Object>> gridResults, final GridQuery criteria)
 	{
 		boolean firstBatch = false;
@@ -265,7 +265,7 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		IndexMatrix indexMatrix;
 		if (firstBatch && complete) {
 			// No results
-//			int bucketIds[] = this.getBucketIds(gridResults);
+			// int bucketIds[] = this.getBucketIds(gridResults);
 			int[] bucketIds = gridResults.getBucketIds();
 			indexMatrix = new IndexMatrix(bucketIds, gridResults.getTotalServerResults());
 			indexMatrix.setPageSize(criteria.getAggregationPageSize());
@@ -275,10 +275,11 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 			// Create start indexes only if not complete. If completed, then
 			// the commit method generates all remaining start indexes by
 			// iterating thru the results.
-//			if (complete == false) {
-//				int startIndexes[] = this.getStartIndexesForResults(bucketIds, gridResults);
-//				indexMatrix.addStartIndexes(startIndexes);
-//			}
+			// if (complete == false) {
+			// int startIndexes[] = this.getStartIndexesForResults(bucketIds,
+			// gridResults);
+			// indexMatrix.addStartIndexes(startIndexes);
+			// }
 			indexMatrix.setComplete(true);
 			indexMatrix.commit(true, gridResults);
 			getIndexMatrixRegion().put(criteria.getId(), indexMatrix);
@@ -326,7 +327,6 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	private synchronized Map getIndexMatrixRegion()
 	{
 		return IndexMatrixManager.getIndexMatrixManager().getIndexMatrixRegion();
@@ -360,7 +360,6 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	protected Region getRegion(GridQuery query)
 	{
 		return IndexMatrixOperationUtility.getRegionFromName(query.getFullPath(), regionService);
@@ -422,13 +421,13 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		GemfireGridInfo gridInfo = (GemfireGridInfo) GemfirePadoServerManager.getPadoServerManager()
 				.getGridInfoForFullPath(gridQuery.getFullPath());
 		if (gridInfo != null) {
-			PathInfo regionInfo = gridInfo.getCacheInfo().getPathInfo(gridQuery
-					.getFullPath());
-			if (((GemfireRegionInfo)regionInfo).isDataPolicyPartitionedRegion(false)) {
+			PathInfo regionInfo = gridInfo.getCacheInfo().getPathInfo(gridQuery.getFullPath());
+			if (((GemfireRegionInfo) regionInfo).isDataPolicyPartitionedRegion(false)) {
 				return null;
 			} else {
-				BucketInfo bucketInfo = ((GemfireRegionInfo)gridInfo.getGridRegionInfo()).getPrimaryBucketInfoList()
-						.get(random.nextInt(((GemfireRegionInfo)gridInfo.getGridRegionInfo()).getPrimaryBucketInfoList().size()));
+				BucketInfo bucketInfo = ((GemfireRegionInfo) gridInfo.getGridRegionInfo()).getPrimaryBucketInfoList()
+						.get(random.nextInt(
+								((GemfireRegionInfo) gridInfo.getGridRegionInfo()).getPrimaryBucketInfoList().size()));
 				return Collections.singleton(bucketInfo.getBucketId());
 			}
 		}
@@ -497,13 +496,12 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 					return realm;
 				}
 				String gridId = gridIds[0];
-				gridInfo = (GemfireGridInfo) GemfirePadoServerManager.getPadoServerManager().getGridInfoForGridId(
-						gridId);
+				gridInfo = (GemfireGridInfo) GemfirePadoServerManager.getPadoServerManager()
+						.getGridInfoForGridId(gridId);
 				if (gridInfo == null) {
 					return realm;
 				}
-				PathInfo pathInfo = gridInfo.getCacheInfo().getPathInfo(gridQuery
-						.getFullPath());
+				PathInfo pathInfo = gridInfo.getCacheInfo().getPathInfo(gridQuery.getFullPath());
 				GemfireRegionInfo regionInfo = (GemfireRegionInfo) pathInfo;
 				if (gridInfo.getGridId().equals(PadoServerManager.getPadoServerManager().getGridId())) {
 					// if query is for this grid
@@ -524,8 +522,7 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 			} else {
 
 				// if pado region
-				PathInfo pathInfo = gridInfo.getCacheInfo().getPathInfo(gridQuery
-						.getFullPath());
+				PathInfo pathInfo = gridInfo.getCacheInfo().getPathInfo(gridQuery.getFullPath());
 				GemfireRegionInfo regionInfo = (GemfireRegionInfo) pathInfo;
 				if (regionInfo != null) {
 					if (regionInfo.isDataPolicyPartitionedRegion(false)) {

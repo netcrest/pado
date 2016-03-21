@@ -33,6 +33,7 @@ import com.netcrest.pado.index.gemfire.impl.BizGridQueryService;
 import com.netcrest.pado.index.gemfire.impl.BizGridQueryServiceImpl;
 import com.netcrest.pado.index.gemfire.impl.BizIndexMatrixCollector;
 import com.netcrest.pado.index.gemfire.service.GridQueryService;
+import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.index.service.GridQueryFactory;
 import com.netcrest.pado.index.service.IGridQueryService;
@@ -146,15 +147,22 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 		criteria.setFetchSize(fetchSize);
 		criteria.setSortField(orderByField);
 		criteria.setForceRebuildIndex(forceRebuildIndex);
-		if (queryString.toLowerCase().startsWith("select ")) {
+		Boolean isServerQuery = (Boolean) parameterMap.get("IsServerQuery");
+		Integer bucketId = (Integer)parameterMap.get("BucketId");
+		if ( isServerQuery != null && isServerQuery || bucketId != null) {
 			queryType = QueryType.OQL;
+			criteria.setProviderKey(Constants.SERVER_PROVIDER_KEY);
+			criteria.setQueryString(queryString);
+		} else if (queryString.toLowerCase().startsWith("select ")) {
+			queryType = QueryType.OQL;
+			criteria.setProviderKey(Constants.OQL_PROVIDER_KEY);
 			criteria.setQueryString(queryString);
 		} else {
 			queryType = QueryType.PQL;
+			criteria.setProviderKey(Constants.PQL_PROVIDER_KEY);
 			criteria.setQueryString(orderByQueryString.queryString);
 		}
-				
-		criteria.setProviderKey(queryType.name());
+		criteria.setParameter(parameterMap);
 		boolean sortKey = orderByField == null || 
 				orderByField.equals("WrittenTime") || 
 				orderByField.equals("EndWrittenTime") || 
@@ -313,9 +321,6 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 	@Override
 	public void setParameter(String name, Object value)
 	{
-		if (parameterMap == null) {
-			parameterMap = new HashMap<String, Object>(5);
-		}
 		parameterMap.put(name, value);
 	}
 
@@ -325,9 +330,6 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 	@Override
 	public Object getParameter(String name)
 	{
-		if (parameterMap == null) {
-			return null;
-		}
 		return parameterMap.get(name);
 	}
 

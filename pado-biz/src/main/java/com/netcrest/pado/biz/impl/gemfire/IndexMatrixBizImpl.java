@@ -105,6 +105,7 @@ public class IndexMatrixBizImpl<T>
 	}
 
 	// Extension point to plugin test Function
+	@SuppressWarnings("rawtypes")
 	protected Lock getLock(GridQuery criteria)
 	{
 		Region systemRegion = CacheFactory.getAnyInstance().getRegion(
@@ -141,6 +142,7 @@ public class IndexMatrixBizImpl<T>
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		private void buildRemainingIndexMatrix()
 		{
 			IGridResults<ResultItem<Object>> gridResults = this.gridResults;
@@ -224,6 +226,7 @@ public class IndexMatrixBizImpl<T>
 			return newCriteria;
 		}
 
+		@SuppressWarnings("unchecked")
 		public synchronized void buildRemainingIndexMatrix(final IGridResults<ResultItem<Object>> gridResults,
 				final GridQuery criteria)
 		{
@@ -295,6 +298,7 @@ public class IndexMatrixBizImpl<T>
 			}
 		}
 
+		@SuppressWarnings("rawtypes")
 		private synchronized Map getIndexMatrixRegion()
 		{
 			return IndexMatrixManager.getIndexMatrixManager().getIndexMatrixRegion();

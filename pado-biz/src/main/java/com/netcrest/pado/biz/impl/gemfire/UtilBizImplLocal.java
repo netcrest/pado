@@ -27,6 +27,7 @@ import com.netcrest.pado.IBizLocal;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.biz.IUtilBiz;
 import com.netcrest.pado.biz.data.ServerLoad;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
 import com.netcrest.pado.info.CacheDumpInfo;
 import com.netcrest.pado.info.WhichInfo;
 
@@ -113,6 +114,8 @@ public class UtilBizImplLocal implements IUtilBiz, IBizLocal
 	public WhichInfo whichRoutingKey(String gridPath, Object routingKey)
 	{
 		biz.getBizContext().getGridContextClient().reset();
+		biz.getBizContext().getGridContextClient().setGridPath(gridPath);
+		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(routingKey));
 		return biz.whichRoutingKey(gridPath, routingKey);
 	}
 
@@ -173,5 +176,19 @@ public class UtilBizImplLocal implements IUtilBiz, IBizLocal
 	{
 		biz.getBizContext().getGridContextClient().reset();
 		return biz.getCacheDumpInfo(isAll);
+	}
+
+	@Override
+	public void setCompositeKeyInfo(String gridPath, CompositeKeyInfo compositeKeyInfo)
+	{
+		biz.getBizContext().getGridContextClient().reset();
+		biz.setCompositeKeyInfo(gridPath, compositeKeyInfo);
+	}
+
+	@Override
+	public CompositeKeyInfo getCompositeKeyInfo(String gridPath)
+	{
+		biz.getBizContext().getGridContextClient().reset();
+		return biz.getCompositeKeyInfo(gridPath);
 	}
 }

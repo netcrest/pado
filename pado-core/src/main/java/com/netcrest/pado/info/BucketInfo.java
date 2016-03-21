@@ -231,7 +231,7 @@ public abstract class BucketInfo implements Comparable<BucketInfo>
 	@Override
 	public String toString()
 	{
-		return "BucketInfo [bucketId=" + bucketId + ", size=" + size + ", totalBytes=" + totalBytes + "]";
+		return "BucketInfo [bucketId=" + bucketId + ", isPrimary=" + isPrimary + ", size=" + size + ", totalBytes=" + totalBytes + "]";
 	}
 
 }
