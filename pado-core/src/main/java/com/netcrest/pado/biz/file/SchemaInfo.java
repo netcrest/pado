@@ -163,6 +163,7 @@ public class SchemaInfo
 			ArrayList<ColumnItem> columnItemList = new ArrayList<ColumnItem>();
 			ArrayList<String> pkList = new ArrayList<String>(4);
 			ArrayList<String> temporalList = new ArrayList<String>(4);
+			ArrayList<String> pkColumnItemListInReadOrder = new ArrayList<String>();
 			ArrayList<ColumnItem> pkColumnItemList = new ArrayList<ColumnItem>(4);
 			ArrayList<String> routingKeyList = new ArrayList<String>(4);
 			ArrayList<String> valueColumnNameList = new ArrayList<String>();
@@ -321,6 +322,7 @@ public class SchemaInfo
 										valueColumnNameList.add(ci.name);
 										valueColumnTypeList.add(ci.type);
 									}
+									pkColumnItemListInReadOrder.add(ci.name);
 								}
 								if (token.equalsIgnoreCase(ColumnCategory.PrimaryRouting.name())) {
 									ci.category = ColumnCategory.PrimaryRouting;
@@ -331,6 +333,7 @@ public class SchemaInfo
 									}
 									ci.isRoutingKey = true;
 									routingKeyList.add(ci.name);
+									pkColumnItemListInReadOrder.add(ci.name);
 								} else if (token.equalsIgnoreCase(ColumnCategory.Temporal.name())) {
 									ci.category = ColumnCategory.Temporal;
 									temporalList.add(ci.name);
@@ -365,11 +368,13 @@ public class SchemaInfo
 			this.allColumnItems = columnItemList.toArray(new ColumnItem[columnItemList.size()]);
 			this.pkColumnNames = pkList.toArray(new String[pkList.size()]);
 
-			// pkIndexNames must in the sequence that is defined by the index
-			// numbers in the schema file
-			this.pkIndexNames = new String[pkColumnItemList.size()];
-			for (ColumnItem ci : pkColumnItemList) {
-				pkIndexNames[ci.getPrimaryKeyIndex()] = ci.name;
+			// pkIndexNames must in the sequence that is defined by the primary key indexes
+			// in the schema file. If the sequence is undefined, then sequence primary fields in the
+			// order read.
+			if (pkColumnItemList.size() == 0) {
+				this.pkIndexNames = pkColumnItemListInReadOrder.toArray(new String[0]);
+			} else {
+				this.pkIndexNames = pkColumnItemList.toArray(new String[0]);
 			}
 
 			this.routingKeyIndexNames = routingKeyList.toArray(new String[routingKeyList.size()]);
