@@ -71,7 +71,7 @@ router-class-name - This class overrides the default cost-based router.
 refid - The reference ID of the path defined by the underlying data grid. 
        For example, the id attribute value of GemFire "region-attributes".
 -->
-<!ELEMENT path (path*, description?)>
+<!ELEMENT path (path*, composite-key?, description?)>
 <!ATTLIST path
   name                                 CDATA #REQUIRED
   inherit                              (true | false) "true"
@@ -87,6 +87,24 @@ refid - The reference ID of the path defined by the underlying data grid.
   refid                                CDATA #IMPLIED
 >
 
+<!-- composite-key is composed of multiple primary fields extracted from the
+primary fields that make up the identity key. The identity keys are typically
+determined in schema files which are parsed and recorded during data ingestion
+via the importer tools provided by Pado. For those paths that do not require
+data ingestion via importer tools, composite-key must explicitly be defined in
+pado.xml.
+Attributes:
+indexes-comma-separated - Comma separated indexes of primary fields.
+delimiter - Delimiter used to construct composite keys. Default: .
+-->
+<!ELEMENT composite-key (description?)>
+<!ATTLIST composite-key
+  indexes-comma-separated              CDATA #REQUIRED
+  delimiter                            CDATA #IMPLIED
+>
+
+<!-- ibiz-list contains a list of allowed IBiz classes for a given app.
+--> 
 <!ELEMENT ibiz-list (ibiz*, description?)>
 <!ATTLIST ibiz-list
   id                                   CDATA #IMPLIED
@@ -222,7 +240,10 @@ colocated-wtih - Colocated-with region full path.
   colocated-with                       CDATA #IMPLIED
 >
 
-<!-- listener
+<!-- listener defines a bean class that listens on events dispatched
+from various sources such as dqueue. Each listener bean registered
+must be compliant with the protocol defined by its underlying mechanism
+that invokes it. For example, for dqueue, it must implement DQueueListener.
 -->
 <!ELEMENT listener (bean?, description?)>
 
@@ -231,7 +252,9 @@ is invoked after the Pado server has completely been initialized.
 -->
 <!ELEMENT startup (bean?, description?)>
 
-<!-- bean
+<!-- bean defines a POJO class with the default no-arg constructor that may
+implement interface(s) that are required by the configuring Pado component.
+The bean class can optionally implement IBeanInitializable receive properties.
 -->
 <!ELEMENT bean (property*, description?)>
 <!ATTLIST bean

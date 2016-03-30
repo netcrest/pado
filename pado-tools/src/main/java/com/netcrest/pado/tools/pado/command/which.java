@@ -26,11 +26,14 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
 import com.netcrest.pado.biz.IUtilBiz;
+import com.netcrest.pado.gemfire.info.GemfireRegionInfo;
+import com.netcrest.pado.info.PathInfo;
 import com.netcrest.pado.info.WhichInfo;
 import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.tools.pado.BufferInfo;
 import com.netcrest.pado.tools.pado.ICommand;
 import com.netcrest.pado.tools.pado.PadoShell;
+import com.netcrest.pado.tools.pado.RootPathInfo;
 import com.netcrest.pado.tools.pado.SharedCache;
 import com.netcrest.pado.tools.pado.util.ObjectUtil;
 import com.netcrest.pado.tools.pado.util.PrintUtil;
@@ -171,6 +174,17 @@ public class which implements ICommand
 					gridPath);
 			utilBiz.getBizContext().getGridContextClient().setGridIds(gridId);
 			if (isRoutingKey) {
+				PathInfo pathInfo = SharedCache.getSharedCache().getPathInfo(fullPath);
+				if (pathInfo instanceof RootPathInfo) {
+					PadoShell.printlnError(this, "Routing aborted. Not a partitioned path: " + fullPath);
+					return;
+				} else {
+					GemfireRegionInfo pathInfo2 = (GemfireRegionInfo) pathInfo;
+					if (pathInfo2.isDataPolicyPartitionedRegion(false) == false) {
+						PadoShell.printlnError(this, "Routing aborted. Not a partitioned path: " + fullPath);
+						return;
+					}
+				}
 				WhichInfo whichInfo = utilBiz.whichRoutingKey(gridPath, key);
 				if (whichInfo == null) {
 					PadoShell.printlnError(this, "Routing key not found.");
@@ -186,7 +200,7 @@ public class which implements ICommand
 					map.put("ServerName", whichInfo.getServerName());
 //					map.put("ServerId", whichInfo.getServerId());
 					map.put("RedundancyZone", whichInfo.getRedundancyZone());
-					PrintUtil.printList(whichMapList, 0, 1, whichMapList.size(), whichMapList.size(), null);
+					PrintUtil.printList(whichMapList, 0, 1, whichMapList.size(), whichMapList.size(), null, false);
 				}
 			} else {
 				List<WhichInfo> whichList = utilBiz.which(gridPath, key);
@@ -254,6 +268,6 @@ public class which implements ICommand
 			}
 			
 		}
-		PrintUtil.printList(whichMapList, 0, 1, whichMapList.size(), whichMapList.size(), null);
+		PrintUtil.printList(whichMapList, 0, 1, whichMapList.size(), whichMapList.size(), null, false);
 	}
 }

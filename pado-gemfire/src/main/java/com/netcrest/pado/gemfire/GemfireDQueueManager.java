@@ -18,6 +18,7 @@ package com.netcrest.pado.gemfire;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.gemstone.gemfire.addon.dq.DQueueAttributes;
@@ -27,6 +28,8 @@ import com.gemstone.gemfire.addon.dq.DQueueFactory;
 import com.gemstone.gemfire.addon.dq.DQueueFilter;
 import com.gemstone.gemfire.addon.dq.DQueueListener;
 import com.gemstone.gemfire.addon.dq.internal.DQueuePushDispatcherImpl;
+import com.netcrest.pado.IBeanInitializable;
+import com.netcrest.pado.internal.config.dtd.ConfigUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 
@@ -84,15 +87,22 @@ public class GemfireDQueueManager
 				// which gets invoked after all IBiz classes have been
 				// fully initialized. This is required due to a initialization
 				// order conflict.
-				
+
 				if (dqueue.getFilter() != null) {
 					com.netcrest.pado.internal.config.dtd.generated.Bean bean = dqueue.getFilter().getBean();
 					if (bean != null) {
-						String filter = bean.getClassName();
 						try {
-							Class<?> clazz = classLoader.loadClass(filter);
-							DQueueFilter dqueueFilter = (DQueueFilter) clazz.newInstance();
-							attr.setFilter(dqueueFilter);
+							Object obj = ConfigUtil.createBean(classLoader, bean);
+							if (obj != null) {
+								if (obj instanceof DQueueFilter) {
+									attr.setFilter((DQueueFilter) obj);
+									Logger.config("Bean registered: " + obj.getClass().getName());
+								} else {
+									attr.setFilter(new SimpleDQueueFilter());
+									Logger.error("Invalid DQueueListener type: " + obj.getClass().getName()
+											+ ". The default filter, SimpleDQueueFilter, has been assigned instead.");
+								}
+							}
 						} catch (Exception e) {
 							Logger.severe(e);
 							continue;
@@ -136,8 +146,8 @@ public class GemfireDQueueManager
 	}
 
 	/**
-	 * Registers DQueueListner and DQueueFilter. Plugin registration is
-	 * deferred due to a initialization order conflict.
+	 * Registers DQueueListner and DQueueFilter. Plugin registration is deferred
+	 * due to a initialization order conflict.
 	 */
 	static void registerPlugins()
 	{
@@ -164,19 +174,23 @@ public class GemfireDQueueManager
 						com.netcrest.pado.internal.config.dtd.generated.Bean bean = dqueue.getListener().getBean();
 						if (bean != null) {
 							try {
-								String listener = bean.getClassName();
 								classLoader = PadoServerManager.getPadoServerManager().getAppBizClassLoader();
-								Class<?> clazz = classLoader.loadClass(listener);
-								DQueueListener dqueueListener = (DQueueListener) clazz.newInstance();
-								pushDispatcher.__setListener(dqueueListener);
+								Object obj = ConfigUtil.createBean(classLoader, bean);
+								if (obj instanceof DQueueListener) {
+									DQueueListener dqueueListener = (DQueueListener) obj;
+									pushDispatcher.__setListener(dqueueListener);
+									Logger.config("DQueueListener registered: " + dqueueListener.getClass().getName());
+								} else {
+									Logger.error("Invalid DQueueListener type: " + obj.getClass().getName());
+								}
 							} catch (Exception e) {
 								Logger.error(e);
 								continue;
 							}
 						}
 					} else {
-						throw new DQueueException("DQueueListener undefined for DQueue " + name
-									+ ". DQueue not created.");
+						throw new DQueueException(
+								"DQueueListener undefined for DQueue " + name + ". DQueue not created.");
 					}
 				}
 			}

@@ -8,8 +8,6 @@
 
 package com.netcrest.pado.internal.config.dtd.generated;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -24,69 +22,65 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "ibiz",
     "description"
 })
-@XmlRootElement(name = "ibiz-list")
-public class IbizList {
+@XmlRootElement(name = "composite-key")
+public class CompositeKey {
 
-    @XmlAttribute(name = "id")
+    @XmlAttribute(name = "indexes-comma-separated", required = true)
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
-    protected String id;
-    protected List<Ibiz> ibiz;
+    protected String indexesCommaSeparated;
+    @XmlAttribute(name = "delimiter")
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
+    protected String delimiter;
     protected String description;
 
     /**
-     * Gets the value of the id property.
+     * Gets the value of the indexesCommaSeparated property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getId() {
-        return id;
+    public String getIndexesCommaSeparated() {
+        return indexesCommaSeparated;
     }
 
     /**
-     * Sets the value of the id property.
+     * Sets the value of the indexesCommaSeparated property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setId(String value) {
-        this.id = value;
+    public void setIndexesCommaSeparated(String value) {
+        this.indexesCommaSeparated = value;
     }
 
     /**
-     * Gets the value of the ibiz property.
+     * Gets the value of the delimiter property.
      * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the ibiz property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getIbiz().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Ibiz }
-     * 
-     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public List<Ibiz> getIbiz() {
-        if (ibiz == null) {
-            ibiz = new ArrayList<Ibiz>();
-        }
-        return this.ibiz;
+    public String getDelimiter() {
+        return delimiter;
+    }
+
+    /**
+     * Sets the value of the delimiter property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setDelimiter(String value) {
+        this.delimiter = value;
     }
 
     /**

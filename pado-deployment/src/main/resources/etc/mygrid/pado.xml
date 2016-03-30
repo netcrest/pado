@@ -40,6 +40,7 @@
 		</path>
 		<path name="temporal" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
 			value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			<composite-key indexes-comma-separated="1,2" delimiter=":"/>
 		</path>
 
 		<path name="trade" refid="partition" temporal-enabled="true" lucene-enabled="true"/>

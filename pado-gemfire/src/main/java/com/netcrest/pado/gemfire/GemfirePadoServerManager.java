@@ -57,6 +57,7 @@ import com.gemstone.gemfire.cache.execute.FunctionService;
 import com.gemstone.gemfire.internal.cache.PartitionedRegion;
 import com.netcrest.pado.IGridRouter;
 import com.netcrest.pado.IUserPrincipal;
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
 import com.netcrest.pado.biz.gemfire.proxy.GemfireBizManager;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.exception.BizException;
@@ -70,6 +71,7 @@ import com.netcrest.pado.gemfire.info.GemfireLoginInfo;
 import com.netcrest.pado.gemfire.info.GemfireRegionInfo;
 import com.netcrest.pado.gemfire.info.GemfireUserLoginInfo;
 import com.netcrest.pado.gemfire.util.GemfireGridUtil;
+import com.netcrest.pado.gemfire.util.RegionUtil;
 import com.netcrest.pado.gemfire.util.TaskFunction;
 import com.netcrest.pado.index.gemfire.function.EntitySearchCacheRetrieveBaseFunction;
 import com.netcrest.pado.index.gemfire.function.IndexMatrixBuildFunction;
@@ -218,10 +220,8 @@ public class GemfirePadoServerManager extends PadoServerManager
 		serverName = cache.getName();
 		location = padoConfig.getLocation();
 		if (gridId == null) {
-			throw new PadoException(
-					"pado id (gridId) undefined in the config file, "
-							+ configFilePath
-							+ ". Please check the config file. A unique grid ID is required. It must be an alphanumeric string begins with a letter.");
+			throw new PadoException("pado id (gridId) undefined in the config file, " + configFilePath
+					+ ". Please check the config file. A unique grid ID is required. It must be an alphanumeric string begins with a letter.");
 		}
 		if (location == null) {
 			throw new PadoException("pado location undefined in the config file, " + configFilePath
@@ -333,9 +333,9 @@ public class GemfirePadoServerManager extends PadoServerManager
 		}
 
 		// Log server config
-		Logger.config("Pado configuration: [" + "gridId=" + gridId + ", isParent=" + isParent + ", poolName="
-				+ connectionName + ", indexMatrixConnectionName=" + indexMatrixConnectionName + ", locators="
-				+ locators + "]");
+		Logger.config(
+				"Pado configuration: [" + "gridId=" + gridId + ", isParent=" + isParent + ", poolName=" + connectionName
+						+ ", indexMatrixConnectionName=" + indexMatrixConnectionName + ", locators=" + locators + "]");
 
 		// Log client settings
 		Logger.config("Client configuration: [" + "clientConnectionName=" + clientConnectionName
@@ -398,8 +398,9 @@ public class GemfirePadoServerManager extends PadoServerManager
 		try {
 			totalNumBuckets = Integer.parseInt(gemfire.getRouterRegionTotalNumBuckets());
 		} catch (Exception ex) {
-			Logger.config("Error occurred while reading gemfire router-region-total-num-buckets. It is assigned to the default value of "
-					+ totalNumBuckets + ".");
+			Logger.config(
+					"Error occurred while reading gemfire router-region-total-num-buckets. It is assigned to the default value of "
+							+ totalNumBuckets + ".");
 		}
 
 		Region padoRegion = rootRegion.getSubregion("__pado");
@@ -625,6 +626,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 
 			String refid = pathConfig.getPath().getRefid();
 			RegionFactory rf;
+			PartitionAttributesFactory paf = null;
 
 			if (refid == null) {
 
@@ -634,7 +636,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 				rf = cache.createRegionFactory();
 				if (pathConfig.isTemporalEnabled()) {
 					rf.setDataPolicy(DataPolicy.PARTITION);
-					PartitionAttributesFactory paf = new PartitionAttributesFactory();
+					paf = new PartitionAttributesFactory();
 					paf.setRedundantCopies(1);
 					GemfireTemporalManager.addTemporalAttributes(fullPath, pathConfig.isLuceneEnabled(), rf, paf);
 				} else {
@@ -651,7 +653,6 @@ public class GemfirePadoServerManager extends PadoServerManager
 							"Reference ID specified in pado.xml is undefined in the GemFire configuration file (server.xml): refid="
 									+ refid);
 				}
-				PartitionAttributesFactory paf = null;
 				PartitionAttributes pa = ra.getPartitionAttributes();
 				if (pa != null) {
 					paf = new PartitionAttributesFactory(pa);
@@ -665,12 +666,20 @@ public class GemfirePadoServerManager extends PadoServerManager
 					if (pathConfig.isTemporalEnabled()) {
 						GemfireTemporalManager.addTemporalAttributes(fullPath, pathConfig.isLuceneEnabled(), rf, paf);
 					}
-
 					rf.setPartitionAttributes(paf.create());
 				}
-
 			}
+			
 			region = rf.createSubregion(parentRegion, pathConfig.getName());
+			
+			// If partitioned region then set composite key if defined
+			if (paf != null) {
+				CompositeKeyInfo ckInfo = pathConfig.getCompositeKeyInfo();
+				if (ckInfo != null) {
+					RegionUtil.setCompositeKeyInfoForIdentityKeyPartionResolver(fullPath, ckInfo);
+					Logger.config("CompositeKeyInfo registered: path=" + fullPath + ", " + ckInfo);
+				}
+			}
 		}
 
 		List<PathConfig> paths = pathConfig.getPathConfig();
@@ -850,13 +859,9 @@ public class GemfirePadoServerManager extends PadoServerManager
 					} catch (Exception ex) {
 						throw new PadoLoginException(
 								"Parent grid login password decryption error. Please check security properties in pado.properties or system properties. "
-										+ ex.getMessage()
-										+ " [appId="
-										+ appId
-										+ ", domain="
-										+ domain
-										+ ", username="
-										+ username + "]", ex);
+										+ ex.getMessage() + " [appId=" + appId + ", domain=" + domain + ", username="
+										+ username + "]",
+								ex);
 					}
 				}
 
@@ -867,8 +872,8 @@ public class GemfirePadoServerManager extends PadoServerManager
 						RSACipher cipher = new RSACipher(false);
 						loginProps = cipher.getSignature(RSACipher.createCredentialProperties());
 					} catch (Exception ex) {
-						throw new PadoLoginException("Error occurred while retrieving digital signature. "
-								+ ex.getMessage(), ex);
+						throw new PadoLoginException(
+								"Error occurred while retrieving digital signature. " + ex.getMessage(), ex);
 					}
 				}
 				padoBiz.getBizContext().reset();
@@ -1066,11 +1071,8 @@ public class GemfirePadoServerManager extends PadoServerManager
 		} else {
 			gridType = "child";
 		}
-		GridStatusInfo gridStatusInfo = InfoFactory.getInfoFactory().createGridStatusInfo(
-				Status.GRID_NOT_AVAILABLE,
-				gridId,
-				null,
-				null,
+		GridStatusInfo gridStatusInfo = InfoFactory.getInfoFactory().createGridStatusInfo(Status.GRID_NOT_AVAILABLE,
+				gridId, null, null,
 				"The " + gridType + " grid, " + gridInfo.getGridId() + ", has been removed from the " + this.gridId
 						+ " Grid servers for " + gridInfo.getGridId() + " are no longer reachable from " + this.gridId
 						+ ".");
@@ -1112,7 +1114,8 @@ public class GemfirePadoServerManager extends PadoServerManager
 						}
 						reinit();
 					}
-					Logger.config("Initialization complete. All parent/child grids are detected and properly initialized.");
+					Logger.config(
+							"Initialization complete. All parent/child grids are detected and properly initialized.");
 				}
 			}, "GemfirePadoServerManager.initParents");
 			thread.setDaemon(true);
@@ -1163,7 +1166,8 @@ public class GemfirePadoServerManager extends PadoServerManager
 		// Publish GridInfo to all parent grids
 		publishGridInfoToParentGrids();
 
-		if (isParent == false && ((GemfireGridService) padoBiz.getBizContext().getGridService()).getPadoPool() == null) {
+		if (isParent == false
+				&& ((GemfireGridService) padoBiz.getBizContext().getGridService()).getPadoPool() == null) {
 			// Get the parent router region for creating the catalog
 			// TODO: Even though multiple parents can be specified, the current
 			// implementation
@@ -1239,8 +1243,9 @@ public class GemfirePadoServerManager extends PadoServerManager
 			// Register system-level IBiz classes
 			// IPadoBiz is for clients and grids. grids act as clients to
 			// Pado.
-			BizManager<IPadoBizLink> padoBizMgr = BizManagerFactory.getBizManagerFactory().createBizManager("com.netcrest.pado.biz.server.IPadoBiz", false);
-	
+			BizManager<IPadoBizLink> padoBizMgr = BizManagerFactory.getBizManagerFactory()
+					.createBizManager("com.netcrest.pado.biz.server.IPadoBiz", false);
+
 			// TODO: Handle multiple parents later.
 			Properties credentials = null;
 			if (PadoUtil.isProperty(Constants.PROP_SECURITY_ENABLED)) {
@@ -1250,21 +1255,24 @@ public class GemfirePadoServerManager extends PadoServerManager
 					throw new PadoException(ex);
 				}
 			}
-			GridService gridService = InternalFactory.getInternalFactory().createGridService(gridId, "sys", credentials, /* token */
-			null, /* username */null, isParent);
-	
+			GridService gridService = InternalFactory.getInternalFactory().createGridService(gridId, "sys",
+					credentials, /* token */
+					null, /* username */null, isParent);
+
 			padoBizMgr.setGridService(gridService);
 			padoBizMgr.init();
 			addSystemBizMananger(padoBizMgr);
 			padoBiz = padoBizMgr.newClientProxy();
-	
+
 			// IGridBiz is for grid-to-grid communications
-			BizManager<IGridBizLink> gridBizMgr = BizManagerFactory.getBizManagerFactory().createBizManager("com.netcrest.pado.biz.server.IGridBiz", false);
+			BizManager<IGridBizLink> gridBizMgr = BizManagerFactory.getBizManagerFactory()
+					.createBizManager("com.netcrest.pado.biz.server.IGridBiz", false);
 			gridBizMgr.setGridService(gridService);
 			gridBizMgr.init();
 			addSystemBizMananger(gridBizMgr);
-	
-			// Create gridBiz used for onMember (within this grid) communications
+
+			// Create gridBiz used for onMember (within this grid)
+			// communications
 			BizManager<IGridBizLink> svcMgr = getSystemBizManager("com.netcrest.pado.biz.server.IGridBiz");
 			this.gridBiz = svcMgr.newClientProxy();
 		} catch (BizException ex) {
@@ -1406,9 +1414,11 @@ public class GemfirePadoServerManager extends PadoServerManager
 				// Logger.warning("Unable to connect to grid (gridId=" + gridId
 				// + ", isParent=" + isParent
 				// +
-				// "). Initialization for this grid will be done peroidically until succesful. "
+				// "). Initialization for this grid will be done peroidically
+				// until succesful. "
 				// +
-				// "Client access to this grid will not be available until successful initialization.",
+				// "Client access to this grid will not be available until
+				// successful initialization.",
 				// ex);
 
 			}
@@ -2369,7 +2379,8 @@ public class GemfirePadoServerManager extends PadoServerManager
 		}
 	}
 
-	public LoginInfo login(String appId, String domainName, String username, char[] password, IUserPrincipal userPrincipal)
+	public LoginInfo login(String appId, String domainName, String username, char[] password,
+			IUserPrincipal userPrincipal)
 	{
 		Set<BizInfo> bizSet = getAllAppBizInfos();
 		Object token = UUID.randomUUID().toString();
@@ -2481,10 +2492,10 @@ public class GemfirePadoServerManager extends PadoServerManager
 		if (token == null) {
 			return;
 		}
-		
+
 		// Remove the token from this grid's region
 		loginRegion.remove(token);
-		
+
 		// Remove it from all child grids
 		Set<Map.Entry<String, Region>> entrySet = childLoginRegionMap.entrySet();
 		for (Map.Entry<String, Region> entry : entrySet) {
@@ -2605,19 +2616,19 @@ public class GemfirePadoServerManager extends PadoServerManager
 	{
 		return MasterServerLock.getMasterServerLock().isMasterEnabled();
 	}
-	
-	@Override
-    public void addMasterFailoverListener(final MasterFailoverListener listener)
-    {
-            MasterServerLock.getMasterServerLock().addMasterFailoverListener(listener);
-    }
 
-    @Override
-    public void removeMasterFailoverListener(final MasterFailoverListener listener)
-    {
-            MasterServerLock.getMasterServerLock().removeMasterFailoverListener(listener);
-    }
-	
+	@Override
+	public void addMasterFailoverListener(final MasterFailoverListener listener)
+	{
+		MasterServerLock.getMasterServerLock().addMasterFailoverListener(listener);
+	}
+
+	@Override
+	public void removeMasterFailoverListener(final MasterFailoverListener listener)
+	{
+		MasterServerLock.getMasterServerLock().removeMasterFailoverListener(listener);
+	}
+
 	@Override
 	public int getServerCount()
 	{

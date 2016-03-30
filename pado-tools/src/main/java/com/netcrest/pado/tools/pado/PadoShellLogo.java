@@ -43,8 +43,9 @@ public class PadoShellLogo
 
 	public final static String getPadoLogo()
 	{
-		PadoVersion padoVersion = new PadoVersion();
-		return padoLogo_starwars + " v" + padoVersion.getVersion();
+//		PadoVersion padoVersion = new PadoVersion();
+//		return padoLogo_starwars + " v" + padoVersion.getVersion();
+		return padoLogo_starwars;
 	}
 
 	public final static String getCopyrights()

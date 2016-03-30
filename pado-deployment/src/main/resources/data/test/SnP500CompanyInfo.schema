@@ -158,7 +158,7 @@ StartRow=2
 #    Field1, String
 #    Field2, int
 #    ...
-# Path Coloation Example:
+# Path Colocation Example:
 #    By specifying PrimaryRouting, grid paths can be co-located without introducing
 #    custom IRoutingKey classes. In the example below, the region path colocated
 #    with the company path with the Country field as the rounting key. All of

@@ -115,7 +115,7 @@ public class path implements ICommand
 			} else {
 				List<ServerInfo> serverInfoList = sysBiz.getServerInfoList(fullPath);
 				Collections.sort(serverInfoList);
-				PrintUtil.printList(serverInfoList, 0, 1, serverInfoList.size(), serverInfoList.size(), null);
+				PrintUtil.printList(serverInfoList, 0, 1, serverInfoList.size(), serverInfoList.size(), null, false);
 			}
 		}
 	}

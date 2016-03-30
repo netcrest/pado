@@ -28,6 +28,7 @@ import com.netcrest.pado.IPado;
 import com.netcrest.pado.biz.IUtilBiz;
 import com.netcrest.pado.biz.data.ServerLoad;
 import com.netcrest.pado.biz.file.CompositeKeyInfo;
+import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.info.CacheDumpInfo;
 import com.netcrest.pado.info.WhichInfo;
 
@@ -112,11 +113,15 @@ public class UtilBizImplLocal implements IUtilBiz, IBizLocal
 
 	@Override
 	public WhichInfo whichRoutingKey(String gridPath, Object routingKey)
-	{
+	{	
 		biz.getBizContext().getGridContextClient().reset();
 		biz.getBizContext().getGridContextClient().setGridPath(gridPath);
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(routingKey));
-		return biz.whichRoutingKey(gridPath, routingKey);
+		try {
+			return biz.whichRoutingKey(gridPath, routingKey);
+		} catch (Exception ex) {
+			throw new PadoException("Routing allowed only on partitioned grid paths: " + gridPath);
+		}
 	}
 
 	@Override

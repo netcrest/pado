@@ -1701,7 +1701,7 @@ public class PrintUtil {
 	}
 
 	public static int printList(List list, int startIndex, int startRowNum,
-			int rowCount, int actualSize, List keyList) throws Exception {
+			int rowCount, int actualSize, List keyList, boolean printSummary) throws Exception {
 		if (list == null || list.size() == 0) {
 			return 0;
 		}
@@ -1753,11 +1753,13 @@ public class PrintUtil {
 			PadoShell.println(printStr.toString());
 			row++;
 		}
-		PadoShell.println("");
-		PadoShell.println(" Fetch size: " + rowCount);
-		PadoShell.println("   Returned: " + (row - 1) + "/" + actualSize);
-		for (Object keyName : objectNameSet) {
-			PadoShell.println("      Class: " + keyName);
+		if (printSummary) {
+			PadoShell.println("");
+			PadoShell.println(" Fetch size: " + rowCount);
+			PadoShell.println("   Returned: " + (row - 1) + "/" + actualSize);
+			for (Object keyName : objectNameSet) {
+				PadoShell.println("      Class: " + keyName);
+			}
 		}
 		return count;
 	}

@@ -62,6 +62,7 @@ import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.message.MessageType;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.biz.util.BizUtil;
+import com.netcrest.pado.internal.config.dtd.ConfigUtil;
 import com.netcrest.pado.internal.config.dtd.PathConfig;
 import com.netcrest.pado.internal.config.dtd.PathListConfig;
 import com.netcrest.pado.internal.factory.BizManagerFactory;
@@ -153,7 +154,7 @@ public abstract class PadoServerManager
 	 * Server ID - Always unique
 	 */
 	protected String serverId;
-	
+
 	/**
 	 * Server number (with leading zero)
 	 */
@@ -1086,35 +1087,23 @@ public abstract class PadoServerManager
 	 * Invokes the initialization bean if configured in pado.xml. Also,
 	 * initializes properties defined in pado.properties.
 	 */
-	@SuppressWarnings("rawtypes")
 	public void __initStartup()
 	{
 		com.netcrest.pado.internal.config.dtd.generated.Startup startup = padoConfig.getStartup();
 		if (startup != null) {
 			com.netcrest.pado.internal.config.dtd.generated.Bean bean = startup.getBean();
 			if (bean != null) {
-				String className = bean.getClassName();
-				if (className != null) {
-					try {
-						Class clazz = Class.forName(className);
-						Object obj = clazz.newInstance();
-						if (obj instanceof IBeanInitializable) {
-							List<com.netcrest.pado.internal.config.dtd.generated.Property> list = bean.getProperty();
-							Properties properties = new Properties();
-							if (list != null) {
-								for (com.netcrest.pado.internal.config.dtd.generated.Property property : list) {
-									properties.setProperty(property.getKey(), property.getValue());
-								}
-							}
-							((IBeanInitializable) obj).init(properties);
-						}
-					} catch (ClassNotFoundException ex) {
-						Logger.severe("Startup bean class not found.", ex);
-					} catch (InstantiationException ex) {
-						Logger.severe("Startup bean instantiation failed.", ex);
-					} catch (IllegalAccessException ex) {
-						Logger.severe("Startup bean illegal access", ex);
+				try {
+					Object obj = ConfigUtil.createBean(null, bean);
+					if (obj != null) {
+						Logger.config("Bean registered: " + obj.getClass().getName());
 					}
+				} catch (ClassNotFoundException ex) {
+					Logger.severe("Startup bean class not found.", ex);
+				} catch (InstantiationException ex) {
+					Logger.severe("Startup bean instantiation failed.", ex);
+				} catch (IllegalAccessException ex) {
+					Logger.severe("Startup bean illegal access", ex);
 				}
 			}
 		}
@@ -1170,7 +1159,7 @@ public abstract class PadoServerManager
 	{
 		return serverId;
 	}
-	
+
 	/**
 	 * Returns server number with leading zeroes.
 	 */
@@ -1554,20 +1543,22 @@ public abstract class PadoServerManager
 	 * Returns true if this server is the master server.
 	 */
 	public abstract boolean isMaster();
-	
-    /**
-     * Adds the master failover listener.
-     *
-     * @param listener the listener
-     */
-    public abstract void addMasterFailoverListener(MasterFailoverListener listener);
 
-    /**
-     * Removes the master failover listener.
-     *
-     * @param listener the listener
-     */
-    public abstract void removeMasterFailoverListener(MasterFailoverListener listener);
+	/**
+	 * Adds the master failover listener.
+	 *
+	 * @param listener
+	 *            the listener
+	 */
+	public abstract void addMasterFailoverListener(MasterFailoverListener listener);
+
+	/**
+	 * Removes the master failover listener.
+	 *
+	 * @param listener
+	 *            the listener
+	 */
+	public abstract void removeMasterFailoverListener(MasterFailoverListener listener);
 
 	/**
 	 * Returns the IUserPrincial object mapped by the specified token.
@@ -1596,7 +1587,7 @@ public abstract class PadoServerManager
 	 *            User session token
 	 */
 	public abstract boolean isValidToken(Object token);
-	
+
 	/**
 	 * Returns the total number of currently running servers.
 	 */

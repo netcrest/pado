@@ -20,7 +20,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.netcrest.pado.biz.file.CompositeKeyInfo;
+import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.internal.Constants;
+import com.netcrest.pado.internal.config.dtd.generated.CompositeKey;
 import com.netcrest.pado.internal.config.dtd.generated.Path;
 
 /**
@@ -454,6 +457,52 @@ public class PathConfig
 	{
 		if (path != null) {
 			path.setRouterClassName(routerClassName);
+		}
+	}
+
+	/**
+	 * Returns the composite key info
+	 */
+	public CompositeKeyInfo getCompositeKeyInfo()
+	{
+		if (path != null) {
+			CompositeKey ck = path.getCompositeKey();
+			if (ck == null) {
+				return null;
+			}
+			CompositeKeyInfo ckInfo = new CompositeKeyInfo();
+			String indexesStr = ck.getIndexesCommaSeparated();
+			try {
+				if (indexesStr != null && indexesStr.length() > 0) {
+					String split[] = indexesStr.split(",");
+					int[] indexes = new int[split.length];
+					for (int i = 0; i < split.length; i++) {
+						indexes[i] = Integer.parseInt(split[i]);
+					}
+					ckInfo.setRoutingKeyIndexes(indexes);
+				}
+			} catch (Exception ex) {
+				throw new PadoException("Error parsing composite key indexes: path=" + this.gridPath, ex);
+			}
+			if (ck.getDelimiter() != null || ck.getDelimiter().length() > 0) {
+				ckInfo.setCompositeKeyDelimiter(ck.getDelimiter());
+			}
+			return ckInfo;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Sets the composite key
+	 * 
+	 * @param compositeKey
+	 *            Composite key
+	 */
+	public void setCompositeKey(CompositeKey compositeKey)
+	{
+		if (path != null) {
+			path.setCompositeKey(compositeKey);
 		}
 	}
 

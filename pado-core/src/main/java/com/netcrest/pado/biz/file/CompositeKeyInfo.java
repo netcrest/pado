@@ -1,13 +1,14 @@
 package com.netcrest.pado.biz.file;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class CompositeKeyInfo implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	
 	private int[] routingKeyIndexes;
-	private String compositeKeyDelimiter;
+	private String compositeKeyDelimiter = ".";
 	
 	public CompositeKeyInfo() {}
 	
@@ -32,5 +33,12 @@ public class CompositeKeyInfo implements Serializable
 	public void setCompositeKeyDelimiter(String compositeKeyDelimiter)
 	{
 		this.compositeKeyDelimiter = compositeKeyDelimiter;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "CompositeKeyInfo [routingKeyIndexes=" + Arrays.toString(routingKeyIndexes) + ", compositeKeyDelimiter="
+				+ compositeKeyDelimiter + "]";
 	}
 }
