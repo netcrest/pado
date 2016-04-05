@@ -180,6 +180,7 @@ else
    cp $PADO_DIR_SHORT_NAME/bin_sh/setenv.sh $PADO_ZIP_DIR_NAME/bin_sh/
    cp -rf $PADO_DIR_SHORT_NAME/bin_sh/grids $PADO_ZIP_DIR_NAME/bin_sh/
    cp -rf $PADO_DIR_SHORT_NAME/etc $PADO_ZIP_DIR_NAME/
+   rm -f $PADO_ZIP_DIR_NAME/pado*.dtd
 
    # Copy the bak plugins first then overwrite its contents with the
    # the new release so that this grid's custom jars can be kept.

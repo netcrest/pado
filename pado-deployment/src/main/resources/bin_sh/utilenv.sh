@@ -205,9 +205,31 @@ function getLocatorHosts
 #
 function getServerHosts
 {
-#   getHostsFromFile "$GRIDS_DIR/$GRID/server_${SITE}.sh" __SERVER_HOSTS
-#   echo $__SERVER_HOSTS
    getHostsFromFile "$GRIDS_DIR/$GRID/server_${SITE}.sh"
+}
+
+#
+# Returns a list of all hosts found in the $GRIDS_DIR/$GRID/locator_${SITE}.sh and
+# $GRIDS_DIR/$GRID/server_${SITE}.sh files.
+#
+function getAllHosts
+{
+   __LOCATOR_HOSTS=`getLocatorHosts`
+   __SERVER_HOSTS=`getServerHosts`
+   __ALL_HOSTS=$__SERVER_HOSTS
+   for i in $__LOCATOR_HOSTS; do
+      __SAME_HOST="false";
+      for j in $__SERVER_HOSTS; do
+         if [ "$j" == "$i" ]; then
+            __SAME_HOST="true"
+            break;
+         fi
+      done
+      if [ "$__SAME_HOST" == "false" ]; then
+         __ALL_HOSTS="$__ALL_HOSTS $i"
+      fi
+   done
+   echo $__ALL_HOSTS
 }
 
 #

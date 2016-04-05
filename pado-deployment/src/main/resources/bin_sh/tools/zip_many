@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+# Check for script help
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   ./zip_many <zip file prefix> [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Create and deploy zip files that contain an even number of files found in the source"
+   echo "  directory to all servers in the grid for import_all to load them in parallel."
+   echo ""
+   echo "   Default: ./zip_many <zip file prefix> -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+if [ "$1" == "" ]; then
+   echo "Error: Must specify all required arguments. See usage."
+   echo ""
+   exit
+fi
+
+DIR=$PADO_DATA_DIR/import
+TARGET_DIR=$PADO_DATA_DIR/import
+ZIP_FILE_PREFIX=$1
+
+pushd .. > /dev/null 2>&1
+# Get SERVER_COUNT
+setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+SERVER_HOSTS=`getServerHosts`
+popd > /dev/null 2>&1
+
+pushd $TARGET_DIR > /dev/null 2>&1
+TARGET_DIR=`pwd`
+popd > /dev/null 2>&1
+
+echo "Source=$DIR"
+echo "Target=$TARGET_DIR"
+echo "Zip File Prefix=$TARGET_DIR"
+echo "Server Count=$SERVER_COUNT"
+
+exit
+
+FILE_COUNT=`ls -l $DIR | wc -l`
+pushd $DIR > /dev/null 2>&1
+FILES=`ls | sort`
+let COUNT=0
+FILE_LIST=""
+let FILE_COUNT=FILE_COUNT-1
+echo FILE_COUNT=$FILE_COUNT
+let FILE_COUNT_PER_ZIP=FILE_COUNT/SERVER_COUNT
+let MAX_FILE_COUNT_IN_FIRST_LOOP=FILE_COUNT_PER_ZIP*SERVER_COUNT
+echo "FILE_COUNT_PER_ZIP=$FILE_COUNT_PER_ZIP"
+for i in $FILES; do
+   let COUNT=COUNT+1
+   n=$((COUNT % FILE_COUNT_PER_ZIP))
+   FILE_LIST="$FILE_LIST $i"
+   if [ "$COUNT" -le "$MAX_FILE_COUNT_IN_FIRST_LOOP" ]; then
+      if [ $n == "0" ]; then
+         let ZIP_NUM=ZIP_NUM+1
+         echo "zip $TARGET_DIR/${ZIP_FILE_PREFIX}_$ZIP_NUM.zip $FILE_LIST"
+         zip $TARGET_DIR/${ZIP_FILE_PREFIX}_$ZIP_NUM.zip $FILE_LIST
+         FILE_LIST=""
+      fi
+   fi
+done
+
+# Spread the remainder files to all zip files
+REMAINDER=$FILE_LIST
+let ZIP_NUM=0
+for i in $REMAINDER; do
+   let ZIP_NUM=ZIP_NUM+1
+   echo "zip $TARGET_DIR/${ZIP_FILE_PREFIX}_$ZIP_NUM.zip $i"
+   zip $TARGET_DIR/${ZIP_FILE_PREFIX}_$ZIP_NUM.zip $i
+done
+popd > /dev/null 2>&1

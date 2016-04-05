@@ -46,7 +46,7 @@ fi
 #
 # Make bundle directory where the tar ball is created.
 #
-if [ ! -d $DIR ]; then
+if [ ! -d $BASE_DIR/bundle ]; then
    mkdir $BASE_DIR/bundle
 fi
  

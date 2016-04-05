@@ -38,7 +38,7 @@ if [ "$HELP" == "true" ]; then
    echo "      -conf Deploys only the conf bundle. Default bundle."
    echo "      -lib  Deploys only the lib bundle."
    echo "      -db   Deploys only the db bundle."
-   echo "      -all  Deploys th all bundle."
+   echo "      -all  Deploys all bundles."
    echo ""
    echo "   Default: ./deploy_bundle -conf -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
@@ -93,11 +93,11 @@ BUNDLE_DB_PATH=$PADO_HOME/bundle/${GRID_ID}-db.zip
 
 # Deploy bundles
 pushd .. > /dev/null 2>&1
-SERVER_HOSTS=`getServerHosts`
+ALL_HOSTS=`getAllHosts`
 popd  > /dev/null 2>&1
 
 if [ "$ALL" == "true" ]; then
-   for i in $SERVER_HOSTS; do
+   for i in $ALL_HOSTS; do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
       if [ $HOST_NAME == `hostname` ]; then
          continue
@@ -109,7 +109,7 @@ if [ "$ALL" == "true" ]; then
       echo "   $BUNDLE_ALL_PATH."
    done
 else
-   for i in $SERVER_HOSTS; do
+   for i in $ALL_HOSTS; do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
       if [ $HOST_NAME == `hostname` ]; then
          continue

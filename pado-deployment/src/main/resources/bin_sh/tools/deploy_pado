@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+pushd .. > /dev/null 2>&1
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+TOOLS_DIR=`pwd`
+PADO_DIR_SHORT_NAME=$(basename $PADO_HOME)
+
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   deploy_pado [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "  Deploys this Pado installation to the specified site."
+   echo "      -site    Deploys Pado in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: deploy_pado ... -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+# First, find all hosts that do not have Pado installed.
+
+COMMAND="if [ -d "$PADO_HOME" ]; then echo true; else echo false; fi"
+
+#
+# Find new hosts
+#
+
+# scan servers
+pushd .. > /dev/null 2>&1
+ALL_HOSTS=`getAllHosts`
+popd > /dev/null 2>&1
+NEW_HOSTS=
+for i in $ALL_HOSTS; do
+   HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
+   if [ $HOST_NAME == `hostname` ]; then
+      continue
+   fi
+   DIR_EXISTS=`ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no $COMMAND`
+   if [ "$DIR_EXISTS" == "false" ]; then
+      NEW_HOSTS="$NEW_HOSTS $i"
+   fi
+done
+
+if [ "$NEW_HOSTS" != "" ]; then
+   echo "Pado will be installed on the following new hosts:"
+   for i in $NEW_HOSTS; do
+      echo "   $i"
+   done
+   echo "Installation Dir: $PADO_HOME"
+   echo ""
+   echo "Do you want to continue?"
+   echo "('continue' + Enter to continue installation, other keys to quit)"
+   read INPUT
+   echo ""
+
+   if [ "$INPUT" != "continue" ]; then
+      echo "Pado deployment aborted."
+      echo ""
+      exit
+   fi
+
+   ./create_tar > /dev/null 2>&1
+
+   ROOT_DIR_NAME=$(basename $BASE_DIR)
+   TAR_BALL_NAME=$ROOT_DIR_NAME.tar.gz
+   TAR_BALL_PATH=$BASE_DIR/bundle/$TAR_BALL_NAME
+   for i in $NEW_HOSTS; do
+      echo "Deploying to $i..."
+      ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "mkdir -p $PADO_HOME/bundle"
+      scp -q $TAR_BALL_PATH $SSH_USER@$i:$PADO_HOME/bundle/
+      ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "tar -C $REMOTE_TOP_DIR -xzf $TAR_BALL_PATH"
+   done
+   echo "Pado deployment complete."
+else
+   echo "Pado has already been installed on all hosts for this site ($SITE)."
+   echo "If you wish to sync up installations on all hosts with this host, then"
+   echo "use the deploy_bundle command."
+fi
+echo ""
