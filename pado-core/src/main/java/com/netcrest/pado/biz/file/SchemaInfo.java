@@ -75,6 +75,8 @@ public class SchemaInfo
 	public final static String PROP_CHARSET = "Charset";
 	public final static String PROP_LINE_SEPARATOR = "LineSeparator";
 	public final static String PROP_QUOTE_ESCAPE = "QuoteEscape";
+	public final static String PROP_MAX_CHARS_PER_COLUMN = "MaxCharsPerColumn";
+	public final static String PROP_MAX_COLUMNS = "MaxColumns";
 	public final static String PROP_COMPOSITE_KEY_DELIMITER = "CompositeKeyDelimiter";
 
 	private final static String DEFAULT_BULK_LOADER_CLASS_NAME = PadoUtil.getProperty(
@@ -93,6 +95,8 @@ public class SchemaInfo
 	private char delimiter = 29; // default is ASCII ALT (029)
 	private char quoteEscape = '"';
 	private String lineSeparator = "\n";
+	private int maxCharsPerColumn = 65536;
+	private int maxColumns = 1024;
 	private Class<?> keyClass = String.class;
 	private Class<?> valueClass;
 	private KeyType keyType;
@@ -295,6 +299,10 @@ public class SchemaInfo
 						if (carray != null && carray.length > 0) {
 							this.quoteEscape = carray[0];
 						}
+					} else if (property.equalsIgnoreCase(PROP_MAX_CHARS_PER_COLUMN)) {
+						this.maxCharsPerColumn = Integer.parseInt(value);
+					} else if (property.equalsIgnoreCase(PROP_MAX_COLUMNS)) {
+						this.maxColumns = Integer.parseInt(value);
 					} else if (property.equalsIgnoreCase(PROP_COMPOSITE_KEY_DELIMITER)) {
 						this.compositeKeyDelimiter = value;
 					}
@@ -484,6 +492,16 @@ public class SchemaInfo
 	public char getQuoteEscape()
 	{
 		return quoteEscape;
+	}
+	
+	public int getMaxCharsPerColumn()
+	{
+		return maxCharsPerColumn;
+	}
+	
+	public int getMaxColumns()
+	{
+		return maxColumns;
 	}
 
 	public String getCompositeKeyDelimiter()

@@ -384,6 +384,8 @@ public class CsvFileLoader implements IFileLoader
 		settings.getFormat().setLineSeparator(schemaInfo.getLineSeparator());
 		settings.getFormat().setDelimiter(schemaInfo.getDelimiter());
 		settings.getFormat().setQuoteEscape(schemaInfo.getQuoteEscape());
+		settings.setMaxCharsPerColumn(schemaInfo.getMaxCharsPerColumn());
+		settings.setMaxColumns(schemaInfo.getMaxColumns());
 		CsvParser parser = new CsvParser(settings);
 		parser.beginParsing(textReader);
 
