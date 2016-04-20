@@ -31,7 +31,7 @@ public class ExecutorServiceThreadPool
 		if (es == null) {
 			es = Executors.newCachedThreadPool(new ThreadFactory() {
 	            public Thread newThread(Runnable r) {
-	                Thread t = new Thread(r, "PadoCachedThread");
+	                Thread t = new Thread(r, "Pado-ExecutorServiceCached");
 	                t.setDaemon(true);
 	                return t;
 	            }

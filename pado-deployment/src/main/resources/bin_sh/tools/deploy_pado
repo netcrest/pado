@@ -52,7 +52,7 @@ popd > /dev/null 2>&1
 NEW_HOSTS=
 for i in $ALL_HOSTS; do
    HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
-   if [ $HOST_NAME == `hostname` ]; then
+   if [ "$HOST_NAME" == "`hostname`" ]; then
       continue
    fi
    DIR_EXISTS=`ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no $COMMAND`

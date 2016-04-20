@@ -26,7 +26,7 @@ public enum MessageType
 	/**
 	 * Announcement indicates that the message contains general information
 	 * about the grid such as grid configuration changes, rebalancing, etc. that
-	 * may be importance to clients.
+	 * may be of importance to clients.
 	 */
 	Announcement,
 
@@ -40,5 +40,19 @@ public enum MessageType
 	 * GridStatus indicates that the message contains the grid management
 	 * information such as server started, stopped, etc.
 	 */
-	GridStatus
+	GridStatus,
+
+	/**
+	 * Error indicates that the message contains a system-level error
+	 * information published by Pado or an application. Unlike
+	 * {@linkplain #Alert}, which is a grid-wide status, Error is tied to a
+	 * specific task may affect only a part of the grid or application.
+	 */
+	Error,
+
+	/**
+	 * Info indicates that the message contains general information specific to
+	 * a task that may have been performed by Pado or an application.
+	 */
+	Info
 }

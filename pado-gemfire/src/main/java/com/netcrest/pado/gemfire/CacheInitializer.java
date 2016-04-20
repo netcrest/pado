@@ -97,7 +97,7 @@ public class CacheInitializer extends CacheListenerAdapter implements Declarable
 			}
 		}
 		
-		new Timer().schedule(new TimerTask() {
+		new Timer("Pado-CacheInitializer", true).schedule(new TimerTask() {
 			public void run()
 			{
 				for (CacheInitializable initializer : cacheInitializableList) {

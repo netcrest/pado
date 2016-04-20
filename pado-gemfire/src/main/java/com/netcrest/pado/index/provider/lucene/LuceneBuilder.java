@@ -151,7 +151,7 @@ public class LuceneBuilder
 				public Thread newThread(Runnable r)
 				{
 					Thread thread = Executors.defaultThreadFactory().newThread(r);
-					thread.setName("LuceneBuilder");
+					thread.setName("Pado-LuceneBuilder");
 					thread.setDaemon(true);
 					return thread;
 				}
@@ -184,7 +184,7 @@ public class LuceneBuilder
 				public Thread newThread(Runnable r)
 				{
 					Thread thread = Executors.defaultThreadFactory().newThread(r);
-					thread.setName("LuceneBuilder");
+					thread.setName("Pado-LuceneBuilder");
 					thread.setDaemon(true);
 					return thread;
 				}

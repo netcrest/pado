@@ -67,12 +67,12 @@ if [ "$DEBUG" == "true" ]; then
 fi
  
 pushd .. > /dev/null 2>&1
-SERVER_HOSTS=`getServerHosts`
+ALL_HOSTS=`getAllHosts`
 popd
-for i in $SERVER_HOSTS
+for i in $ALL_HOSTS
 do
         HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
-        if [ $HOST_NAME == `hostname` ]; then
+        if [ "$HOST_NAME" == "`hostname`" ]; then
                 continue
         fi
  

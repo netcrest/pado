@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Declarable;
@@ -37,7 +38,6 @@ import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
 import com.gemstone.gemfire.internal.cache.BucketRegion;
 import com.gemstone.gemfire.internal.cache.LocalDataSet;
 import com.gemstone.gemfire.internal.cache.PartitionedRegion;
-import com.netcrest.pado.util.GridUtil;
 import com.netcrest.pado.index.gemfire.lucene.TemporalLuceneDynamicIndexing;
 import com.netcrest.pado.index.provider.lucene.LuceneBuilder;
 import com.netcrest.pado.internal.util.QueueDispatcherListener;
@@ -54,6 +54,7 @@ import com.netcrest.pado.temporal.TemporalListFactory;
 import com.netcrest.pado.temporal.TemporalManager;
 import com.netcrest.pado.temporal.gemfire.GemfireTemporalEntry;
 import com.netcrest.pado.temporal.gemfire.GemfireTemporalManager;
+import com.netcrest.pado.util.GridUtil;
 
 /**
  * TemporalCacheListener is invoked in the server for all temporal data update
@@ -188,7 +189,13 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 	public synchronized void initTemporalLists(final Region region, final boolean buildLucene, boolean spawnThread)
 	{
 		if (spawnThread) {
-			Executors.newSingleThreadExecutor().execute(new Runnable() {
+			Executors.newSingleThreadExecutor(new ThreadFactory() {
+	            public Thread newThread(Runnable r) {
+	                Thread t = new Thread(r, "Pado-TemporalCacheListener");
+	                t.setDaemon(true);
+	                return t;
+	            }
+	        }).execute(new Runnable() {
 
 				public void run()
 				{

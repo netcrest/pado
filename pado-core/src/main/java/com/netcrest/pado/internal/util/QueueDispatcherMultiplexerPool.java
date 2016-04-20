@@ -117,7 +117,7 @@ public class QueueDispatcherMultiplexerPool
 		QueueDispatcherMultiplexer multiplexer = multiplexerMap.get(tag);
 		if (multiplexer == null) {
 			if (multiplexerList.size() < maxThreadCount) {
-				multiplexer = new QueueDispatcherMultiplexer(threadGroup, "QueueDispatcherMultiplexer-"
+				multiplexer = new QueueDispatcherMultiplexer(threadGroup, "Pado-QueueDispatcherMultiplexer-"
 						+ (multiplexerList.size() + 1));
 				multiplexer.start();
 				multiplexerList.add(multiplexer);

@@ -321,7 +321,7 @@ public class MultiGatewayHubRouterManager
 	// Set hub.debug=true in etc/hub.properties to print debug information.
 	private static boolean debug = false;
 
-	private Timer timer = new Timer("MultiGatewayHubRouterManager Timer", true);
+	private Timer timer = new Timer("Pado-MultiGatewayHubRouterManager", true);
 
 	private final MultiGatewayHubRouterStatistics statistics;
 

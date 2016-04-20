@@ -47,6 +47,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.data.jsonlite.JsonLite;
@@ -372,7 +373,7 @@ public class DbManager
 		Collections.sort(scheduledList);
 		logScheduledList();
 
-		Thread schedulerThread = new Thread(new Scheduler(isImport), "DbImportScheduler");
+		Thread schedulerThread = new Thread(new Scheduler(isImport), "Pado-DbImportScheduler");
 		schedulerThread.setDaemon(isDaemonThread);
 		schedulerThread.start();
 	}
@@ -492,7 +493,13 @@ public class DbManager
 			}
 
 			try {
-				ExecutorService es = Executors.newFixedThreadPool(threadPoolSize);
+				ExecutorService es = Executors.newFixedThreadPool(threadPoolSize, new ThreadFactory() {
+		            public Thread newThread(Runnable r) {
+		                Thread t = new Thread(r, "Pado-DbManager");
+		                t.setDaemon(true);
+		                return t;
+		            }
+		        });
 				long startTime = System.currentTimeMillis();
 				List<Future<ImportScheduledTask>> futureList = es.invokeAll(importList);
 				for (int i = 0; i < futureList.size(); i++) {
@@ -610,7 +617,13 @@ public class DbManager
 			}
 		}
 
-		ExecutorService es = Executors.newFixedThreadPool(threadPoolSize);
+		ExecutorService es = Executors.newFixedThreadPool(threadPoolSize, new ThreadFactory() {
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "Pado-DbManager");
+                t.setDaemon(true);
+                return t;
+            }
+        });
 		try {
 			long startTime = System.currentTimeMillis();
 			List<Future<DownloadTask>> futureList = es.invokeAll(list);

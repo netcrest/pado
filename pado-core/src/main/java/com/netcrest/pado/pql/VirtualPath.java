@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 
 import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.IPado;
@@ -130,7 +131,13 @@ public class VirtualPath<T> extends VirtualCompiledUnit implements IVirtualPath<
 				}
 			}
 			if (size > 1) {
-				es = Executors.newFixedThreadPool(size);
+				es = Executors.newFixedThreadPool(size, new ThreadFactory() {
+		            public Thread newThread(Runnable r) {
+		                Thread t = new Thread(r, "Pado-VirtualPath");
+		                t.setDaemon(true);
+		                return t;
+		            }
+		        });
 				this.threadPoolSize = size;
 			} else {
 				this.threadPoolSize = 0;
@@ -138,7 +145,13 @@ public class VirtualPath<T> extends VirtualCompiledUnit implements IVirtualPath<
 		} else if (threadPoolSize == 0 || threadPoolSize == 1) {
 			this.threadPoolSize = 0;
 		} else {
-			es = Executors.newFixedThreadPool(threadPoolSize);
+			es = Executors.newFixedThreadPool(threadPoolSize, new ThreadFactory() {
+	            public Thread newThread(Runnable r) {
+	                Thread t = new Thread(r, "VirtualPathThread");
+	                t.setDaemon(true);
+	                return t;
+	            }
+	        });
 			this.threadPoolSize = threadPoolSize;
 		}
 	}

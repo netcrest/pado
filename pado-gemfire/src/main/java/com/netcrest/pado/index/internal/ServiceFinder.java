@@ -124,11 +124,7 @@ public class ServiceFinder
 
 	private static ClassLoader getContextClassLoader()
 	{
-		ClassLoader cl = null;
-		// try {
-		cl = Thread.currentThread().getContextClassLoader();
-		// } catch (SecurityException ex) { }
-
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		if (cl == null)
 			cl = ClassLoader.getSystemClassLoader();
 

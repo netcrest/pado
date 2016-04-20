@@ -39,6 +39,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.Pado;
@@ -182,7 +183,13 @@ public class CsvFileImporter
 		processedDir.mkdirs();
 		errorDir.mkdirs();
 
-		ExecutorService es = Executors.newFixedThreadPool(threadCount);
+		ExecutorService es = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "Pado-CsvFileImporter");
+                t.setDaemon(true);
+                return t;
+            }
+        });
 
 		File[] files = importDir.listFiles();
 		if (files == null) {

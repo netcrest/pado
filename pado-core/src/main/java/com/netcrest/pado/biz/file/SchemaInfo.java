@@ -382,7 +382,11 @@ public class SchemaInfo
 			if (pkColumnItemList.size() == 0) {
 				this.pkIndexNames = pkColumnItemListInReadOrder.toArray(new String[0]);
 			} else {
-				this.pkIndexNames = pkColumnItemList.toArray(new String[0]);
+				this.pkIndexNames = new String[pkColumnItemList.size()];
+				int i = 0;
+				for (ColumnItem item : pkColumnItemList) {
+					this.pkIndexNames[i++] = item.name;
+				}
 			}
 
 			this.routingKeyIndexNames = routingKeyList.toArray(new String[routingKeyList.size()]);

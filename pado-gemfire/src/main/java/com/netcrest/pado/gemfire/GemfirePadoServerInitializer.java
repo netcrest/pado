@@ -59,7 +59,7 @@ public class GemfirePadoServerInitializer implements Declarable
 		// specified. Do the initialization in a separate thread to
 		// return immediately.
 		long initDelay = GemfirePadoServerManager.getPadoServerManager().getInitDelay();
-		Timer timer = new Timer("PadoServerInitializer", true);
+		Timer timer = new Timer("Pado-GemfirePadoServerInitializer", true);
 		timer.schedule(new TimerTask() {
 			public void run()
 			{

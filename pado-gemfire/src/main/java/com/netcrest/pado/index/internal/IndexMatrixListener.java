@@ -18,6 +18,7 @@ package com.netcrest.pado.index.internal;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import com.gemstone.gemfire.cache.Declarable;
 import com.gemstone.gemfire.cache.EntryEvent;
@@ -41,7 +42,13 @@ public class IndexMatrixListener<String, IndexMatrix> extends CacheListenerAdapt
 		} catch (NumberFormatException ex) {
 			threadCount = 4;
 		} 
-		es = Executors.newFixedThreadPool(threadCount);
+		es = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "Pado-IndexMatrixListener");
+                t.setDaemon(true);
+                return t;
+            }
+        });
 		gridQueryService = queryService;
 	}
 

@@ -610,7 +610,7 @@ public abstract class PadoServerManager
 				// consult VMware.
 				// long initDelay =
 				// Long.parseLong(padoConfig.getGemfire().getInitDelay());
-				Timer timer = new Timer("PadoManager Login Initializer", true);
+				Timer timer = new Timer("Pado-PadoServerManager Login Initializer", true);
 				timer.schedule(new TimerTask() {
 					public void run()
 					{
@@ -670,7 +670,7 @@ public abstract class PadoServerManager
 						count++;
 					}
 				}
-			});
+			}, "Pado-PadoServerManager.initLogin");
 			thread.setDaemon(true);
 			thread.start();
 		}

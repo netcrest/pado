@@ -27,6 +27,11 @@ import com.netcrest.pado.IBizContextClient;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.biz.IDataLoaderBiz;
+import com.netcrest.pado.biz.file.CsvFileLoader;
+import com.netcrest.pado.biz.file.SchemaInfo;
+import com.netcrest.pado.info.message.MessageType;
+import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.util.GridUtil;
 
 public class DataLoaderBizImpl implements IDataLoaderBiz
@@ -52,9 +57,11 @@ public class DataLoaderBizImpl implements IDataLoaderBiz
 	@Override
 	public List loadData(String gridPath, String schemaFilePath, final String dataFilePrefix, String dataClassName)
 	{
-		String regionPath = GridUtil.getFullPath(gridPath);
-		Region region = CacheFactory.getAnyInstance().getRegion(regionPath);
+		String fullPath = GridUtil.getFullPath(gridPath);
 		File schemaFile = new File(schemaFileDir, schemaFilePath);
+		if (schemaFile.exists() == false) {
+			return null;
+		}
 		String[] dataFiles = dataFileDir.list(new FilenameFilter() {
 
 			@Override
@@ -64,31 +71,26 @@ public class DataLoaderBizImpl implements IDataLoaderBiz
 			}
 
 		});
-//
-//		if (dataFiles.length == 0) {
-//			message.setMessage("Data files with the prefix \"" + dataFilePrefix + "\" not found in the server.");
-//			message.setCode(1);
-//		} else {
-//			// TODO: Load in parallel using threads
-//			for (String dataFileName : dataFiles) {
-//				File dataFile = new File(dataFileDir, dataFileName);
-//				CsvFileLoader fileLoader = new CsvFileLoader();
-//				fileLoader.setDelimiter((char) 29); // GS
-//				fileLoader.setDateFormat("MM/dd/yyyy HH:mm:ss");
-//				try {
-//					Class dataClass = Class.forName(dataClassName);
-//					fileLoader.loadFile(schemaFile, ',', 1, dataFile, dataClass, null, null, null,
-//							new RegionBulkLoader(region, batchSize), 0, true);
-//					message.setMessage(dataFileName + " successfully loaded into the region " + regionPath);
-//				} catch (Exception ex) {
-//					message.setCode(-1);
-//					message.setMessage("Error occurred while loading CSV file " + dataFileName + " to the region "
-//							+ regionPath + ". " + ex.getMessage());
-//					Logger.error("Error occurred while loading CSV file " + dataFileName + " to the region "
-//							+ regionPath, ex);
-//				}
-//			}
-//		}
+
+		PadoServerManager psm = PadoServerManager.getPadoServerManager();
+		if (dataFiles.length == 0) {
+			psm.putMessage(MessageType.Error, "Data files with the prefix \"" + dataFilePrefix + "\" not found in the server.");
+		} else {
+			SchemaInfo schemaInfo = new SchemaInfo("file", schemaFile);
+			for (String dataFileName : dataFiles) {
+				File dataFile = new File(dataFileDir, dataFileName);
+				CsvFileLoader fileLoader = new CsvFileLoader(PadoServerManager.getPadoServerManager().getPado());
+				try {
+					fileLoader.load(schemaInfo, dataFile);
+					psm.putMessage(MessageType.Info, "Successfully loaded into the path " + fullPath);
+				} catch (Exception ex) {
+					psm.putMessage(MessageType.Error, "Error occurred while loading CSV file " + dataFileName + " to the path "
+							+ fullPath + ". " + ex.getMessage());
+					Logger.error("Error occurred while loading CSV file " + dataFileName + " to the path "
+							+ fullPath, ex);
+				}
+			}
+		}
 		
 		return null;
 

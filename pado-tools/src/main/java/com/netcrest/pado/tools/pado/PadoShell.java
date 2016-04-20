@@ -41,13 +41,7 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import jline.console.ConsoleReader;
-import jline.console.completer.Completer;
-import jline.console.completer.FileNameCompleter;
-import jline.console.completer.StringsCompleter;
-import jline.console.history.FileHistory;
-import jline.console.history.MemoryHistory;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -56,11 +50,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-
 import com.netcrest.pado.PadoVersion;
-import com.netcrest.pado.util.GridUtil;
 import com.netcrest.pado.internal.util.ClassFinder;
 import com.netcrest.pado.internal.util.StringUtil;
 import com.netcrest.pado.log.Logger;
@@ -69,6 +59,16 @@ import com.netcrest.pado.tools.pado.util.ObjectUtil;
 import com.netcrest.pado.tools.pado.util.PrintUtil;
 import com.netcrest.pado.tools.pado.util.SimplePrintUtil;
 import com.netcrest.pado.tools.pado.util.TimerUtil;
+import com.netcrest.pado.util.GridUtil;
+
+import jline.console.ConsoleReader;
+import jline.console.completer.Completer;
+import jline.console.completer.FileNameCompleter;
+import jline.console.completer.StringsCompleter;
+import jline.console.history.FileHistory;
+import jline.console.history.MemoryHistory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public class PadoShell
 {
@@ -157,7 +157,7 @@ public class PadoShell
 				stopTimer();
 			}
 
-		}, "-HistoryShutdownWorker");
+		}, "Pado-PadoShell.HistoryShutdownWorker");
 
 		// Registering Shutdown Hook
 		Runtime.getRuntime().addShutdownHook(historyShutdownHook);
@@ -846,7 +846,13 @@ public class PadoShell
 
 					if (isBackground) {
 						if (backgroundThreadPool == null) {
-							backgroundThreadPool = Executors.newCachedThreadPool();
+							backgroundThreadPool = Executors.newCachedThreadPool(new ThreadFactory() {
+					            public Thread newThread(Runnable r) {
+					                Thread t = new Thread(r, "Pado-PadoShellBgCached");
+					                t.setDaemon(true);
+					                return t;
+					            }
+					        });
 							backgroundCommandRunnerList = Collections
 									.synchronizedList(new ArrayList<BackgroundCommandRunner>(10));
 						}

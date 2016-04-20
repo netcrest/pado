@@ -16,7 +16,6 @@
 package com.netcrest.pado.index.provider;
 
 import java.io.BufferedInputStream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -33,6 +32,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
@@ -73,7 +73,13 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 	protected IndexBuilderMemberResultCollector entityRun = null;
 
 	private List<IIndexMatrixProviderListener> listeners = new ArrayList<IIndexMatrixProviderListener>();
-	private final static ExecutorService pool = Executors.newCachedThreadPool();
+	private final static ExecutorService pool = Executors.newCachedThreadPool(new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r, "Pado-IndexMatrixProviderCached");
+            t.setDaemon(true);
+            return t;
+        }
+    });
 	protected volatile Properties providerProps = null;
 
 	@Override

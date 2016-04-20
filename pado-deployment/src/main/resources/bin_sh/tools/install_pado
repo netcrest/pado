@@ -280,7 +280,7 @@ if [ "$DEBUG" == "true" ]; then
    for i in $SERVER_HOSTS
    do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
-      if [ $HOST_NAME == `hostname` ]; then
+      if [ "$HOST_NAME" == "`hostname`" ]; then
          continue
       fi
       echo "scp -q -o stricthostkeychecking=no $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz $SSH_USER@$i:$REMOTE_TOP_DIR"
@@ -300,7 +300,7 @@ else
    for i in $SERVER_HOSTS
    do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
-      if [ $HOST_NAME == `hostname` ]; then
+      if [ "$HOST_NAME" == "`hostname`" ]; then
          continue
       fi
       scp -q -o stricthostkeychecking=no $TOP_DIR/${PADO_DIR_SHORT_NAME}.tar.gz $SSH_USER@$i:$REMOTE_TOP_DIR

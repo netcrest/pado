@@ -738,7 +738,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		com.netcrest.pado.internal.config.dtd.generated.Gemfire gemfire = padoConfig.getGemfire();
 		long updateDelay = Long.parseLong(gemfire.getGridInfoUpdateDelay());
 		final long updateInterval = Long.parseLong(gemfire.getGridInfoUpdateInterval());
-		Timer timer = new Timer("GridRegion Updater", true);
+		Timer timer = new Timer("Pado-GemfirePadoServerManager GridRegion Updater", true);
 		// Initialize MasterServerLock
 		MasterServerLock.initialize(systemRegion);
 
@@ -1117,7 +1117,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 					Logger.config(
 							"Initialization complete. All parent/child grids are detected and properly initialized.");
 				}
-			}, "GemfirePadoServerManager.initParents");
+			}, "Pado-GemfirePadoServerManager.initParents");
 			thread.setDaemon(true);
 			thread.start();
 		}

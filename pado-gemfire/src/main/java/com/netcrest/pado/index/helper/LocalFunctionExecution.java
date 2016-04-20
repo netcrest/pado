@@ -62,7 +62,7 @@ public class LocalFunctionExecution implements Execution
 					}
 				}
 			}
-		});
+		}, "Pado-LocalFunctionExecution.ResultCollector");
 		thread.setDaemon(true);
 		thread = new Thread(new Runnable() {
 

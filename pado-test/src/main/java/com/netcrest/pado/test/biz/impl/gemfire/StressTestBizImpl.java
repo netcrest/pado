@@ -109,7 +109,7 @@ public class StressTestBizImpl
 			public Thread newThread(Runnable r)
 			{
 				Thread thread = Executors.defaultThreadFactory().newThread(r);
-				thread.setName("StressTestBizLauncherThread");
+				thread.setName("Pado-StressTestBizImpl");
 				thread.setDaemon(true);
 				return thread;
 			}
@@ -127,7 +127,7 @@ public class StressTestBizImpl
 					public Thread newThread(Runnable r)
 					{
 						Thread thread = Executors.defaultThreadFactory().newThread(r);
-						thread.setName("StressTestBizThread");
+						thread.setName("Pado-StressTestBizImpl");
 						thread.setDaemon(true);
 						return thread;
 					}
@@ -256,7 +256,7 @@ public class StressTestBizImpl
 			public Thread newThread(Runnable r)
 			{
 				Thread thread = Executors.defaultThreadFactory().newThread(r);
-				thread.setName("StressTestBizLauncherThread");
+				thread.setName("Pado-StressTestBizImpl");
 				thread.setDaemon(true);
 				return thread;
 			}
@@ -274,7 +274,7 @@ public class StressTestBizImpl
 					public Thread newThread(Runnable r)
 					{
 						Thread thread = Executors.defaultThreadFactory().newThread(r);
-						thread.setName("StressTestBizThread");
+						thread.setName("Pado-StressTestBizImpl");
 						thread.setDaemon(true);
 						return thread;
 					}

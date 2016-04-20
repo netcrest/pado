@@ -279,8 +279,11 @@ if [ "$PADO_BUNDLE_DIR" == "" ]; then
 fi
 
 # Set GEMFIRE_PROPERTY_FILE if not defined
-if [ "$GEMFIRE_PROPERTY_FILE" == "" ]; then
-  GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
+SERVER_TAILORED_FILE=$ETC_GRID_DIR/server${SERVER_NUM}.properties
+if [ -f $SERVER_TAILORED_FILE ]; then
+   GEMFIRE_PROPERTY_FILE=$SERVER_TAILORED_FILE
+elif [ "$GEMFIRE_PROPERTY_FILE" == "" ]; then
+   GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
 fi
 
 # Set SERVER_XML_FILE if not defined

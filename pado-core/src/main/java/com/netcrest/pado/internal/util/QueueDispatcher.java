@@ -32,7 +32,7 @@ public class QueueDispatcher
 	private boolean paused = false;
 	private int batchSize = 1;
 	private long timeIntervalInMsec = 500;
-	private String name = "QueueDispatcher.ConsumerThread";
+	private String name = "Pado-QueueDispatcher.ConsumerThread";
 	private Object lock = new Object();
 
 	/**

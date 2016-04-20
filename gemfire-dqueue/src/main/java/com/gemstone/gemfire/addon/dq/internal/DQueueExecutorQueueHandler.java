@@ -6,6 +6,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.gemstone.gemfire.addon.dq.DQueueAttributes;
@@ -56,7 +57,7 @@ public class DQueueExecutorQueueHandler implements QueueHandler {
     this.batches = initializeBatches(numQueues);
     this.batchStartTimes = new long[numQueues];
     this.latestMessageTimes = new long[numQueues];
-    this.timer = new Timer("Queue Cleanup Timer", true);
+    this.timer = new Timer("DQueue Cleanup Timer", true);
     addQueueCleanupTask();
     this.executors = initializeExecutors(numQueues);
   }
@@ -113,7 +114,13 @@ public class DQueueExecutorQueueHandler implements QueueHandler {
     for (int i=0; i<numQueues; i++) {
       arr[i] = this.preserveOrder
         ? Executors.newSingleThreadExecutor()
-        : Executors.newFixedThreadPool(MAX_THREADS);
+        : Executors.newFixedThreadPool(MAX_THREADS, new ThreadFactory() {
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "DQueueExecutorThread");
+                t.setDaemon(true);
+                return t;
+            }
+        });
       //logCreation(i);
     }
     return arr;

@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Resource;
 
@@ -67,7 +68,13 @@ public class GridMapBizImplLocal<K, V> implements IGridMapBiz<K, V>, IBizLocal
 	private Map<String, Region> regionMap;
 	private HashMap<IEntryListener, Map<String, GemfireEntryListenerImpl>> entryListenerMap = new HashMap(1, 1f);
 	private IGridRouter gridRouter;
-	private ExecutorService executorService = Executors.newCachedThreadPool();
+	private ExecutorService executorService = Executors.newCachedThreadPool(new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r, "Pado-GridMapBizImplLocalCached");
+            t.setDaemon(true);
+            return t;
+        }
+    });
 
 	private IBulkLoader<K, V> bulkLoader;
 

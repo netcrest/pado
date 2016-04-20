@@ -99,7 +99,7 @@ popd  > /dev/null 2>&1
 if [ "$ALL" == "true" ]; then
    for i in $ALL_HOSTS; do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
-      if [ $HOST_NAME == `hostname` ]; then
+      if [ "$HOST_NAME" == "`hostname`" ]; then
          continue
       fi
       ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "mkdir -p $PADO_BUNDLE_DIR"
@@ -111,7 +111,7 @@ if [ "$ALL" == "true" ]; then
 else
    for i in $ALL_HOSTS; do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
-      if [ $HOST_NAME == `hostname` ]; then
+      if [ "$HOST_NAME" == "`hostname`" ]; then
          continue
       fi
       ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no "mkdir -p $PADO_BUNDLE_DIR"

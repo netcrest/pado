@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
@@ -36,7 +37,6 @@ import org.apache.commons.cli.Options;
 import com.netcrest.pado.biz.ILuceneBiz;
 import com.netcrest.pado.biz.ITemporalAdminBiz;
 import com.netcrest.pado.biz.ITemporalBiz;
-import com.netcrest.pado.util.GridUtil;
 import com.netcrest.pado.index.service.IScrollableResultSet;
 import com.netcrest.pado.temporal.AttachmentResults;
 import com.netcrest.pado.temporal.AttachmentSet;
@@ -49,6 +49,7 @@ import com.netcrest.pado.tools.pado.SharedCache;
 import com.netcrest.pado.tools.pado.util.ObjectUtil;
 import com.netcrest.pado.tools.pado.util.PadoShellUtil;
 import com.netcrest.pado.tools.pado.util.TemporalPrintUtil;
+import com.netcrest.pado.util.GridUtil;
 
 public class temporal<K, V> implements ICommand
 {
@@ -788,7 +789,13 @@ public class temporal<K, V> implements ICommand
 				luceneBiz.buildAllIndexes();
 			} else {
 				PadoShell.println("Building Lucene indexes for ALL temporal paths... Please wait.");
-				ExecutorService es = Executors.newFixedThreadPool(gridIds.length);
+				ExecutorService es = Executors.newFixedThreadPool(gridIds.length, new ThreadFactory() {
+		            public Thread newThread(Runnable r) {
+		                Thread t = new Thread(r, "Pado-PadoShellTemporal");
+		                t.setDaemon(true);
+		                return t;
+		            }
+		        });
 				Future futures[] = new Future[gridIds.length];
 				int i = 0;
 				for (final String gridId : gridIds) {
