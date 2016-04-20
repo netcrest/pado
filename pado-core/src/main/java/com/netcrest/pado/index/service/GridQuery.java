@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.netcrest.pado.index.exception.GridQueryResultSetExpiredException;
 import com.netcrest.pado.internal.impl.GridService;
+import com.netcrest.pado.internal.util.PadoUtil;
 
 /**
  * GridQuery contains query criteria for executing the specified query string in
@@ -73,7 +74,7 @@ public abstract class GridQuery implements Serializable
 	 * The actual size of the page that internally queries from each server
 	 * during aggregation.
 	 */
-	protected int aggregationPageSize = Integer.getInteger("pado.index.pageSize", 1000);
+	protected int aggregationPageSize = PadoUtil.getInteger("index.pageSize", 1000);
 
 	/**
 	 * Start index. Default is 0

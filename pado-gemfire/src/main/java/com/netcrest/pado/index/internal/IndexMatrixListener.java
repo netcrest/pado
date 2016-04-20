@@ -43,8 +43,9 @@ public class IndexMatrixListener<String, IndexMatrix> extends CacheListenerAdapt
 			threadCount = 4;
 		} 
 		es = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+			private int threadNum = 1;
             public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "Pado-IndexMatrixListener");
+                Thread t = new Thread(r, "Pado-IndexMatrixListener-" + threadNum);
                 t.setDaemon(true);
                 return t;
             }

@@ -104,11 +104,10 @@ public class StressTestBizImpl
 		isComplete = false;
 
 		Executors.newSingleThreadExecutor(new ThreadFactory() {
-
 			@Override
 			public Thread newThread(Runnable r)
 			{
-				Thread thread = Executors.defaultThreadFactory().newThread(r);
+				Thread thread = new Thread(r);
 				thread.setName("Pado-StressTestBizImpl");
 				thread.setDaemon(true);
 				return thread;
@@ -122,12 +121,12 @@ public class StressTestBizImpl
 
 				final int threadCountPerDriver = (Integer) bulkLoadRequest.get("ThreadCountPerDriver", 1);
 				ExecutorService es = Executors.newFixedThreadPool(threadCountPerDriver, new ThreadFactory() {
-
+					int threadNum = 1;
 					@Override
 					public Thread newThread(Runnable r)
 					{
-						Thread thread = Executors.defaultThreadFactory().newThread(r);
-						thread.setName("Pado-StressTestBizImpl");
+						Thread thread = new Thread(r);
+						thread.setName("Pado-StressTestBizImpl-" + threadNum++);
 						thread.setDaemon(true);
 						return thread;
 					}
@@ -255,7 +254,7 @@ public class StressTestBizImpl
 			@Override
 			public Thread newThread(Runnable r)
 			{
-				Thread thread = Executors.defaultThreadFactory().newThread(r);
+				Thread thread = new Thread(r);
 				thread.setName("Pado-StressTestBizImpl");
 				thread.setDaemon(true);
 				return thread;
@@ -269,12 +268,12 @@ public class StressTestBizImpl
 
 				final int threadCountPerDriver = (Integer) txRequest.get("ThreadCountPerDriver");
 				ExecutorService es = Executors.newFixedThreadPool(threadCountPerDriver, new ThreadFactory() {
-
+					int threadNum = 1;
 					@Override
 					public Thread newThread(Runnable r)
 					{
-						Thread thread = Executors.defaultThreadFactory().newThread(r);
-						thread.setName("Pado-StressTestBizImpl");
+						Thread thread = new Thread(r);
+						thread.setName("Pado-StressTestBizImpl-" + threadNum++);
 						thread.setDaemon(true);
 						return thread;
 					}

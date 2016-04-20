@@ -790,8 +790,9 @@ public class temporal<K, V> implements ICommand
 			} else {
 				PadoShell.println("Building Lucene indexes for ALL temporal paths... Please wait.");
 				ExecutorService es = Executors.newFixedThreadPool(gridIds.length, new ThreadFactory() {
+					int threadNum = 1;
 		            public Thread newThread(Runnable r) {
-		                Thread t = new Thread(r, "Pado-PadoShellTemporal");
+		                Thread t = new Thread(r, "Pado-PadoShellTemporal-" + threadNum++);
 		                t.setDaemon(true);
 		                return t;
 		            }

@@ -184,8 +184,9 @@ public class CsvFileImporter
 		errorDir.mkdirs();
 
 		ExecutorService es = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+			int threadNum = 1;
             public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "Pado-CsvFileImporter");
+                Thread t = new Thread(r, "Pado-CsvFileImporter-" + threadNum++);
                 t.setDaemon(true);
                 return t;
             }

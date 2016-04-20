@@ -132,8 +132,9 @@ public class VirtualPath<T> extends VirtualCompiledUnit implements IVirtualPath<
 			}
 			if (size > 1) {
 				es = Executors.newFixedThreadPool(size, new ThreadFactory() {
+					private int threadNum = 1;
 		            public Thread newThread(Runnable r) {
-		                Thread t = new Thread(r, "Pado-VirtualPath");
+		                Thread t = new Thread(r, "Pado-VirtualPath-" + threadNum);
 		                t.setDaemon(true);
 		                return t;
 		            }

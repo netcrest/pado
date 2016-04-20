@@ -249,7 +249,7 @@ public class PadoUtil
 	}
 
 	/**
-	 * Return the system boolean property.
+	 * Returns the boolean property value.
 	 * 
 	 * @param prop
 	 *            Pado property
@@ -260,6 +260,24 @@ public class PadoUtil
 	{
 		String value = getProperty(prop, Boolean.toString(defaultValue));
 		return Boolean.parseBoolean(value);
+	}
+	
+	/**
+	 * Returns the int property value.
+	 * 
+	 * @param prop
+	 *            Pado property
+	 * @param defaultValue
+	 *            Default int value.
+	 */
+	public static int getInteger(String prop, int defaultValue)
+	{
+		String value = getProperty(prop);
+		if (value == null) {
+			return defaultValue;
+		} else {
+			return Integer.parseInt(value);
+		}
 	}
 
 	/**

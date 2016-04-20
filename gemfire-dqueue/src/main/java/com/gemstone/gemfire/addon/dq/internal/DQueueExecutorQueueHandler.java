@@ -115,8 +115,9 @@ public class DQueueExecutorQueueHandler implements QueueHandler {
       arr[i] = this.preserveOrder
         ? Executors.newSingleThreadExecutor()
         : Executors.newFixedThreadPool(MAX_THREADS, new ThreadFactory() {
+        	private int threadNum = 1;
             public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "DQueueExecutorThread");
+                Thread t = new Thread(r, "DQueueExecutorThread-" + threadNum++);
                 t.setDaemon(true);
                 return t;
             }

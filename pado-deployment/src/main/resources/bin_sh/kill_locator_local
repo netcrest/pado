@@ -46,7 +46,7 @@ done
 # kill the pids
 echo
 if [ "$lpids" != "" ]; then
-   ssh -q -n $SSH_USER@$i "kill -9 $lpids;" > /dev/null 2>&1
+   kill -9 $lpids
    echo "Killed locator: ${LOCATOR_ID} $lpids"
 else
    echo "Kill canceled. Locator is not running. ${LOCATOR_ID}"

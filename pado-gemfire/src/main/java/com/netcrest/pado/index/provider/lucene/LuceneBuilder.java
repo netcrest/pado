@@ -63,6 +63,7 @@ import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.internal.IndexMatrixUtil;
+import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.temporal.ITemporalKey;
@@ -79,11 +80,13 @@ import com.netcrest.pado.util.GridUtil;
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class LuceneBuilder
 {
-	private static LuceneBuilder builder = new LuceneBuilder();
-
 	private final static int PRECISION_STEP = 8;
-	private final static boolean isRamDirectory = Boolean.getBoolean("pado.lucene.ramDirectory");
-	private final static int THREAD_COUNT = Integer.getInteger("pado.lucene.builder.thread.count", 1);
+	private final static boolean isRamDirectory = PadoUtil.getBoolean("lucene.ramDirectory", false);
+	private final static int THREAD_COUNT = PadoUtil.getInteger("lucene.builder.thread.count", 4);
+	
+	private final static LuceneBuilder builder = new LuceneBuilder();
+	
+	private final ExecutorService executorService;
 
 	// private final static boolean isColoate =
 	// Boolean.getBoolean("pado.lucene.builder.coloate");
@@ -95,6 +98,20 @@ public class LuceneBuilder
 
 	private LuceneBuilder()
 	{
+		executorService = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
+			
+			int threadNum = 1;
+
+			@Override
+			public Thread newThread(Runnable r)
+			{
+				Thread thread = new Thread(r);
+				thread.setName("Pado-LuceneBuilder-" + threadNum++);
+				thread.setDaemon(true);
+				return thread;
+			}
+			
+		});
 	}
 
 	private void configNumericType(StandardQueryParser parser, String fieldName, Class<?> fieldType,
@@ -145,25 +162,13 @@ public class LuceneBuilder
 
 		try {
 			TemporalType[] temporalTypes = GemfireTemporalManager.getAllTemporalTypes();
-			ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
-
-				@Override
-				public Thread newThread(Runnable r)
-				{
-					Thread thread = Executors.defaultThreadFactory().newThread(r);
-					thread.setName("Pado-LuceneBuilder");
-					thread.setDaemon(true);
-					return thread;
-				}
-				
-			});
 			List<TemporalBuilderTask<Object>> taskList = new ArrayList(temporalTypes.length);
 			for (TemporalType type : temporalTypes) {
 				SimpleDateFormat format = (SimpleDateFormat) DateTool.Resolution.DAY.format.clone();
 				taskList.add(new TemporalBuilderTask(createNewDirectory, region, type, format));
 			}
 			if (taskList.size() > 0) {
-				es.invokeAll(taskList);
+				executorService.invokeAll(taskList);
 			}
 		} catch (Exception ex) {
 			Logger.warning("Index builder aborted.", ex);
@@ -178,18 +183,6 @@ public class LuceneBuilder
 
 		try {
 			TemporalType[] temporalTypes = GemfireTemporalManager.getAllTemporalTypes();
-			ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
-
-				@Override
-				public Thread newThread(Runnable r)
-				{
-					Thread thread = Executors.defaultThreadFactory().newThread(r);
-					thread.setName("Pado-LuceneBuilder");
-					thread.setDaemon(true);
-					return thread;
-				}
-				
-			});
 			List<TemporalBuilderTask<Object>> taskList = new ArrayList(temporalTypes.length);
 			for (TemporalType type : temporalTypes) {
 				String path = GridUtil.getChildPath(type.getFullPath());
@@ -202,7 +195,7 @@ public class LuceneBuilder
 				}
 			}
 			if (taskList.size() > 0) {
-				es.invokeAll(taskList);
+				executorService.invokeAll(taskList);
 			}
 		} catch (Exception ex) {
 			Logger.warning("Index builder aborted.", ex);

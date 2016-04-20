@@ -494,8 +494,9 @@ public class DbManager
 
 			try {
 				ExecutorService es = Executors.newFixedThreadPool(threadPoolSize, new ThreadFactory() {
+					int threadNum = 1;
 		            public Thread newThread(Runnable r) {
-		                Thread t = new Thread(r, "Pado-DbManager");
+		                Thread t = new Thread(r, "Pado-DbManager-" + threadNum++);
 		                t.setDaemon(true);
 		                return t;
 		            }
@@ -618,8 +619,9 @@ public class DbManager
 		}
 
 		ExecutorService es = Executors.newFixedThreadPool(threadPoolSize, new ThreadFactory() {
+			int threadNum = 1;
             public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "Pado-DbManager");
+                Thread t = new Thread(r, "Pado-DbManager-" + threadNum++);
                 t.setDaemon(true);
                 return t;
             }
