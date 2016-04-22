@@ -275,9 +275,9 @@ if [ "$DEBUG" == "true" ]; then
    echo ./exec -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME} $TOP_DIR/$BACKUP_DIR_SHORT_NAME
 
    pushd .. > /dev/null 2>&1
-   SERVER_HOSTS=`getServerHosts`
+   ALL_HOSTS=`getAllHosts`
    popd > /dev/null 2>&1
-   for i in $SERVER_HOSTS
+   for i in $ALL_HOSTS
    do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
       if [ "$HOST_NAME" == "`hostname`" ]; then
@@ -295,9 +295,9 @@ else
    ./exec -site $SITE mv $TOP_DIR/${PADO_DIR_SHORT_NAME} $TOP_DIR/$BACKUP_DIR_SHORT_NAME
    
    pushd .. > /dev/null 2>&1
-   SERVER_HOSTS=`getServerHosts`
+   ALL_HOSTS=`getAllHosts`
    popd > /dev/null 2>&1
-   for i in $SERVER_HOSTS
+   for i in $ALL_HOSTS
    do
       HOST_NAME=`ssh -q -n $SSH_USER@$i "hostname"`
       if [ "$HOST_NAME" == "`hostname`" ]; then
