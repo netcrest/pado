@@ -38,7 +38,7 @@ fi
 pushd .. > /dev/null 2>&1
 SERVER_HOSTS=`getServerHosts`
 popd
-COMMAND="cd $PADO_HOME/bin_sh/tools; ./import_all"
+COMMAND="cd $PADO_HOME/bin_sh/tools; ./import_csv"
 for i in $SERVER_HOSTS
 do
         echo ssh -q -n $SSH_USER@$i -o stricthostkeychecking=no $COMMAND
