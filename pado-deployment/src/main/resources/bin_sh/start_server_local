@@ -158,10 +158,7 @@ SERVER_PROPERTIES="-disable-default-server -J-Dgfinit.cacheserver.1.port=$SERVER
 #       </disk-dirs>
 #    </disk-store>
 
-GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$CACHE_XML_FILE locators=${LOCATORS} -J-Dgemfire.distributed-system-id=${SYSTEM_ID} -J-DSITE=${SITE} -J-DDISK_STORE_DIR=${DISK_STORE_DIR} -J-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} -J-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} -J-Dgemfire.PREFER_SERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
-#GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$CACHE_XML_FILE locators=${LOCATORS} -J-Dgemfire.PREFER_SERIALIZED=true -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
-#GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$CACHE_XML_FILE locators=${LOCATORS} -J-Dgemfire.PREFER_DESERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
-#GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} cache-xml-file=$CACHE_XML_FILE locators=${LOCATORS} -J-Dgemfire.PREFER_SERIALIZED=true -J-Dgemfire.PREFER_DESERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
+GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$CACHE_XML_FILE locators=${LOCATORS} -J-Dgemfire.distributed-system-id=${SYSTEM_ID} -J-DSITE=${SITE} -J-DDISK_STORE_DIR=${DISK_STORE_DIR} -J-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} -J-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} -J-Dgemfire.PREFER_SERIALIZED=true -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
 
 if [ "$GEMFIRE_PROPERTY_FILE" == "" ]; then
    GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
@@ -235,8 +232,8 @@ HEAPSIZE="-J-Xms${HEAP_MAX} -J-Xmx${HEAP_MAX}"
 #
 # GC paramenters
 #
-# GC_PARAMETERS="-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:+DisableExplicitGC -J-XX:NewSize=256m -J-XX:CMSInitiatingOccupancyFraction=50"
-GC_PARAMETERS="-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:+DisableExplicitGC -J-XX:CMSInitiatingOccupancyFraction=50"
+# GC_PARAMETERS="-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:NewSize=256m -J-XX:CMSInitiatingOccupancyFraction=75"
+GC_PARAMETERS="-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:CMSInitiatingOccupancyFraction=75"
 
 JMX_PARAMETERS="-J-Dcom.sun.management.jmxremote.port=${JMX_PORT} -J-Dcom.sun.management.jmxremote.ssl=false -J-Dcom.sun.management.jmxremote.authenticate=false"
 

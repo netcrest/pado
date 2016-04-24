@@ -91,7 +91,7 @@ public class SchemaUtil
 		} else {
 			while ((line = readLine(reader)) != null && lineNum < 10) {
 				lineNum++;
-				String tabTokens[] = getTokens(line, (char) 29); // tab
+				String tabTokens[] = getTokens(line, '\t'); // tab
 				String commaTokens[] = getTokens(line, ',');
 				int numColumns;
 				if (tabTokens.length > commaTokens.length) {
@@ -237,7 +237,7 @@ public class SchemaUtil
 			}
 			buffer.append(firstChar);
 			if (word.length() >= 1) {
-				String wordToAdd = word.substring(1).toLowerCase();
+				String wordToAdd = word.substring(1);
 				buffer.append(wordToAdd);
 			}
 		}

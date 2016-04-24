@@ -155,6 +155,7 @@ public class CsvFileImporter
 	 *             Thrown if Linux file manipulation or parallel loading threads
 	 *             get interrupted.
 	 */
+	@SuppressWarnings("rawtypes")
 	public void importData(boolean isTemporalOffWhileImportingData, boolean isGenerateSchema, int headerRow,
 			int startRow, boolean isVerbose) throws IOException, InterruptedException
 	{
@@ -185,12 +186,14 @@ public class CsvFileImporter
 
 		ExecutorService es = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
 			int threadNum = 1;
-            public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "Pado-CsvFileImporter-" + threadNum++);
-                t.setDaemon(true);
-                return t;
-            }
-        });
+
+			public Thread newThread(Runnable r)
+			{
+				Thread t = new Thread(r, "Pado-CsvFileImporter-" + threadNum++);
+				t.setDaemon(true);
+				return t;
+			}
+		});
 
 		File[] files = importDir.listFiles();
 		if (files == null) {
@@ -293,7 +296,7 @@ public class CsvFileImporter
 							schemaFileWriter.write("## ============================================================\n");
 							schemaFileWriter.write("\n");
 							schemaFileWriter.write(schemaStr);
-							writeLine("   Generated: " +  schemaFilePath.getName());
+							writeLine("   Generated: " + schemaFilePath.getName());
 						} finally {
 							if (schemaFileWriter != null) {
 								schemaFileWriter.close();
@@ -380,47 +383,73 @@ public class CsvFileImporter
 			// The first split file may include the header rows but the
 			// rest of the split files do not.
 			if (splitFiles.length > 0) {
-				taskList.add(new ImportTask(1, schemaInfo1, splitFiles[0], isTemporalOffWhileImportingData, isVerbose));
+				taskList.add(new ImportTask(1, schemaInfo1, splitFiles[0], isVerbose));
 			}
 
 			// The rest split files do not contain the header rows.
 			for (int j = 1; j < splitFiles.length; j++) {
-				taskList.add(
-						new ImportTask(j + 1, schemaInfo2, splitFiles[j], isTemporalOffWhileImportingData, isVerbose));
+				taskList.add(new ImportTask(j + 1, schemaInfo2, splitFiles[j], isVerbose));
 			}
 
-			List<Future<ImportStatus>> futureList = es.invokeAll(taskList);
-			int count = 0;
-			int index = 0;
-			boolean isError = false;
-			for (Future<ImportStatus> future : futureList) {
-				ImportStatus is = null;
-				try {
-					is = future.get();
-				} catch (Exception ex) {
-					writeLineError("   Error: " + ex.getMessage());
-					isError = true;
-				} finally {
-					if (is != null) {
-						is.file.delete();
+			// Disable temporal indexing temporarily during the import time
+			// to speed up.
+			ITemporalAdminBiz temporalAdminBiz = null;
+			boolean temporalWasEnabled = false;
+			if (isTemporalOffWhileImportingData) {
+				if (schemaInfo1.isHistory() == false) {
+					temporalAdminBiz = pado.getCatalog().newInstance(ITemporalAdminBiz.class);
+					temporalAdminBiz.setGridPath(schemaInfo1.getGridPath());
+					temporalWasEnabled = temporalAdminBiz.isEnabled();
+					if (temporalWasEnabled) {
+						// Block till done
+						temporalAdminBiz.setEnabled(false, false /* spawnThread */);
 					}
 				}
-				if (is != null) {
-					count += is.count;
-				}
-				if (is == null || is.isSuccess == false) {
-					isError = true;
-				}
+			}
+			
+			boolean isError = false;
+			int count = 0;
+			try {
+				List<Future<ImportStatus>> futureList = es.invokeAll(taskList);
+				int index = 0;
+				for (Future<ImportStatus> future : futureList) {
+					ImportStatus is = null;
+					try {
+						is = future.get();
+					} catch (Exception ex) {
+						writeLineError("   Error: " + ex.getMessage());
+						isError = true;
+					} finally {
+						if (is != null) {
+							is.file.delete();
+						}
+					}
+					if (is != null) {
+						count += is.count;
+					}
+					if (is == null || is.isSuccess == false) {
+						isError = true;
+					}
 
-				write("   " + ++index + ". ");
-				if (is == null) {
-					writeLine("No status");
-				} else {
-					writeLine(is.toString());
+					write("   " + ++index + ". ");
+					if (is == null) {
+						writeLine("No status");
+					} else {
+						writeLine(is.toString());
+					}
+				}
+				totalEntryCount += count;
+			} finally {
+				// Enable temporal indexing if disabled earlier
+				if (isTemporalOffWhileImportingData) {
+					if (temporalAdminBiz != null && schemaInfo1.isHistory() == false) {
+						if (temporalWasEnabled) {
+							// Block till done
+							temporalAdminBiz.setEnabled(true, false /* spawnThread */);
+						}
+					}
 				}
 			}
-
-			totalEntryCount += count;
 
 			write("     Path entry count: ");
 			if (isError) {
@@ -493,16 +522,13 @@ public class CsvFileImporter
 		int threadNum;
 		SchemaInfo schemaInfo;
 		File csvFile;
-		boolean isTemporalOffWhileImportingData;
 		boolean isVerbose;
 
-		ImportTask(int threadNum, SchemaInfo schemaInfo, File csvFile, boolean isTemporalOffWhileImportingData,
-				boolean isVerbose)
+		ImportTask(int threadNum, SchemaInfo schemaInfo, File csvFile, boolean isVerbose)
 		{
 			this.threadNum = threadNum;
 			this.schemaInfo = schemaInfo;
 			this.csvFile = csvFile;
-			this.isTemporalOffWhileImportingData = isTemporalOffWhileImportingData;
 			this.isVerbose = isVerbose;
 		}
 
@@ -511,45 +537,17 @@ public class CsvFileImporter
 		public ImportStatus call() throws Exception
 		{
 			ImportStatus is = new ImportStatus();
-			ITemporalAdminBiz temporalAdminBiz = null;
-			boolean temporalWasEnabled = false;
-			try {
-				CsvFileLoader fileLoader = new CsvFileLoader(pado);
-				fileLoader.setVerbose(isVerbose);
-				fileLoader.setVerboseTag("Thread[" + threadNum + "]");
+			CsvFileLoader fileLoader = new CsvFileLoader(pado);
+			fileLoader.setVerbose(isVerbose);
+			fileLoader.setVerboseTag("Thread[" + threadNum + "]");
 
-				// Disable temporal indexing temporarily during the import time
-				// to speed up.
-				if (isTemporalOffWhileImportingData) {
-					if (schemaInfo.isHistory() == false) {
-						temporalAdminBiz = pado.getCatalog().newInstance(ITemporalAdminBiz.class);
-						temporalAdminBiz.setGridPath(schemaInfo.getGridPath());
-						temporalWasEnabled = temporalAdminBiz.isEnabled();
-						if (temporalWasEnabled) {
-							// Block till done
-							temporalAdminBiz.setEnabled(false, false /* spawnThread */);
-						}
-					}
-				}
+			// Load data
+			int count = fileLoader.load(schemaInfo, csvFile);
 
-				// Load data
-				int count = fileLoader.load(schemaInfo, csvFile);
-
-				is.gridPath = schemaInfo.getGridPath();
-				is.count = count;
-				is.isSuccess = true;
-				is.file = csvFile;
-			} finally {
-				// Enable temporal indexing if disabled earlier
-				if (isTemporalOffWhileImportingData) {
-					if (temporalAdminBiz != null && schemaInfo.isHistory() == false) {
-						if (temporalWasEnabled) {
-							// Block till done
-							temporalAdminBiz.setEnabled(true, false /* spawnThread */);
-						}
-					}
-				}
-			}
+			is.gridPath = schemaInfo.getGridPath();
+			is.count = count;
+			is.isSuccess = true;
+			is.file = csvFile;
 			return is;
 		}
 	}

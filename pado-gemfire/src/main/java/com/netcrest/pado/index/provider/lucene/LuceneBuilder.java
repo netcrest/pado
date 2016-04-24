@@ -82,7 +82,7 @@ public class LuceneBuilder
 {
 	private final static int PRECISION_STEP = 8;
 	private final static boolean isRamDirectory = PadoUtil.getBoolean("lucene.ramDirectory", false);
-	private final static int THREAD_COUNT = PadoUtil.getInteger("lucene.builder.thread.count", 4);
+	private final static int INDEX_BATCH_SIZE = PadoUtil.getInteger("lucene.builder.batch.size", 10000);
 	
 	private final static LuceneBuilder builder = new LuceneBuilder();
 	
@@ -98,15 +98,12 @@ public class LuceneBuilder
 
 	private LuceneBuilder()
 	{
-		executorService = Executors.newFixedThreadPool(THREAD_COUNT, new ThreadFactory() {
-			
-			int threadNum = 1;
-
+		executorService = Executors.newCachedThreadPool(new ThreadFactory() {
 			@Override
 			public Thread newThread(Runnable r)
 			{
 				Thread thread = new Thread(r);
-				thread.setName("Pado-LuceneBuilder-" + threadNum++);
+				thread.setName("Pado-LuceneBuilderCache");
 				thread.setDaemon(true);
 				return thread;
 			}
@@ -322,6 +319,8 @@ public class LuceneBuilder
 				NumericConfig config;
 				if (keyType != null) {
 
+					// Create documents for KeyType objects
+					
 					KeyType[] keyTypes = KeyTypeManager.getAllRegisteredVersions(keyType.getClass());
 					for (KeyType kt : keyTypes) {
 						Set<String> nameSet = kt.getNameSet();
@@ -370,15 +369,17 @@ public class LuceneBuilder
 							docList.add(doc);
 						}
 
-						if (docList.size() > 1000) {
+						if (docList.size() > INDEX_BATCH_SIZE) {
 							writer.addDocuments(docList);
 							docList.clear();
+							writer.commit();
 						}
 					}
 					try {
 						if (docList.isEmpty() == false) {
 							writer.addDocuments(docList);
 							docList.clear();
+							writer.commit();
 						}
 
 					} catch (Exception ex) {
@@ -387,6 +388,8 @@ public class LuceneBuilder
 
 				} else if (keySet != null) {
 
+					// Create documents for Map objects (non-KeyType)
+					
 					Map dataMap = (Map) firstDataObject;
 					for (Object key : keySet) {
 						Object value = dataMap.get(key);
@@ -427,15 +430,17 @@ public class LuceneBuilder
 							docList.add(doc);
 						}
 
-						if (docList.size() > 1000) {
+						if (docList.size() > INDEX_BATCH_SIZE) {
 							writer.addDocuments(docList);
 							docList.clear();
+							writer.commit();
 						}
 					}
 					try {
 						if (docList.isEmpty() == false) {
 							writer.addDocuments(docList);
 							docList.clear();
+							writer.commit();
 						}
 
 					} catch (Exception ex) {
@@ -443,6 +448,8 @@ public class LuceneBuilder
 					}
 
 				} else {
+					
+					// Create documents for POJO
 					
 					// build lucene for each attribute in the current
 					// (latest) data
@@ -521,16 +528,25 @@ public class LuceneBuilder
 									entry.getTemporalData(), -1, luceneField, attributeGetters, isIdentityKeyPrimitive,
 									true, format);
 							docList.add(doc);
+							
+							if (docList.size() > INDEX_BATCH_SIZE) {
+								writer.addDocuments(docList);
+								docList.clear();
+								writer.commit();
+							}
 						}
 						try {
-							writer.addDocuments(docList);
+							if (docList.isEmpty() == false) {
+								writer.addDocuments(docList);
+								docList.clear();
+								writer.commit();
+							}
 						} catch (Exception ex) {
 							Logger.error("POJO error", ex);
 						}
 					}
 				}
 
-				writer.commit();
 				writer.close();
 
 				// place the RamDirectory in the region
