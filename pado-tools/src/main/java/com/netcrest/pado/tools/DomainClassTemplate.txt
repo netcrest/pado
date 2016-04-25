@@ -1,6 +1,6 @@
-package ${DOMAIN_PACKAGE};
+package ${KEY_TYPE_PACKAGE}.domain;
 
-${JAVA_IMPORT}
+${JAVA_IMPORTS}
 import com.netcrest.pado.data.jsonlite.IJsonLiteWrapper;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 
@@ -10,16 +10,14 @@ public class ${DOMAIN_CLASS_NAME} implements IJsonLiteWrapper<Object>
 
 	public ${DOMAIN_CLASS_NAME}()
 	{
-		this.jl = new JsonLite<Object>(${DOMAIN_PACKAGE}.${DOMAIN_CLASS_NAME}.getKeyType());
+		this.jl = new JsonLite<Object>(${KEY_TYPE_PACKAGE}.${KEY_TYPE_CLASS_NAME}.getKeyType());
 	}
 
 	public ${DOMAIN_CLASS_NAME}(JsonLite<Object> jl)
 	{
 		this.jl = jl;
 	}
-
-	${PROPERTY_DEFINITION}
-
+${PROPERTY_DEFINITION}
 	public JsonLite<Object> toJsonLite()
 	{
 		return this.jl;
