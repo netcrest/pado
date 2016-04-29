@@ -77,6 +77,8 @@ public interface Constants
 	public final static String PROP_CLASS_DATA_CONTEXT = "class.dataContext";
 	public final static String PROP_CLASS_USER_INFO = "class.userInfo";
 	public final static String PROP_CLASS_DATA_INFO = "class.dataInfo";
+	
+	public final static String PROP_CLASS_LOCAL_RESULTS_DB = "class.localResultsDb";
 
 	public final static String PROP_CLASS_ID_START = "class.id.start";
 
@@ -105,6 +107,8 @@ public interface Constants
 	public final static String DEFAULT_CLASS_DATA_CONTEXT = "com.netcrest.pado.gemfire.context.SimpleDataContextImpl";
 	public final static String DEFAULT_CLASS_USER_INFO = "com.netcrest.pado.gemfire.context.UserInfoImpl";
 	public final static String DEFAULT_CLASS_DATA_INFO = "com.netcrest.pado.gemfire.context.DataInfoImpl";
+	
+	public final static String DEFAULT_CLASS_LOCAL_RESULTS_DB = "com.netcrest.pado.index.gemfire.internal.db.GemfireLocalResultsDb";
 
 	public final static String DEFAULT_CLASS_ID_START_DEFAULT = "1001";
 

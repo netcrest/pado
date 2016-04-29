@@ -104,7 +104,7 @@ public class ObjectSerializer
 	}
 
 	/**
-	 * Serializes the specified object. The object must must conform to at least
+	 * Serializes the specified object. The object must conform to at least
 	 * one of the IObjectSerializer plug-ins in the ObjectSerializer list.
 	 * 
 	 * @param object

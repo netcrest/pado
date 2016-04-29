@@ -210,7 +210,6 @@ public class show implements ICommand
 		PadoShell.println("        key: " + padoShell.getKeyClassName());
 		PadoShell.println("      limit: " + padoShell.getSelectLimit());
 		PadoShell.println("      print: " + padoShell.isShowResults());
-		PadoShell.println("     select: " + padoShell.getSelectLimit());
 		PadoShell.println("      table: " + padoShell.isTableFormat());
 		PadoShell.println("       time: " + padoShell.isShowTime());
 		PadoShell.println("       type: " + padoShell.isPrintType());

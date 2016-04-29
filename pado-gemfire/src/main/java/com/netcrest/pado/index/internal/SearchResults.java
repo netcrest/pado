@@ -26,23 +26,23 @@ import com.gemstone.gemfire.DataSerializer;
 public class SearchResults implements DataSerializable
 {
 	private static final long serialVersionUID = 1L;
-	private List results;
+	private List<?> results;
 
 	public SearchResults()
 	{
 	}
 	
-	public SearchResults(List results, List indexMatrix)
+	public SearchResults(List<?> results)
 	{
 		this.results = results;
 	}
 
-	public List getResults()
+	public List<?> getResults()
 	{
 		return results;
 	}
 
-	public void setResults(List results)
+	public void setResults(List<?> results)
 	{
 		this.results = results;
 	}

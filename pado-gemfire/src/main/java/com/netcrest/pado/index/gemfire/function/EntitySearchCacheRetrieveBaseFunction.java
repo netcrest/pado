@@ -30,11 +30,15 @@ import com.gemstone.gemfire.cache.execute.FunctionContext;
 import com.gemstone.gemfire.cache.execute.RegionFunctionContext;
 import com.gemstone.gemfire.cache.partition.PartitionRegionHelper;
 import com.gemstone.gemfire.internal.cache.LocalDataSet;
+import com.gemstone.gemfire.internal.util.BlobHelper;
 import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.internal.IndexMatrixFilter;
 import com.netcrest.pado.index.internal.IndexMatrixUtil;
 import com.netcrest.pado.index.internal.SearchResults;
+import com.netcrest.pado.index.internal.db.LocalResultsDb;
+import com.netcrest.pado.index.internal.db.RecordHeader;
 import com.netcrest.pado.index.result.MemberResults;
+import com.netcrest.pado.log.Logger;
 
 /**
  * This Function provides retrieval of entities from ResultSet cache on each Data Server
@@ -105,22 +109,42 @@ public class EntitySearchCacheRetrieveBaseFunction implements Function, Declarab
 		} else {
 			results.setNextBatchIndexOnServer(filter.getEndIndex() + 1);
 		}
-		List resultList = searchResults.getResults();
+		
 		int startIndex = filter.getStartIndex();
 		int endIndex = filter.getEndIndex();
-		List list;
+		
+		List retResults = null;
+		List resultList = searchResults.getResults();
 		if (startIndex < 0 || startIndex >= resultList.size()) {
-			list = new ArrayList(0);
-		} else {
-			if (endIndex >= resultList.size()) {
-				endIndex = resultList.size() - 1;
-			}
-			list = new ArrayList(endIndex - startIndex + 1);
-			for (int i = startIndex; i <= endIndex; i++) {
-				list.add(transformEntity(resultList.get(i)));
+			retResults = new ArrayList(0);
+		} else if (resultList.size() > 0) {
+			Object obj = resultList.get(0);
+			if (obj instanceof RecordHeader) {
+				// Serialized objects read from the file system
+				try {
+					List<byte[]> serializedRecordList = LocalResultsDb.getLocalResultsDb().getSerializedResults(resultList, filter.getId().toString(), startIndex, endIndex);
+					retResults = new ArrayList(serializedRecordList.size());
+					for (byte[] bs : serializedRecordList) {
+						obj = BlobHelper.deserializeBlob(bs);
+						retResults.add(transformEntity(obj));
+					}
+				} catch (Exception ex) {
+					Logger.error("Error occurred while reading IndexMatrix results from file. [id=" + filter.getId() + "]", ex);
+				}
+			} else {
+				if (endIndex >= resultList.size()) {
+					endIndex = resultList.size() - 1;
+				}
+				retResults = new ArrayList(endIndex - startIndex + 1);
+				for (int i = startIndex; i <= endIndex; i++) {
+					retResults.add(transformEntity(resultList.get(i)));
+				}
 			}
 		}
-		results.setResults(list);
+		if (retResults == null) {
+			retResults = new ArrayList(0);
+		}
+		results.setResults(retResults);
 
 		rfc.getResultSender().lastResult(results);
 	}

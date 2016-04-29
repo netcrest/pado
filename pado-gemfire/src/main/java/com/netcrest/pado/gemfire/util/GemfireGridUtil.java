@@ -27,7 +27,8 @@ public class GemfireGridUtil extends GridUtil
 {
 	/**
 	 * Returns the pool identified by the specified pool name. If not found, it
-	 * creates one based on the specified locators.
+	 * creates one based on the specified locators. If one is created, then the
+	 * default read timeout is set to 5 min (300000 msec)
 	 * 
 	 * @param poolName
 	 *            Pool name
