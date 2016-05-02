@@ -54,6 +54,21 @@ public class LocalResultsDb
 	}
 
 	/**
+	 * Deletes the result file associated with the specified result ID if
+	 * exists.
+	 * 
+	 * @param resultId
+	 *            Result ID that uniquely identifies its result set.
+	 */
+	public synchronized void removeFile(String resultId)
+	{
+		File file = createFile(resultId);
+		if (file.exists()) {
+			file.delete();
+		}
+	}
+
+	/**
 	 * Writes the specified results to the file system.
 	 * 
 	 * @param criteria
@@ -64,7 +79,7 @@ public class LocalResultsDb
 	 * @throws IOException
 	 *             Thrown if IO error occurs
 	 */
-	public List<RecordHeader> writeResults(GridQuery criteria, List<?> resultsList) throws IOException
+	public synchronized List<RecordHeader> writeResults(GridQuery criteria, List<?> resultsList) throws IOException
 	{
 		RecordFile rf = new RecordFile();
 		File file = createFile(criteria.getId());

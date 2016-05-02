@@ -445,9 +445,19 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return null;
 	}
 
+	@Override
 	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
 			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
 			boolean forceRebuildIndex)
+	{
+		// client only
+		return null;
+	}
+	
+	@Override
+	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
+			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit)
 	{
 		// client only
 		return null;
@@ -572,6 +582,16 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	@Override
 	public IScrollableResultSet<TemporalEntry<K, V>> getAllLastTemporalEntries(String orderBy, boolean orderAcending,
 			int batchSize, boolean forceRebuildIndex)
+	{
+		return null;
+	}
+	
+	/**
+	 * Not used. ILocalBiz (HPIM) handles it.
+	 */
+	@Override
+	public IScrollableResultSet<TemporalEntry<K, V>> getLastTemporalEntries(String orderBy, boolean orderAcending,
+			int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		return null;
 	}
@@ -1681,6 +1701,48 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	@Override
 	public IScrollableResultSet<V> getValueResultSet(String queryStatement, String orderBy, boolean orderAscending,
 			int batchSize, boolean forceRebuildIndex)
+	{
+		return null;
+	}
+
+	/**
+	 * Not used. ILocalBiz handles it.
+	 */
+	@Override
+	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(long validAtTime,
+			long asOfTime, String orderBy, boolean orderAcending, int batchSize, boolean forceRebuildIndex, int limit)
+	{
+		return null;
+	}
+
+	/**
+	 * Not used. ILocalBiz handles it.
+	 */
+	@Override
+	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(
+			String queryStatement, long validAtTime, long asOfTime, String orderBy, boolean orderAscending,
+			int batchSize, boolean forceRebuildIndex, int limit)
+	{
+		return null;
+	}
+
+	/**
+	 * Not used. ILocalBiz handles it.
+	 */
+	@Override
+	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
+	{
+		return null;
+	}
+
+	/**
+	 * Not used. ILocalBiz handles it.
+	 */
+	@Override
+	public IScrollableResultSet<V> getValueResultSet(String queryStatement, long validAtTime, long asOfTime,
+			String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		return null;
 	}

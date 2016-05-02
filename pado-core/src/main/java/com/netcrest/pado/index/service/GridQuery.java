@@ -74,7 +74,7 @@ public abstract class GridQuery implements Serializable
 	 * The actual size of the page that internally queries from each server
 	 * during aggregation.
 	 */
-	protected int aggregationPageSize = PadoUtil.getInteger("index.pageSize", 1000);
+	protected int aggregationPageSize = PadoUtil.getInteger("index.pageSize", DEFAULT_FETCH_SIZE);
 
 	/**
 	 * Start index. Default is 0
@@ -138,11 +138,18 @@ public abstract class GridQuery implements Serializable
 	 * If enabled, then an exception is thrown when the index expires
 	 */
 	protected boolean throwExceptionOnExpire = false;
-	
+
 	/**
 	 * Map of additional parameters that the provider may needed
 	 */
 	protected Map<String, Object> parameterMap = new HashMap<String, Object>();
+
+	/**
+	 * Size limit of the result set. This field is ignored if the query supports
+	 * the limit token. For example, the limit value is ignored for GemFire OQL
+	 * which already supports 'limit'. Default is -1, i.e., no limit.
+	 */
+	protected int limit = -1;
 
 	/**
 	 * Constructs an empty GridQuery object
@@ -525,6 +532,31 @@ public abstract class GridQuery implements Serializable
 	}
 
 	/**
+	 * Returns the result set size limit. The size limit only applies to queries
+	 * that do not support limit. For example, if the query string is GemFire
+	 * OQL, this property is ignored as OQL already supports 'limit'. Default is
+	 * -1, i.e., no limit.
+	 */
+	public int getLimit()
+	{
+		return limit;
+	}
+
+	/**
+	 * Sets the result set size limit. -1 to set no limit. The limit only
+	 * applies to queries that do not support limit. For example, if the query
+	 * string is GemFire OQL, this property is ignored as OQL already supports
+	 * 'limit'.
+	 * 
+	 * @param limit
+	 *            Result set size limit. Default is -1, i.e., no limit.
+	 */
+	public void setLimit(int limit)
+	{
+		this.limit = limit;
+	}
+
+	/**
 	 * Shallow copies this grid query to the specified grid query.
 	 * 
 	 * @param another
@@ -550,6 +582,7 @@ public abstract class GridQuery implements Serializable
 		another.fullPath = this.fullPath;
 		another.gridIds = this.gridIds;
 		another.gridService = this.gridService;
+		another.limit = this.limit;
 	}
 
 	/**
@@ -595,5 +628,5 @@ public abstract class GridQuery implements Serializable
 	{
 		this.throwExceptionOnExpire = throwExceptionOnExpire;
 	}
-	
+
 }

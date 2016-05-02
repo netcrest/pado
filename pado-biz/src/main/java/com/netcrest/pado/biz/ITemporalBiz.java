@@ -198,6 +198,13 @@ public interface ITemporalBiz<K, V> extends IBiz, ITemporalBizLink<K, V>
 	 * {@inheritDoc}
 	 */
 	@Override
+	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(long validAtTime,
+			long asOfTime, String orderBy, boolean orderAcending, int batchSize, boolean forceRebuildIndex, int limit);
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(String queryStatement,
 			String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex);
 
@@ -213,9 +220,25 @@ public interface ITemporalBiz<K, V> extends IBiz, ITemporalBizLink<K, V>
 	 * {@inheritDoc}
 	 */
 	@Override
+	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(String queryStatement,
+			long validAtTime, long asOfTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit);
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
 			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit);
 
 	/**
 	 * {@inheritDoc}
@@ -234,10 +257,25 @@ public interface ITemporalBiz<K, V> extends IBiz, ITemporalBizLink<K, V>
 	 * {@inheritDoc}
 	 */
 	@Override
+	IScrollableResultSet<V> getValueResultSet(String queryStatement, long validAtTime, long asOfTime, String orderBy,
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit);
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
 			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
 			boolean forceRebuildIndex);
-
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
+			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit);
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -328,6 +366,13 @@ public interface ITemporalBiz<K, V> extends IBiz, ITemporalBizLink<K, V>
 	@Override
 	IScrollableResultSet<TemporalEntry<K, V>> getAllLastTemporalEntries(String orderBy, boolean orderAcending,
 			int batchSize, boolean forceRebuildIndex);
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	IScrollableResultSet<TemporalEntry<K, V>> getLastTemporalEntries(String orderBy, boolean orderAcending,
+			int batchSize, boolean forceRebuildIndex, int limitSize);
 
 	/**
 	 * {@inheritDoc}

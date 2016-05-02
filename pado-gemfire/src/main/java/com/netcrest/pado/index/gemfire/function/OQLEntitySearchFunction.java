@@ -17,6 +17,8 @@ package com.netcrest.pado.index.gemfire.function;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Declarable;
@@ -36,6 +38,7 @@ import com.netcrest.pado.index.result.MemberResults;
 import com.netcrest.pado.index.result.ValueInfo;
 import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * The OQL EntitySearchFunction called by GridSearch server to build indexMatrix
@@ -48,6 +51,8 @@ public class OQLEntitySearchFunction extends AbstractEntitySearchFunction implem
 	private static final long serialVersionUID = 1L;
 
 	public final static String Id = "OQLEntitySearchFunction";
+	
+	private final static Pattern limitPattern = Pattern.compile("(?i) limit ");
 
 	@Override
 	public String getId()
@@ -55,21 +60,34 @@ public class OQLEntitySearchFunction extends AbstractEntitySearchFunction implem
 		return Id;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List queryLocal(GridQuery criteria, FunctionContext context) throws GridQueryException
 	{
 		try {
-
 			// RegionFunctionContext rfc = (RegionFunctionContext) context;
 			// Region region = rfc.getDataSet();
 
-			Region region = IndexMatrixOperationUtility.getRegionFromQuery(criteria.getQueryString(), null);
+			String queryString = criteria.getQueryString();
+			Region region = IndexMatrixOperationUtility.getRegionFromQuery(queryString, null);
 			if (region == null) {
 				return null;
 			}
 
+			// Apply limit if defined based on the number of servers
+			int limit = criteria.getLimit();
+			if (limit > 0) {
+				limit = (int)Math.ceil(criteria.getLimit() / PadoServerManager.getPadoServerManager().getServerCount());
+			}
+			if (limit >= 0) {
+				Matcher matcher = limitPattern.matcher(queryString);
+				if (matcher.find() == false) {
+					queryString = queryString + " limit " + limit;
+				}
+			}
+			
 			QueryService qs = CacheFactory.getAnyInstance().getQueryService();
-			DefaultQuery query = (DefaultQuery) qs.newQuery(criteria.getQueryString());
+			DefaultQuery query = (DefaultQuery) qs.newQuery(queryString);
 			LocalDataSet localDS = (LocalDataSet) PartitionRegionHelper.getLocalPrimaryData(region);
 			SelectResults sr = (SelectResults) localDS.executeQuery(query, null, null);
 

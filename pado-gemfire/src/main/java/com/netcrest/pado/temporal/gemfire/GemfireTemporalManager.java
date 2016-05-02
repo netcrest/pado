@@ -358,6 +358,13 @@ public class GemfireTemporalManager extends TemporalManager
 		TemporalCacheListener listener = getTemporalCacheListener();
 		return listener.getLastTemporalEntryList();
 	}
+	
+	@Override
+	public List<TemporalEntry> getLastTemporalEntryList(int limit)
+	{
+		TemporalCacheListener listener = getTemporalCacheListener();
+		return listener.getLastTemporalEntryList(limit);
+	}
 
 	@Override
 	public TemporalDataList getTemporalDataList(Object identityKey)

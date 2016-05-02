@@ -1223,6 +1223,9 @@ public class PadoShell
 		return readTimeout;
 	}
 
+	/**
+	 * Result set limit size. -1 if no limit.
+	 */
 	public int getSelectLimit()
 	{
 		return selectLimit;

@@ -30,8 +30,8 @@ import com.netcrest.pado.index.service.IScrollableResultSet;
 /**
  * ITemporalBizLink provides temporal data services for the specified grid path.
  * The grid path can be changed as needed before invoking ITemporalBizLink
- * methods. This is a class loader link class that links the main class loader to
- * an IBiz class loader.
+ * methods. This is a class loader link class that links the main class loader
+ * to an IBiz class loader.
  * 
  * @author dpark
  * 
@@ -330,6 +330,37 @@ public interface ITemporalBizLink<K, V> extends IBiz
 			long asOfTime, String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex);
 
 	/**
+	 * Returns the temporal entries that satisfy the specified valid-at and
+	 * as-of times. Note that it does not take the identity key. It returns null
+	 * if the entry is not found. The returned result set is scrollable as it
+	 * may contain a large number of entries. <i>For pure clients only.</i>
+	 * 
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param asOfTime
+	 *            The as-of time compared against the written times. If -1, then
+	 *            it returns the now-relative (as-of-now) value.
+	 * @param orderBy
+	 *            Order-by field name. If null, then no order takes place.
+	 * @param orderAscending
+	 *            true for ascending, false for descending result set.
+	 * @param batchSize
+	 *            Fetch batch size.
+	 * @param forceRebuildIndex
+	 *            true to force the servers to rebuild the result set index,
+	 *            false to use the cached result set if exists.
+	 * @param limit
+	 *            Result set size limit. -1 if no limit.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server. Only pure
+	 *             clients are supported.
+	 * 
+	 * 
+	 */
+	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(long validAtTime,
+			long asOfTime, String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit);
+
+	/**
 	 * Returns the now-relative temporal entries for the given PQL query string.
 	 * It returns null if the entry is not found. The returned result set is
 	 * scrollable as it may contain a large number of entries. <i>For pure
@@ -390,6 +421,41 @@ public interface ITemporalBizLink<K, V> extends IBiz
 			boolean forceRebuildIndex);
 
 	/**
+	 * Returns the temporal entries that satisfy the specified valid-at and
+	 * as-of times for the given PQL query string. It returns null if the entry
+	 * is not found. The returned result set is scrollable as it may contain a
+	 * large number of entries. <i>For pure clients only.</i>
+	 * 
+	 * @param queryStatement
+	 *            PQL query string. If null or empty, then this method call is
+	 *            equivalent to {@link #getEntryResultSet(long, long)}.
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param asOfTime
+	 *            The as-of time compared against the written times. If -1, then
+	 *            it returns the now-relative (as-of-now) value.
+	 * @param orderBy
+	 *            Order-by field name. If null, then no order takes place.
+	 * @param orderAscending
+	 *            true for ascending, false for descending result set.
+	 * @param batchSize
+	 *            Fetch batch size.
+	 * @param forceRebuildIndex
+	 *            true to force the servers to rebuild the result set index,
+	 *            false to use the cached result set if exists.
+	 * @param limit
+	 *            Result set size limit. -1 if no limit.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server. Only pure
+	 *             clients are supported.
+	 * 
+	 * 
+	 */
+	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(String queryStatement,
+			long validAtTime, long asOfTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit);
+
+	/**
 	 * Returns the now-relative temporal entries for the given PQL query string.
 	 * It returns null if the entry is not found. The returned result set is
 	 * scrollable as it may contain a large number of entries. <i>For pure
@@ -447,6 +513,39 @@ public interface ITemporalBizLink<K, V> extends IBiz
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex);
 
 	/**
+	 * Returns the temporal values that satisfy the specified valid-at and as-of
+	 * times for the given PQL or OQL query string. If OQL, the select project
+	 * must be identity key. It returns null if the entry is not found. The
+	 * returned result set is scrollable as it may contain a large number of
+	 * entries. <i>For pure clients only.</i>
+	 * 
+	 * @param queryStatement
+	 *            PQL query string. If null or empty, then this method call is
+	 *            equivalent to {@link #getEntryResultSet(long, long)}.
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param asOfTime
+	 *            The as-of time compared against the written times. If -1, then
+	 *            it returns the now-relative (as-of-now) value.
+	 * @param orderBy
+	 *            Order-by field name. If null, then no order takes place.
+	 * @param orderAscending
+	 *            true for ascending, false for descending result set.
+	 * @param batchSize
+	 *            Fetch batch size.
+	 * @param forceRebuildIndex
+	 *            true to force the servers to rebuild the result set index,
+	 *            false to use the cached result set if exists.
+	 * @param limit
+	 *            Result set size limit. -1 if no limit.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server. Only pure
+	 *             clients are supported.
+	 */
+	IScrollableResultSet<V> getValueResultSet(String queryStatement, long validAtTime, long asOfTime, String orderBy,
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit);
+
+	/**
 	 * Returns the temporal values that satisfy the specified valid-at and end
 	 * written time range for the given PQL or OQL query string. Note that this
 	 * method retrieves not more than one valid object per temporal list. If
@@ -484,6 +583,44 @@ public interface ITemporalBizLink<K, V> extends IBiz
 
 	/**
 	 * Returns the temporal values that satisfy the specified valid-at and end
+	 * written time range for the given PQL or OQL query string. Note that this
+	 * method retrieves not more than one valid object per temporal list. If
+	 * OQL, the select project must be identity key. It searches temporal values
+	 * that fall in the specified written time range. It returns null if the
+	 * values are not found. The returned result set is scrollable as it may
+	 * contain a large number of entries. <i>For pure clients only.</i>
+	 * 
+	 * @param queryStatement
+	 *            PQL and OQL query string. If OQL, i.e., begins with "select"
+	 *            then the select projection must be identity key. For example,
+	 *            "select distinct e.key.IdentityKey from /mygrid/portfolio.entrySet e where e.value.value['PortfolioId']='port_a'"
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param fromWrittenTime
+	 *            start of the written time range. -1 for current time
+	 * @param toWrittenTime
+	 *            end of the written time range. -1 for current time.
+	 * @param orderBy
+	 *            Order-by field name. If null, then no order takes place.
+	 * @param orderAscending
+	 *            true for ascending, false for descending result set.
+	 * @param batchSize
+	 *            Fetch batch size.
+	 * @param forceRebuildIndex
+	 *            true to force the servers to rebuild the result set index,
+	 *            false to use the cached result set if exists.
+	 * @param limit
+	 *            Result set size limit. -1 if no limit.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server. Only pure
+	 *             clients are supported.
+	 */
+	IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
+			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit);
+
+	/**
+	 * Returns the temporal values that satisfy the specified valid-at and end
 	 * written time range for the given PQL query string. Note that this method
 	 * retrieves not more than one valid object per temporal list. It searches
 	 * temporal values that fall in the specified written time range. It returns
@@ -517,6 +654,44 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
 			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex);
+
+	/**
+	 * Returns the temporal values that satisfy the specified valid-at and end
+	 * written time range for the given PQL query string. Note that this method
+	 * retrieves not more than one valid object per temporal list. It searches
+	 * temporal values that fall in the specified written time range. It returns
+	 * null if the entries are not found. The returned result set is scrollable
+	 * as it may contain a large number of entries. <i>For pure clients
+	 * only.</i>
+	 * 
+	 * @param queryStatement
+	 *            PQL and OQL query string. If OQL, i.e., begins with "select"
+	 *            then the select projection must be identity key. For example,
+	 *            "select distinct e.key.IdentityKey from /mygrid/portfolio.entrySet e where e.value.value['PortfolioId']='port_a'"
+	 * @param validAtTime
+	 *            The time at which the value is valid. -1 for current time.
+	 * @param fromWrittenTime
+	 *            start of the written time range. -1 for current time
+	 * @param toWrittenTime
+	 *            end of the written time range. -1 for current time.
+	 * @param orderBy
+	 *            Order-by field name. If null, then no order takes place.
+	 * @param orderAscending
+	 *            true for ascending, false for descending result set.
+	 * @param batchSize
+	 *            Fetch batch size.
+	 * @param forceRebuildIndex
+	 *            true to force the servers to rebuild the result set index,
+	 *            false to use the cached result set if exists.
+	 * @param limit
+	 *            Result set size limit. -1 if no limit.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server. Only pure
+	 *             clients are supported.
+	 */
+	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit);
 
 	/**
 	 * Returns the latest temporal key that satisfies the specified identity
@@ -650,7 +825,11 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	 * Returns all last temporal entries including expired and deleted entries.
 	 * It returns null if the specified grid path is not defined. Prior to
 	 * invoking this method, the grid path must be set by invoking
-	 * {@link #setGridPath(String)}. <i>For pure clients only.</i>
+	 * {@link #setGridPath(String)}. This method should be used sparingly if the
+	 * path contains a large set of data as it can severely impact the grid
+	 * performance. For large data sets,
+	 * {@link #getLastTemporalEntries(String, boolean, int, boolean)} should be
+	 * used instead if possible. <i>For pure clients only.</i>
 	 * 
 	 * @param orderBy
 	 *            Order-by field name. If null, then no order takes place.
@@ -664,9 +843,44 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	 * @throws PadoException
 	 *             Thrown if this method is invoked by a server. Only pure
 	 *             clients are supported.
+	 * @see {@link #getLastTemporalEntries(String, boolean, int, boolean, int)}
 	 */
 	IScrollableResultSet<TemporalEntry<K, V>> getAllLastTemporalEntries(String orderBy, boolean orderAcending,
 			int batchSize, boolean forceRebuildIndex);
+
+	/**
+	 * Returns last temporal entries including expired and deleted entries. The
+	 * returned result size is limited to the specified limit size. It returns
+	 * null if the specified grid path is not defined. Prior to invoking this
+	 * method, the grid path must be set by invoking
+	 * {@link #setGridPath(String)}.Unlike
+	 * {@link #getAllLastTemporalEntries(String, boolean, int, boolean)} which
+	 * returns all last temporal entries with not result set limit size, this
+	 * method limits the returned result set size in order to control the grid
+	 * load and performance. <i>For pure clients only.</i>
+	 * 
+	 * @param orderBy
+	 *            Order-by field name. If null, then no order takes place.
+	 * @param orderAscending
+	 *            true for ascending, false for descending result set.
+	 * @param batchSize
+	 *            Fetch batch size.
+	 * @param forceRebuildIndex
+	 *            true to force the servers to rebuild the result set index,
+	 *            false to use the cached result set if exists.
+	 * @param limit
+	 *            Result set limit size. -1 sets not limit, i.e., same as
+	 *            invoking
+	 *            {@link #getAllLastTemporalEntries(String, boolean, int, boolean)}
+	 *            . .
+	 * 
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server. Only pure
+	 *             clients are supported.
+	 * @see {@link #getAllLastTemporalEntries(String, boolean, int, boolean)}
+	 */
+	IScrollableResultSet<TemporalEntry<K, V>> getLastTemporalEntries(String orderBy, boolean orderAcending,
+			int batchSize, boolean forceRebuildIndex, int limit);
 
 	/**
 	 * Resets all TemporalBiz specifics and biz context attributes. This method

@@ -44,6 +44,7 @@ import com.netcrest.pado.pql.PqlParser.OrderByQueryString;
 public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 {
 	private static final int DEFAULT_FETCH_SIZE = 1000;
+	private static final int DEFAULT_LIMIT = -1;
 
 	@Resource
 	IIndexMatrixBiz<T> biz;
@@ -53,6 +54,8 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 	private QueryType queryType = QueryType.PQL;
 
 	private int fetchSize = 1000;
+	
+	private int limit = 1000;
 
 	private int startIndex = 0;
 
@@ -121,9 +124,15 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 		return biz.__submitCriteria(criteria);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public IScrollableResultSet<T> execute(String queryString) throws GridQueryException
+	{
+		return execute(queryString, null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public IScrollableResultSet<T> execute(String queryString, String resultId) throws GridQueryException
 	{
 		IPado pado = Pado.getPado(biz.getBizContext().getGridService().getToken());
 		if (pado == null) {
@@ -142,9 +151,14 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 		queryString = queryString.trim();
 		GridQuery criteria = GridQueryFactory.createGridQuery();
 		OrderByQueryString orderByQueryString = PqlParser.getOrderBy(queryString);
-		criteria.setId(createId(orderByQueryString.queryString));
+		if (resultId == null || resultId.length() == 0) {
+			criteria.setId(createId(orderByQueryString.queryString));
+		} else {
+			criteria.setId(resultId);
+		}
 		criteria.setAscending(ascending);
 		criteria.setFetchSize(fetchSize);
+		criteria.setLimit(limit);
 		criteria.setSortField(orderByField);
 		criteria.setForceRebuildIndex(forceRebuildIndex);
 		Boolean isServerQuery = (Boolean) parameterMap.get("IsServerQuery");
@@ -241,6 +255,32 @@ public class IndexMatrixBizImplLocal<T> implements IIndexMatrixBiz<T>, IBizLocal
 			fetchSize = DEFAULT_FETCH_SIZE;
 		}
 		return fetchSize;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setLimit(int limit)
+	{
+		if (limit <= 0) {
+			this.limit = DEFAULT_LIMIT;
+		} else {
+			this.limit = limit;
+		}
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getLimit()
+	{
+		if (limit == 0) {
+			limit = DEFAULT_LIMIT;
+		}
+		return limit;
 	}
 
 	/**

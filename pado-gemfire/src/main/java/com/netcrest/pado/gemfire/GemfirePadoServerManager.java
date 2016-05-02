@@ -542,6 +542,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 			// 5 min idle timeout
 			ExpirationAttributes idleTimeout = new ExpirationAttributes(300, ExpirationAction.LOCAL_DESTROY);
 			rf.setEntryIdleTimeout(idleTimeout);
+			rf.addCacheListener(new ResultsCacheListenerImpl());
 			resultsRegion = rf.createSubregion(padoRegion, "results");
 		}
 

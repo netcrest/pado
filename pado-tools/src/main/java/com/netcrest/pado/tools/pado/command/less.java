@@ -181,16 +181,17 @@ public class less implements ICommand
 		} else {
 			queryString = String.format(QUERY_KEYS_VALUES, fullPath);
 		}
-		if (limit > 0) {
-			int limitPerServer = limit;
-			if (gridInfo.getCacheInfoList() != null) {
-				int serverCount = gridInfo.getCacheInfoList().size();
-				if (serverCount != 0) {
-					limitPerServer = limit / serverCount;
-				}
-			}
-			queryString += " limit " + limitPerServer;	
-		}
-		return imBiz.execute(queryString);
+//		if (limit > 0) {
+//			int limitPerServer = limit;
+//			if (gridInfo.getCacheInfoList() != null) {
+//				int serverCount = gridInfo.getCacheInfoList().size();
+//				if (serverCount != 0) {
+//					limitPerServer = limit / serverCount;
+//				}
+//			}
+//			queryString += " limit " + limitPerServer;	
+//		}
+		imBiz.setLimit(limit);
+		return imBiz.execute(queryString, queryString + " limit " + limit);
 	}
 }

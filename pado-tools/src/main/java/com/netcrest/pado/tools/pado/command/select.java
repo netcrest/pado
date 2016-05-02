@@ -91,17 +91,17 @@ public class select implements ICommand
 			return;
 		}
 		
-		int limit = padoShell.getSelectLimit();
-		int limitPerServer = limit;
-		if (gridInfo.getCacheInfoList() != null) {
-			int serverCount = gridInfo.getCacheInfoList().size();
-			if (serverCount != 0) {
-				limitPerServer = limit / serverCount;
-			}
-		}
-		if (limit > 0) {
-			queryString += " limit " + limitPerServer;
-		}
+//		int limit = padoShell.getSelectLimit();
+//		int limitPerServer = limit;
+//		if (gridInfo.getCacheInfoList() != null) {
+//			int serverCount = gridInfo.getCacheInfoList().size();
+//			if (serverCount != 0) {
+//				limitPerServer = limit / serverCount;
+//			}
+//		}
+//		if (limit > 0) {
+//			queryString += " limit " + limitPerServer;
+//		}
 		
 		boolean refresh = commandLine.hasOption("refresh");
 		executeQuery(gridId, queryString, refresh);
@@ -115,7 +115,8 @@ public class select implements ICommand
 		imBiz.setGridIds(gridId);
 		imBiz.setForceRebuildIndex(refresh);
 		imBiz.setFetchSize(padoShell.getFetchSize());
-		IScrollableResultSet rs = imBiz.execute(queryString);
+		imBiz.setLimit(padoShell.getSelectLimit());
+		IScrollableResultSet rs = imBiz.execute(queryString,  queryString + " limit " + padoShell.getSelectLimit());
 		ResultSetDisplay.display(rs);
 	}
 }

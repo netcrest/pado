@@ -35,6 +35,7 @@ import com.netcrest.pado.index.gemfire.function.IEntitySearchFunction;
 import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.internal.IndexMatrixUtil;
 import com.netcrest.pado.index.service.GridQuery;
+import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.TemporalEntry;
 import com.netcrest.pado.temporal.TemporalManager;
 
@@ -56,11 +57,18 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 		return Id;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List queryLocal(GridQuery criteria, FunctionContext context) throws GridQueryException
 	{
 		try {
 			TemporalManager tm = TemporalManager.getTemporalManager(criteria.getFullPath());
+			
+			// Determine the limit based on the number of servers
+			int limit = criteria.getLimit();
+			if (limit > 0) {
+				limit = (int)Math.ceil(criteria.getLimit() / PadoServerManager.getPadoServerManager().getServerCount());
+			}
 			
 			// If tm is not defined or it is empty then the data might be
 			// non-temporal. In that case, use OQL.
@@ -77,6 +85,11 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 
 				List list;
 				String queryString = "select e.key, e.value from " + region.getFullPath() + ".entrySet e";
+				
+				// Apply limit if defined based on the number of servers
+				if (criteria.getLimit() > 0) {
+					queryString = queryString + " limit " + criteria.getLimit();
+				}
 				QueryService qs = CacheFactory.getAnyInstance().getQueryService();
 				DefaultQuery query = (DefaultQuery) qs.newQuery(queryString);
 				SelectResults sr;
@@ -89,7 +102,7 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 				list = sr.asList();
 				return list;
 			} else {
-				List<TemporalEntry> list = tm.getLastTemporalEntryList();
+				List<TemporalEntry> list = tm.getLastTemporalEntryList(limit);
 				if (list != null && criteria.isOrdered() && criteria.isAscending()) {
 					Collections.sort(list);
 				}

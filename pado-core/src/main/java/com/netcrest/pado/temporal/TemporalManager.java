@@ -154,6 +154,17 @@ public abstract class TemporalManager
 	}
 
 	/**
+	 * Returns a list of last temporal entries extracted from temporal lists
+	 * 
+	 * @param limit
+	 *            Result set size limit. -1 for no limit.
+	 */
+	public List<TemporalEntry> getLastTemporalEntryList(int limit)
+	{
+		return temporalManager.getLastTemporalEntryList(limit);
+	}
+
+	/**
 	 * Returns the temporal data list pertaining to the specified identity key.
 	 * The returned temporal data list can be safely shipped over the network.
 	 * 
@@ -345,11 +356,11 @@ public abstract class TemporalManager
 			tm.setEnabled(enabled, buildLucene, spawnThread);
 		}
 	}
-	
+
 	/**
-	 * Re-enables temporal managers that are already enabled. This method
-	 * may be useful during failover when temporal and Lucene indexes need
-	 * to be rebuilt due to a primary promotion of redundant data.
+	 * Re-enables temporal managers that are already enabled. This method may be
+	 * useful during failover when temporal and Lucene indexes need to be
+	 * rebuilt due to a primary promotion of redundant data.
 	 */
 	public synchronized static void resetEnabledAll()
 	{

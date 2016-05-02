@@ -44,7 +44,8 @@ import com.netcrest.pado.temporal.TemporalEntry;
  * <b>OQL Example:</b>
  * 
  * <pre>
- * // Create a new instance of IIndexMatrixBiz with the initialize flag set to true
+ * // Create a new instance of IIndexMatrixBiz with the initialize flag set to
+ * // true
  * IIndexMatrixBiz imbiz = pado.newInstance(IIndexMatrixBiz.class, true);
  * // Set the query attributes
  * imbiz.setFetchSize(100);
@@ -67,7 +68,8 @@ import com.netcrest.pado.temporal.TemporalEntry;
  * <b>PQL Example:</b>
  * 
  * <pre>
- * // Create a new instance of IIndexMatrixBiz with the initialize flag set to true
+ * // Create a new instance of IIndexMatrixBiz with the initialize flag set to
+ * // true
  * IIndexMatrixBiz imbiz = pado.newInstance(IIndexMatrixBiz.class, true);
  * // Set the query attributes
  * imbiz.setFetchSize(100);
@@ -131,13 +133,56 @@ public interface IIndexMatrixBiz<T> extends IIndexMatrixBizLink<T>
 	 * {@linkplain #setOrderByField(String)} which performs order-by on the
 	 * entire result set.</li>
 	 * </ul>
-	 * from
 	 * 
+	 * <b>IMPORTANT:</b> <i>This method uses the query string as the unique ID
+	 * to cache the returned result set in the grid. This means the result set
+	 * can be shared across different clients.</i> If rsult-sharing is not
+	 * desiralbe then invoke {@linkplain #execute(String, String)} instead.
+	 * <p>
+	 * 
+	 * @param queryString
+	 *            Query string. Supported query types are
+	 *            {@linkplain QueryType#OQL} and {@linkplain QueryType#OQL}.
 	 * @return Scrollable result set
 	 * @throws GridQueryException
 	 *             Thrown if the query fails
 	 */
 	public IScrollableResultSet<T> execute(String queryString) throws GridQueryException;
+
+	/**
+	 * Executes the specified query string based on the attributes set via the
+	 * set methods. The content structure of the returned result set differs
+	 * depending on the {@linkplain QueryType} as follows:
+	 * <ul>
+	 * <li><b>{@linkplain QueryType#PQL}</b> - For temporal Lucene query, it
+	 * returns a result set with {@linkplain TemporalEntry} objects. For OQL
+	 * query, it returns a result set with value objects. That means if temporal
+	 * objects are stored in the path then it returns ITemporalData objects. To
+	 * extract the actual object, invoke {@link ITemporalData#getValue()}</li>
+	 * <p>
+	 * <li><b>{@linkplain QueryType#OQL}</b> - An OQL query always begins with
+	 * "select" and returns a result set that conforms to the OQL select
+	 * projection. Because Pado creates and streams its own results, the OQL's
+	 * "order by" is only performed on the local data set on each server and
+	 * therefore should not be used. Instead use the
+	 * {@linkplain #setOrderByField(String)} which performs order-by on the
+	 * entire result set.</li>
+	 * </ul>
+	 * 
+	 * @param queryString
+	 *            Query string. Supported query types are
+	 *            {@linkplain QueryType#OQL} and {@linkplain QueryType#OQL}.
+	 * @param resultId
+	 *            Uniquely identifies the returned result set. Pado keeps query
+	 *            results in its L2 cache shared across client applications. If
+	 *            result-sharing is not desirable then specify a client specific
+	 *            ID. If null or the length is zero, then it sets resultId
+	 *            to the query string instead.
+	 * @return Scrollable result set
+	 * @throws GridQueryException
+	 *             Thrown if the query fails
+	 */
+	IScrollableResultSet<T> execute(String queryString, String resultId) throws GridQueryException;
 
 	/**
 	 * Sets the grid IDs. If null, then the normal IBiz grid selection process
@@ -165,6 +210,19 @@ public interface IIndexMatrixBiz<T> extends IIndexMatrixBizLink<T>
 	 * Returns the fetch size. Default: 1000.
 	 */
 	public int getFetchSize();
+
+	/**
+	 * Sets the result set size limit. Default: -1, i.e., no limit.
+	 * 
+	 * @param limit
+	 *            Size limit. -1 if no limit.
+	 */
+	public void setLimit(int fetchSize);
+
+	/**
+	 * Returns the result set size limit. Default: 1000, i.e., no limit.
+	 */
+	public int getLimit();
 
 	/**
 	 * Returns the query type. Default: {@link QueryType#PQL}.

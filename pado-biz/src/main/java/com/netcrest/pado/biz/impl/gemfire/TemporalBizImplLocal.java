@@ -395,12 +395,19 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			String orderBy, boolean orderAcending, int batchSize, boolean forceRebuildIndex)
 	{
 		return getEntryResultSet(validAtTime, System.currentTimeMillis(), orderBy, orderAcending, batchSize,
-				forceRebuildIndex);
+				forceRebuildIndex, -1);
 	}
 
 	@Override
 	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(long validAtTime,
 			long asOfTime, String orderBy, boolean orderAcending, int batchSize, boolean forceRebuildIndex)
+	{
+		return getEntryResultSet(validAtTime, asOfTime, orderBy, orderAcending, batchSize, forceRebuildIndex, -1);
+	}
+	
+	@Override
+	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(long validAtTime,
+			long asOfTime, String orderBy, boolean orderAcending, int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		if (biz.getBizContext().getGridService().isPureClient() == false) {
 			throw new PadoException(
@@ -423,7 +430,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		}
 		
 		GridQuery criteria = GridQueryFactory.createGridQuery();
-		criteria.setId("pql://" + gridPath + "&validAt=" + validAtTime + "&asOf=" + asOfTime);
+		criteria.setId("pql://" + gridPath + "&validAt=" + validAtTime + "&asOf=" + asOfTime + " limit " + limit);
 		criteria.setAscending(orderAcending);
 		criteria.setFetchSize(100);
 		criteria.setOrdered(orderBy != null);
@@ -438,6 +445,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		criteria.setGridService(this.biz.getBizContext().getGridService());
 		criteria.setFullPath(this.biz.getBizContext().getGridService().getFullPath(gridId, gridPath));
 		criteria.setProviderKey(Constants.TEMPORAL_ENTRY_PROVIDER_KEY);
+		criteria.setLimit(limit);
 		criteria.setParameter("validAtTime", validAtTime);
 		criteria.setParameter("asOfTime", asOfTime);
 		criteria.setParameter("isReference", isReference);
@@ -459,7 +467,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			String queryStatement, String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex)
 	{
 		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSet(queryStatement,
-				-1, -1, orderBy, orderAscending, batchSize, forceRebuildIndex, ResultSetType.TEMPORAL_ENTRY);
+				-1, -1, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, ResultSetType.TEMPORAL_ENTRY);
 	}
 
 	@Override
@@ -468,7 +476,17 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			int batchSize, boolean forceRebuildIndex)
 	{
 		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSet(queryStatement,
-				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex,
+				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1,
+				ResultSetType.TEMPORAL_ENTRY);
+	}
+	
+	@Override
+	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(
+			String queryStatement, long validAtTime, long asOfTime, String orderBy, boolean orderAscending,
+			int batchSize, boolean forceRebuildIndex, int limit)
+	{
+		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSet(queryStatement,
+				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1,
 				ResultSetType.TEMPORAL_ENTRY);
 	}
 	
@@ -478,7 +496,17 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex)
 	{
 		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSetWrittenTimeRange(queryStatement,
-				validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex,
+				validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, 
+				ResultSetType.TEMPORAL_ENTRY);
+	}
+	
+	@Override
+	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
+	{
+		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSetWrittenTimeRange(queryStatement,
+				validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, limit,
 				ResultSetType.TEMPORAL_ENTRY);
 	}
 
@@ -487,7 +515,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			int batchSize, boolean forceRebuildIndex)
 	{
 		return (IScrollableResultSet<V>) getResultSet(queryStatement, -1, -1, orderBy, orderAscending, batchSize,
-				forceRebuildIndex, ResultSetType.VALUE);
+				forceRebuildIndex, -1, ResultSetType.VALUE);
 	}
 
 	@Override
@@ -495,26 +523,45 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex)
 	{
 		return (IScrollableResultSet<V>) getResultSet(queryStatement, validAtTime, asOfTime, orderBy, orderAscending,
-				batchSize, forceRebuildIndex, ResultSetType.VALUE);
+				batchSize, forceRebuildIndex, -1, ResultSetType.VALUE);
 	}
 	
+	@Override
+	public IScrollableResultSet<V> getValueResultSet(String queryStatement, long validAtTime, long asOfTime,
+			String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
+	{
+		return (IScrollableResultSet<V>) getResultSet(queryStatement, validAtTime, asOfTime, orderBy, orderAscending,
+				batchSize, forceRebuildIndex, limit, ResultSetType.VALUE);
+	}
+	
+	@Override
 	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
 			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
 			boolean forceRebuildIndex)
 	{
 		return (IScrollableResultSet<V>) getResultSetWrittenTimeRange(queryStatement, validAtTime, fromWrittenTime,
-				toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, ResultSetType.VALUE);
+				toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, ResultSetType.VALUE);
+	}
+	
+	@Override
+	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
+			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit)
+	{
+		return (IScrollableResultSet<V>) getResultSetWrittenTimeRange(queryStatement, validAtTime, fromWrittenTime,
+				toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, limit, ResultSetType.VALUE);
 	}
 
 	private IScrollableResultSet getResultSet(String queryStatement, long validAtTime, long asOfTime, String orderBy,
-			boolean orderAscending, int batchSize, boolean forceRebuildIndex, ResultSetType type)
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit, ResultSetType type)
 	{
 		if (queryStatement == null) {
 			new NullPointerException("queryStatement is null");
 		}
 		GridQuery criteria = getGridQuery(queryStatement, validAtTime, orderBy, orderAscending, batchSize, forceRebuildIndex, type);
 		criteria.setParameter("asOfTime", asOfTime);
-		criteria.setId(criteria.getId() + "&asOf=" + asOfTime);
+		criteria.setId(criteria.getId() + "&asOf=" + asOfTime + " limit " + limit);
+		criteria.setLimit(limit);
 		IGridQueryService qs = GridQueryService.getGridQueryService();
 		IScrollableResultSet rs = qs.query(criteria);
 		return rs;
@@ -526,7 +573,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	}
 	
 	private IScrollableResultSet getResultSetWrittenTimeRange(String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
-			boolean orderAscending, int batchSize, boolean forceRebuildIndex, ResultSetType type)
+			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit, ResultSetType type)
 	{
 		if (queryStatement == null) {
 			new NullPointerException("queryStatement is null");
@@ -535,7 +582,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		criteria.setParameter("isWrittenTimeRange", true);
 		criteria.setParameter("fromWrittenTime", fromWrittenTime);
 		criteria.setParameter("toWrittenTime", toWrittenTime);
-		criteria.setId(criteria.getId() + "&fromWrittenTime=" + fromWrittenTime + "&toWrittenTime=" + toWrittenTime);
+		criteria.setId(criteria.getId() + "&fromWrittenTime=" + fromWrittenTime + "&toWrittenTime=" + toWrittenTime + " limit " + limit);
+		criteria.setLimit(limit);
 		IGridQueryService qs = GridQueryService.getGridQueryService();
 		IScrollableResultSet rs = qs.query(criteria);
 		return rs;
@@ -740,6 +788,13 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	public IScrollableResultSet<TemporalEntry<K, V>> getAllLastTemporalEntries(String orderBy, boolean orderAcending,
 			int batchSize, boolean forceRebuildIndex)
 	{
+		return getLastTemporalEntries(orderBy, orderAcending, batchSize, forceRebuildIndex, -1);
+	}
+	
+	@Override
+	public IScrollableResultSet<TemporalEntry<K, V>> getLastTemporalEntries(String orderBy, boolean orderAcending,
+			int batchSize, boolean forceRebuildIndex, int limit)
+	{
 		if (biz.getBizContext().getGridService().isPureClient() == false) {
 			throw new PadoException(
 					"Unsupported method. This method is supported for pure clients only.");
@@ -762,7 +817,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		String fullPath = this.biz.getBizContext().getGridService().getFullPath(gridId, gridPath);
 		
 		GridQuery criteria = GridQueryFactory.createGridQuery();
-		criteria.setId("pql://" + gridId + fullPath);
+		criteria.setId("pql://" + gridId + fullPath + " limit " + limit);
 		criteria.setAscending(orderAcending);
 		criteria.setFetchSize(batchSize);
 		criteria.setOrdered(true);
@@ -773,6 +828,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		criteria.setFullPath(fullPath);
 		criteria.setSortField(orderBy);
 		criteria.setForceRebuildIndex(forceRebuildIndex);
+		criteria.setLimit(limit);
 		
 		IGridQueryService qs = GridQueryService.getGridQueryService();	
 		IScrollableResultSet<TemporalEntry<K, V>> rs = (IScrollableResultSet) qs.query(criteria);

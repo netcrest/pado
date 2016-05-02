@@ -442,15 +442,33 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		}
 		return list;
 	}
-
+	
 	public List<TemporalEntry> getLastTemporalEntryList()
 	{
+		return getLastTemporalEntryList(-1);
+	}
+
+	public List<TemporalEntry> getLastTemporalEntryList(int limit)
+	{
+		ArrayList list;
 		Collection<ITemporalList> col = temporalListMap.values();
-		ArrayList list = new ArrayList(col.size() + 1);
-		for (ITemporalList temporalList : col) {
-			TemporalEntry entry = temporalList.getLastEntry();
-			if (entry != null) {
-				list.add(entry);
+		if (limit < 0) {
+			limit = col.size();
+		} else if (limit > col.size()) {
+			limit = col.size();
+		}
+		list = new ArrayList(limit);
+		if (limit > 0) {
+			int count = 0;
+			for (ITemporalList temporalList : col) {
+				count++;
+				TemporalEntry entry = temporalList.getLastEntry();
+				if (entry != null) {
+					list.add(entry);
+				}
+				if (count >= limit) {
+					break;
+				}
 			}
 		}
 		return list;

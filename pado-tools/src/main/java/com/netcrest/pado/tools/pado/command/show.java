@@ -112,8 +112,8 @@ public class show implements ICommand
 		PadoShell.println("      -fetch   Query result set fetch size for commands such as 'less', 'select', etc.");
 		PadoShell.println("      -history History size.");
 		PadoShell.println("      -key     Show key class fields. Use the 'key' command to set key class.");
-		PadoShell.println("      -limit   'select' and 'less' command limit size. 0 (zero) to set no limit.");
-		PadoShell.println("               CAUTION: Note that setting no limit (0) may lead to grid performance degradation.");
+		PadoShell.println("      -limit   'select' and 'less' command limit size. -1 to set no limit.");
+		PadoShell.println("               CAUTION: Note that setting no limit -1 may lead to grid performance degradation.");
 //		PadoShell.println("      -print   Toggle print. If enabled, results are printed to stdout.");
 		PadoShell.println("      -table   Set the print format to the tabular or catalog form. The");
 		PadoShell.println("               tabular form prints in a table with a column header. The catalog");

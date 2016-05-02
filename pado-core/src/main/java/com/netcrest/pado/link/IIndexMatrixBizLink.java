@@ -23,6 +23,7 @@ import com.netcrest.pado.annotation.OnServer;
 import com.netcrest.pado.index.exception.GridQueryException;
 import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.index.service.IScrollableResultSet;
+import com.netcrest.pado.link.IIndexMatrixBizLink.QueryType;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.temporal.TemporalEntry;
 
@@ -156,13 +157,55 @@ public interface IIndexMatrixBizLink<T> extends IBiz
 	 * {@linkplain #setOrderByField(String)} which performs order-by on the
 	 * entire result set.</li>
 	 * </ul>
-	 * from
 	 * 
+	 * <b>IMPORTANT:</b> <i>This method uses the query string as the unique ID to cache
+	 * the returned result set in the grid. This means the result set can be
+	 * shared across different clients.</i> If rsult-sharing is not desiralbe then invoke
+	 * {@linkplain #execute(String, String)} instead.
+	 * <p>
+	 * 
+	 * @param queryString
+	 *            Query string. Supported query types are
+	 *            {@linkplain QueryType#OQL} and {@linkplain QueryType#OQL}.
 	 * @return Scrollable result set
 	 * @throws GridQueryException
 	 *             Thrown if the query fails
 	 */
 	public IScrollableResultSet<T> execute(String queryString) throws GridQueryException;
+	
+	/**
+	 * Executes the specified query string based on the attributes set via the
+	 * set methods. The content structure of the returned result set differs
+	 * depending on the {@linkplain QueryType} as follows:
+	 * <ul>
+	 * <li><b>{@linkplain QueryType#PQL}</b> - For temporal Lucene query, it
+	 * returns a result set with {@linkplain TemporalEntry} objects. For OQL
+	 * query, it returns a result set with value objects. That means if temporal
+	 * objects are stored in the path then it returns ITemporalData objects. To
+	 * extract the actual object, invoke {@link ITemporalData#getValue()}</li>
+	 * <p>
+	 * <li><b>{@linkplain QueryType#OQL}</b> - An OQL query always begins with
+	 * "select" and returns a result set that conforms to the OQL select
+	 * projection. Because Pado creates and streams its own results, the OQL's
+	 * "order by" is only performed on the local data set on each server and
+	 * therefore should not be used. Instead use the
+	 * {@linkplain #setOrderByField(String)} which performs order-by on the
+	 * entire result set.</li>
+	 * </ul>
+	 * 
+	 * @param queryString
+	 *            Query string. Supported query types are
+	 *            {@linkplain QueryType#OQL} and {@linkplain QueryType#OQL}.
+	 * @param resultId
+	 *            Uniquely identifies the returned result set. Pado keeps query
+	 *            results in its L2 cache shared across client applications. If
+	 *            result-sharing is not desirable then specify a client specific
+	 *            ID.
+	 * @return Scrollable result set
+	 * @throws GridQueryException
+	 *             Thrown if the query fails
+	 */
+	IScrollableResultSet<T> execute(String queryString, String resultId) throws GridQueryException;
 
 	/**
 	 * Sets the grid IDs. If null, then the normal IBiz grid selection process

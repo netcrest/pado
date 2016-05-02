@@ -79,6 +79,7 @@ public class GemfireGridQuery extends GridQuery implements DataSerializable
 		forceRebuildIndex = DataSerializer.readPrimitiveBoolean(input);
 		throwExceptionOnExpire = DataSerializer.readPrimitiveBoolean(input);
 		fullPath = DataSerializer.readString(input);
+		limit = DataSerializer.readPrimitiveInt(input);
 	}
 
 	/**
@@ -106,6 +107,7 @@ public class GemfireGridQuery extends GridQuery implements DataSerializable
 		DataSerializer.writeBoolean(forceRebuildIndex, output);
 		DataSerializer.writeBoolean(throwExceptionOnExpire, output);
 		DataSerializer.writeString(fullPath, output);
+		DataSerializer.writePrimitiveInt(limit, output);
 	}
 
 }

@@ -18,6 +18,8 @@ package com.netcrest.pado.index.gemfire.function;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Declarable;
@@ -35,6 +37,7 @@ import com.netcrest.pado.index.exception.GridQueryException;
 import com.netcrest.pado.index.helper.IndexMatrixOperationUtility;
 import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * The ServerEntitySearchFunction called by GridSearch server to build
@@ -47,6 +50,8 @@ public class ServerEntitySearchFunction extends AbstractEntitySearchFunction imp
 	private static final long serialVersionUID = 1L;
 	
 	public final static String Id = "ServerEntitySearchFunction";
+	
+	private final static Pattern limitPattern = Pattern.compile("(?i) limit ");
 
 	@Override
 	public String getId()
@@ -54,6 +59,7 @@ public class ServerEntitySearchFunction extends AbstractEntitySearchFunction imp
 		return Id;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List queryLocal(GridQuery criteria, FunctionContext context) throws GridQueryException
 	{
@@ -63,6 +69,18 @@ public class ServerEntitySearchFunction extends AbstractEntitySearchFunction imp
 		if (region == null) {
 			return null;
 		}
+		
+		// Apply limit if defined based on the number of servers
+		int limit = criteria.getLimit();
+		if (limit > 0) {
+			limit = (int)Math.ceil(criteria.getLimit() / PadoServerManager.getPadoServerManager().getServerCount());
+		}
+		if (limit >= 0) {
+			Matcher matcher = limitPattern.matcher(queryString);
+			if (matcher.find() == false) {
+				queryString = queryString + " limit " + limit;
+			}
+		}
 
 		try {
 			QueryService qs = CacheFactory.getAnyInstance().getQueryService();
@@ -70,7 +88,7 @@ public class ServerEntitySearchFunction extends AbstractEntitySearchFunction imp
 				DefaultQuery query = (DefaultQuery) qs.newQuery(queryString);
 				Boolean isServerQuery = (Boolean)criteria.getParam("IsServerQuery");
 				if (isServerQuery != null && isServerQuery) {
-					Region localDataSet = PartitionRegionHelper.getLocalPrimaryData(region);
+//					Region localDataSet = PartitionRegionHelper.getLocalPrimaryData(region);
 					LocalDataSet localDS = (LocalDataSet) PartitionRegionHelper.getLocalPrimaryData(region);
 					SelectResults sr = (SelectResults) localDS.executeQuery(query, null, null);
 					return sr.asList();
