@@ -65,11 +65,8 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 			TemporalManager tm = TemporalManager.getTemporalManager(criteria.getFullPath());
 			
 			// Determine the limit based on the number of servers
-			int limit = criteria.getLimit();
-			if (limit > 0) {
-				limit = (int)Math.ceil(criteria.getLimit() / PadoServerManager.getPadoServerManager().getServerCount());
-			}
-			
+			int limit = criteria.getServerLimit();
+
 			// If tm is not defined or it is empty then the data might be
 			// non-temporal. In that case, use OQL.
 			if (tm == null || tm.getTemporalListCount() == 0) {
@@ -87,8 +84,8 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 				String queryString = "select e.key, e.value from " + region.getFullPath() + ".entrySet e";
 				
 				// Apply limit if defined based on the number of servers
-				if (criteria.getLimit() > 0) {
-					queryString = queryString + " limit " + criteria.getLimit();
+				if (limit > 0) {
+					queryString = queryString + " limit " + limit;
 				}
 				QueryService qs = CacheFactory.getAnyInstance().getQueryService();
 				DefaultQuery query = (DefaultQuery) qs.newQuery(queryString);

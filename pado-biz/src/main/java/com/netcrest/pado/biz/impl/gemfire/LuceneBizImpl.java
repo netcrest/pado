@@ -32,6 +32,7 @@ import com.netcrest.pado.index.provider.lucene.LuceneBuilder;
 import com.netcrest.pado.index.provider.lucene.LuceneSearch;
 import com.netcrest.pado.index.result.IMemberResults;
 import com.netcrest.pado.index.service.GridQuery;
+import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.TemporalEntry;
 import com.netcrest.pado.temporal.TemporalManager;
@@ -144,7 +145,7 @@ public class LuceneBizImpl extends AbstractEntitySearch implements ILuceneBiz
 	public Set getTemporalIdentityKeySet(String gridPath, String queryString)
 	{
 		String fullPath = GridUtil.getFullPath(gridPath);
-		return LuceneSearch.getLuceneSearch(fullPath).getIdentityKeySet(fullPath, queryString);
+		return LuceneSearch.getLuceneSearch(fullPath).getIdentityKeySet(fullPath, queryString, -1);
 	}
 
 	@Override
@@ -152,7 +153,7 @@ public class LuceneBizImpl extends AbstractEntitySearch implements ILuceneBiz
 	public Set<ITemporalKey> getTemporalKeySet(String gridPath, String queryString)
 	{
 		String fullPath = GridUtil.getFullPath(gridPath);
-		return LuceneSearch.getLuceneSearch(fullPath).getTemporalKeySet(fullPath, queryString);
+		return LuceneSearch.getLuceneSearch(fullPath).getTemporalKeySet(fullPath, queryString, -1);
 	}
 
 	@Override

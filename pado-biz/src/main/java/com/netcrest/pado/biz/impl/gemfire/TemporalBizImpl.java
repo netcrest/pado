@@ -1117,7 +1117,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 						if (identityKeyQueryStatement != null && identityKeyQueryStatement.length() > 0) {
 							qs += " AND ("	+ identityKeyQueryStatement + ")";
 						}
-						Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs);
+						Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs, -1);
 //							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, identityKeyQueryStatement);
 						if (identityKeySet != null) {
 							if (identityKeySearchedSet != null) {
@@ -1253,7 +1253,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 				if (queryStatement != null && queryStatement.length() > 0) {
 					LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
 					String qs = ls.getTimePredicate(validAtTime, asOfTime) + " AND (" + queryStatement + ")";
-					Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs);
+					Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs, -1);
 					if (identityKeySearchedSet != null) {
 						if (identityKeySet == null) {
 							identityKeySet = identityKeySearchedSet;

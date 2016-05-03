@@ -21,8 +21,8 @@ import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.temporal.TemporalEntry;
 
 /**
- * The Provider provides text mining specific algorithm to integrate
- * with <code>IIndexMatrixProvider</code>
+ * The Provider provides text mining specific algorithm to integrate with
+ * <code>IIndexMatrixProvider</code>
  * 
  * @see IIndexMatrixProvider
  * 
@@ -38,20 +38,20 @@ public interface ITextSearchProvider
 	 *            Index matrix query criteria
 	 */
 	List<TemporalEntry> searchTemporal(GridQuery criteria);
-	
+
 	/**
-	 * Combine the results from distributed servers and sort for TopN,
-	 * the element on both the entities and return is 
+	 * Combine the results from distributed servers and sort for TopN, the
+	 * element on both the entities and return is
 	 * <code>com.netcrest.pado.index.result.IndexableResult</code>
 	 * 
 	 * @param criteria
 	 *            Index matrix query criteria
 	 * @param entities
-	 * 			 Entites to sort
+	 *            Entites to sort
 	 * @param isMember
-	 * 			 True if the list is member result, false if the list is merged result
+	 *            True if the list is member result, false if the list is merged
+	 *            result
 	 */
 	List<?> combineAndSort(List<?> entities, GridQuery criteria, boolean isMember);
-
 
 }

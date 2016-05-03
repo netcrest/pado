@@ -486,7 +486,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSet(queryStatement,
-				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1,
+				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex, limit,
 				ResultSetType.TEMPORAL_ENTRY);
 	}
 	

@@ -34,6 +34,7 @@ import com.netcrest.pado.index.helper.IndexMatrixOperationUtility;
 import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.pql.CompiledUnit;
+import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.TemporalEntry;
 
 /**

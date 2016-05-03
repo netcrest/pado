@@ -71,10 +71,7 @@ public class ServerEntitySearchFunction extends AbstractEntitySearchFunction imp
 		}
 		
 		// Apply limit if defined based on the number of servers
-		int limit = criteria.getLimit();
-		if (limit > 0) {
-			limit = (int)Math.ceil(criteria.getLimit() / PadoServerManager.getPadoServerManager().getServerCount());
-		}
+		int limit = criteria.getServerLimit();
 		if (limit >= 0) {
 			Matcher matcher = limitPattern.matcher(queryString);
 			if (matcher.find() == false) {

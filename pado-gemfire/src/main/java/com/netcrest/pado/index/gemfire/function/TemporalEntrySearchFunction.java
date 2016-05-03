@@ -53,8 +53,8 @@ import com.netcrest.pado.temporal.gemfire.GemfireTemporalManager;
  * IndexMatrix for a ITemporalBiz.getEntryResultSet() query.
  * 
  */
-public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction implements Function, Declarable,
-		IEntitySearchFunction
+public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction
+		implements Function, Declarable, IEntitySearchFunction
 {
 	private static final long serialVersionUID = 1L;
 
@@ -71,8 +71,8 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 	public List queryLocal(GridQuery criteria, FunctionContext context) throws GridQueryException
 	{
 		List resultList = null;
-		BizManager bizManager = PadoServerManager.getPadoServerManager().getAppBizManager(
-				"com.netcrest.pado.biz.ITemporalBiz");
+		BizManager bizManager = PadoServerManager.getPadoServerManager()
+				.getAppBizManager("com.netcrest.pado.biz.ITemporalBiz");
 		try {
 			String fullPath = criteria.getFullPath();
 			String gridPath = GridUtil.getChildPath(fullPath);
@@ -88,6 +88,7 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 				long validAtTime = -1;
 				long asOfTime = System.currentTimeMillis();
 				boolean isWrittenTimeRange = false;
+				int limit = criteria.getServerLimit();
 				ITemporalBizLink.ResultSetType type = ITemporalBizLink.ResultSetType.TEMPORAL_ENTRY;
 				String queryString = criteria.getQueryString();
 				if (queryString != null) {
@@ -132,6 +133,12 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 					resultList = VirtualPathEngine.getVirtualPathEngine().execute(criteria.getQueryString(),
 							validAtTime, asOfTime);
 				} else {
+
+					// Result set limit is applied per server. Note that limit
+					// only approximates the result set size. If one or more
+					// servers have a number of entries that is less than the
+					// server limit then the final aggregate resize will be less
+					// then the total limit.
 					if (queryString != null && queryString.length() > 0) {
 						// Search Lucene + temporal
 						// Set identityKeySet = null;
@@ -140,6 +147,9 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 							// for backward compatibility, replace remove
 							// IdentityKey from the select projection.
 							String temporalKeyOqlQueryString = queryString.replaceFirst("\\.IdentityKey", "");
+							if (limit > 0) {
+								temporalKeyOqlQueryString += " limit " + limit;
+							}
 							QueryService qs = CacheFactory.getAnyInstance().getQueryService();
 							DefaultQuery query = (DefaultQuery) qs.newQuery(temporalKeyOqlQueryString);
 							Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
@@ -151,26 +161,31 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 							temporalKeySet = sr.asSet();
 						} else {
 							CompiledUnit cu = new CompiledUnit(queryString);
-							
+
 							if (cu.getQueryLanguage() == QueryLanguage.LUCENE) {
-								
-								//LuceneSearch luceneSearch = LuceneSearch.getLuceneSearch(criteria.getFullPath());
-								ITextSearchProvider provider = TextSearchProviderFactory.getInstance().getProvider(cu.getQueryLanguage(), criteria);
+
+								// LuceneSearch luceneSearch =
+								// LuceneSearch.getLuceneSearch(criteria.getFullPath());
+								ITextSearchProvider provider = TextSearchProviderFactory.getInstance()
+										.getProvider(cu.getQueryLanguage(), criteria);
 								String qs;
 								if (provider instanceof LuceneSearch) {
 									LuceneSearch luceneSearch = (LuceneSearch) provider;
 									if (isWrittenTimeRange) {
-										qs = luceneSearch.getWrittenTimeRangeQuery(validAtTime, fromWrittenTime, toWrittenTime,
-												cu.getCompiledQuery());
+										qs = luceneSearch.getWrittenTimeRangeQuery(validAtTime, fromWrittenTime,
+												toWrittenTime, cu.getCompiledQuery());
 									} else {
 										qs = luceneSearch.getTimeQuery(validAtTime, asOfTime, cu.getCompiledQuery());
 									}
-								temporalKeySet = luceneSearch.getTemporalKeySet(criteria.getFullPath(), qs);
+									temporalKeySet = luceneSearch.getTemporalKeySet(criteria.getFullPath(), qs, limit);
 								}
 							} else {
 								String temporalKeyOqlQueryString = cu.getTemporalKeyQuery(validAtTime, asOfTime);
-								Region region = IndexMatrixOperationUtility.getRegionFromQuery(
-										temporalKeyOqlQueryString, null);
+								if (limit > 0) {
+									temporalKeyOqlQueryString += " limit " + limit;
+								}
+								Region region = IndexMatrixOperationUtility
+										.getRegionFromQuery(temporalKeyOqlQueryString, null);
 								if (region == null) {
 									throw new GridQueryException("Invalid query. Path undefined: " + queryString);
 								}
@@ -188,8 +203,7 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 							break;
 
 						case VALUE:
-							resultList = tm.getTemporalCacheListener().getValueList_TemporalKeys(
-										temporalKeySet);
+							resultList = tm.getTemporalCacheListener().getValueList_TemporalKeys(temporalKeySet);
 							break;
 
 						case TEMPORAL_KEY:
@@ -197,8 +211,7 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 							break;
 
 						case TEMPORAL_DATA:
-							resultList = tm.getTemporalCacheListener()
-									.getTemporalDataList_TemporalKeys(temporalKeySet);
+							resultList = tm.getTemporalCacheListener().getTemporalDataList_TemporalKeys(temporalKeySet);
 							break;
 
 						case TEMPORAL_ENTRY:
@@ -230,8 +243,8 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 						case TEMPORAL_ENTRY:
 						default:
 							// Search temporal
-							resultList = tm.getTemporalCacheListener().getWrittenTimeRangeTemporalEntryList(
-									validAtTime, fromWrittenTime, toWrittenTime);
+							resultList = tm.getTemporalCacheListener().getWrittenTimeRangeTemporalEntryList(validAtTime,
+									fromWrittenTime, toWrittenTime);
 							break;
 						}
 
@@ -253,8 +266,8 @@ public class TemporalEntrySearchFunction extends AbstractEntitySearchFunction im
 										int.class, long.class, long.class, Object.class);
 								break;
 							}
-							method.invoke(finder, resultList, depth, validAtTime, asOfTime, Thread.currentThread()
-									.getId());
+							method.invoke(finder, resultList, depth, validAtTime, asOfTime,
+									Thread.currentThread().getId());
 						}
 					}
 				}

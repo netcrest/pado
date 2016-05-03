@@ -67,20 +67,21 @@ public class LuceneSearch implements ITextSearchProvider
 
 {
 	public static final Version LUCENE_VERSION = Version.LUCENE_47;
-	
+
 	/**
-	 * Contains all registered LuceneSearch objects. &gt;full-path, LuceneSearch&lt;.
+	 * Contains all registered LuceneSearch objects. &gt;full-path,
+	 * LuceneSearch&lt;.
 	 */
 	private final static Map<String, LuceneSearch> luceneSearchMap = new HashMap<String, LuceneSearch>();
-	
+
 	private static final DateTool.Resolution TIME_RESOLUTION = DateTool.Resolution.DAY;
 
 	public static final String MIN_DATE = "19700101";
 	public static final String MAX_DATE = "20991231";
 	public static long MIN_TIME;
 	public static long MAX_TIME;
-	
-	static {		
+
+	static {
 		try {
 			MIN_TIME = DateTool.stringToTime(MIN_DATE, TIME_RESOLUTION);
 			MAX_TIME = DateTool.stringToTime(MAX_DATE, TIME_RESOLUTION);
@@ -88,35 +89,37 @@ public class LuceneSearch implements ITextSearchProvider
 			// ignore
 		}
 	}
-	
+
 	/**
 	 * Time query predicate. date range is (inclusive, exclusive)
 	 */
-	public final static String TIME_QUERY_PREDICATE = "StartValidTime:[" + MIN_DATE + 
-			" TO %s] AND EndValidTime:{%s TO " + MAX_DATE + "] AND StartWrittenTime:[" + MIN_DATE +
-			" TO %s] AND EndWrittenTime:{%s TO " + MAX_DATE + "]";
-	
-	public final static String START_WRITTEN_TIME_RANGE_QUERY_PREDICATE = "StartValidTime:[" + MIN_DATE + 
-			" TO %s] AND EndValidTime:[%s TO " + MAX_DATE + "] AND StartWrittenTime:[" + "%s" +
-			" TO %s]";
-	
+	public final static String TIME_QUERY_PREDICATE = "StartValidTime:[" + MIN_DATE + " TO %s] AND EndValidTime:{%s TO "
+			+ MAX_DATE + "] AND StartWrittenTime:[" + MIN_DATE + " TO %s] AND EndWrittenTime:{%s TO " + MAX_DATE + "]";
+
+	public final static String START_WRITTEN_TIME_RANGE_QUERY_PREDICATE = "StartValidTime:[" + MIN_DATE
+			+ " TO %s] AND EndValidTime:[%s TO " + MAX_DATE + "] AND StartWrittenTime:[" + "%s" + " TO %s]";
+
 	protected LuceneSearch()
 	{
 	}
-	
+
 	/**
 	 * Returns true if LuceneSearch exists for the specified full path.
-	 * @param fullPath Full path
+	 * 
+	 * @param fullPath
+	 *            Full path
 	 */
 	public static boolean isLuceneSearch(String fullPath)
 	{
 		return luceneSearchMap.containsKey(fullPath);
 	}
-	
+
 	/**
 	 * Returns LuceneSearch for the specified full path. It creates a new
 	 * instance if LuceneSearch does not exist.
-	 * @param fullPath Full path
+	 * 
+	 * @param fullPath
+	 *            Full path
 	 */
 	public static LuceneSearch getLuceneSearch(String fullPath)
 	{
@@ -127,7 +130,7 @@ public class LuceneSearch implements ITextSearchProvider
 		}
 		return search;
 	}
-	
+
 	/**
 	 * Returns parser.
 	 */
@@ -136,7 +139,6 @@ public class LuceneSearch implements ITextSearchProvider
 		StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer(LUCENE_VERSION));
 		return parser;
 	}
-	
 
 	/**
 	 * Returns a list of temporal entries.
@@ -147,15 +149,14 @@ public class LuceneSearch implements ITextSearchProvider
 	public List<TemporalEntry> searchTemporal(GridQuery criteria)
 	{
 		PqlParser pqlParser = new PqlParser(criteria.getFullPath(), criteria.getQueryString());
-		Set<ITemporalKey> temporalKeySet = getTemporalKeySet(pqlParser.getFullPath(), pqlParser.getParsedQuery());
+		Set<ITemporalKey> temporalKeySet = getTemporalKeySet(pqlParser.getFullPath(), pqlParser.getParsedQuery(),
+				criteria.getServerLimit());
 		if (temporalKeySet == null || temporalKeySet.size() == 0) {
 			return null;
 		}
-		
+
 		String childPath = GridUtil.getChildPath(pqlParser.getFullPath());
-		ITemporalBizLink temporalBiz = (ITemporalBizLink) PadoServerManager
-				.getPadoServerManager()
-				.getCatalog()
+		ITemporalBizLink temporalBiz = (ITemporalBizLink) PadoServerManager.getPadoServerManager().getCatalog()
 				.newInstanceLocal("com.netcrest.pado.biz.ITemporalBiz",
 						"com.netcrest.pado.biz.impl.gemfire.TemporalBizImplLocal", childPath);
 		temporalBiz.getBizContext().getGridContextClient().setGridIds(criteria.getGridIds());
@@ -169,27 +170,26 @@ public class LuceneSearch implements ITextSearchProvider
 		}
 		for (Map.Entry<ITemporalKey, ITemporalData> entry : map.entrySet()) {
 			if (entry.getValue() != null) {
-				TemporalEntry newEntry = TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(
-						entry.getKey(), entry.getValue());
+				TemporalEntry newEntry = TemporalInternalFactory.getTemporalInternalFactory()
+						.createTemporalEntry(entry.getKey(), entry.getValue());
 				list.add(newEntry);
 			}
 		}
 		return list;
 	}
-	
-	// TODO: This method attempts to include attachments. See if we can reinstate it.
-	private List<TemporalEntry> searchTemporal_old(GridQuery criteria)
+
+	// TODO: This method attempts to include attachments. See if we can
+	// reinstate it.
+	private List<TemporalEntry> searchTemporal_old(GridQuery criteria, int limit)
 	{
-		Set<Object> identityKeySet = getIdentityKeySet(criteria.getFullPath(), criteria.getQueryString());
+		Set<Object> identityKeySet = getIdentityKeySet(criteria.getFullPath(), criteria.getQueryString(), limit);
 
 		if (identityKeySet == null || identityKeySet.size() == 0) {
 			return null;
 		}
 
 		String childPath = GridUtil.getChildPath(criteria.getFullPath());
-		ITemporalBizLink temporalBiz = (ITemporalBizLink) PadoServerManager
-				.getPadoServerManager()
-				.getCatalog()
+		ITemporalBizLink temporalBiz = (ITemporalBizLink) PadoServerManager.getPadoServerManager().getCatalog()
 				.newInstanceLocal("com.netcrest.pado.biz.ITemporalBiz",
 						"com.netcrest.pado.biz.impl.gemfire.TemporalBizImplLocal", childPath);
 		temporalBiz.getBizContext().getGridContextClient().setGridIds(criteria.getGridIds());
@@ -202,13 +202,12 @@ public class LuceneSearch implements ITextSearchProvider
 		map.entrySet();
 		ArrayList<TemporalEntry> list = new ArrayList(map.size() + 1);
 		for (Map.Entry<ITemporalKey, ITemporalData> entry : map.entrySet()) {
-			TemporalEntry newEntry = TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(
-					entry.getKey(), entry.getValue());
+			TemporalEntry newEntry = TemporalInternalFactory.getTemporalInternalFactory()
+					.createTemporalEntry(entry.getKey(), entry.getValue());
 			list.add(newEntry);
 		}
 		return list;
 	}
-
 
 	/**
 	 * Returns a non-null set of temporal identity keys.
@@ -216,7 +215,7 @@ public class LuceneSearch implements ITextSearchProvider
 	 * @param criteria
 	 *            Index matrix query criteria
 	 */
-	public Set getIdentityKeySet(String fullPath, String queryString)
+	public Set getIdentityKeySet(String fullPath, String queryString, int limit)
 	{
 		Cache cache = CacheFactory.getAnyInstance();
 		Region<String, RAMDirectory> region = cache
@@ -231,7 +230,7 @@ public class LuceneSearch implements ITextSearchProvider
 			}
 			try {
 				directory = new MMapDirectory(file);
-				identityKeySet = getIdentityKeySet(queryString, directory);
+				identityKeySet = getIdentityKeySet(queryString, directory, limit);
 			} catch (IOException e) {
 				throw new IndexMatrixException("Lucene index directory error. [query=" + queryString + ", fullPath="
 						+ fullPath + "] " + e.getMessage(), e);
@@ -245,12 +244,12 @@ public class LuceneSearch implements ITextSearchProvider
 				}
 			}
 		} else {
-			identityKeySet = getIdentityKeySet(queryString, directory);
+			identityKeySet = getIdentityKeySet(queryString, directory, limit);
 		}
 		return identityKeySet;
 	}
 
-	protected Set<Object> getIdentityKeySet(String queryString, Directory dir)
+	protected Set<Object> getIdentityKeySet(String queryString, Directory dir, int limit)
 	{
 		Set<Object> identityKeySet = new HashSet<Object>();
 		DirectoryReader reader;
@@ -277,6 +276,9 @@ public class LuceneSearch implements ITextSearchProvider
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopDocs results;
 		try {
+			if (limit < 0) {
+				limit = Integer.MAX_VALUE;
+			}
 			results = searcher.search(query, null, Integer.MAX_VALUE);
 
 			for (ScoreDoc hit : results.scoreDocs) {
@@ -290,28 +292,28 @@ public class LuceneSearch implements ITextSearchProvider
 					e.printStackTrace();
 					throw new RuntimeException(e);
 				}
-//				IndexableField field = doc.getField("IdentityKey");
-//				if (field == null) {
-//					continue;
-//				}
-//				Object identityKey = field.stringValue();
-//				if (identityKey == null) {
-//					identityKey = field.numericValue();
-//				}
-//				if (identityKey == null) {
-//					BytesRef br = field.binaryValue();
-//					if (br != null) {
-//						byte[] blob = br.bytes;
-//						try {
-//							identityKey = BlobHelper.deserializeBlob(blob);
-//							identityKeySet.add(identityKey);
-//						} catch (Exception ex) {
-//							Logger.warning("Identity key deserialization error", ex);
-//						}
-//					} else {
-//						identityKey = field.toString();
-//					}
-//				}
+				// IndexableField field = doc.getField("IdentityKey");
+				// if (field == null) {
+				// continue;
+				// }
+				// Object identityKey = field.stringValue();
+				// if (identityKey == null) {
+				// identityKey = field.numericValue();
+				// }
+				// if (identityKey == null) {
+				// BytesRef br = field.binaryValue();
+				// if (br != null) {
+				// byte[] blob = br.bytes;
+				// try {
+				// identityKey = BlobHelper.deserializeBlob(blob);
+				// identityKeySet.add(identityKey);
+				// } catch (Exception ex) {
+				// Logger.warning("Identity key deserialization error", ex);
+				// }
+				// } else {
+				// identityKey = field.toString();
+				// }
+				// }
 				LuceneField luceneField = new LuceneField();
 				ITemporalKey temporalKey = luceneField.getTemporalKey(doc);
 				if (temporalKey != null) {
@@ -324,14 +326,18 @@ public class LuceneSearch implements ITextSearchProvider
 		}
 		return identityKeySet;
 	}
-	
+
 	/**
 	 * Returns a set of temporal keys.
 	 * 
-	 * @param criteria
-	 *            Index matrix query criteria
+	 * @param fullPath
+	 *            Full path
+	 * @param queryString
+	 *            Lucene query string
+	 * @param limit
+	 *            Result set limit size. -1 for no limit.
 	 */
-	public Set<ITemporalKey> getTemporalKeySet(String fullPath, String queryString)
+	public Set<ITemporalKey> getTemporalKeySet(String fullPath, String queryString, int limit)
 	{
 		Cache cache = CacheFactory.getAnyInstance();
 		Region<String, RAMDirectory> region = cache
@@ -346,7 +352,7 @@ public class LuceneSearch implements ITextSearchProvider
 			}
 			try {
 				directory = new MMapDirectory(file);
-				temporalKeySet = getTemporalKeySet(queryString, directory);
+				temporalKeySet = getTemporalKeySet(queryString, directory, limit);
 			} catch (IOException e) {
 				throw new IndexMatrixException("Lucene index directory error. [query=" + queryString + ", fullPath="
 						+ fullPath + "] " + e.getMessage(), e);
@@ -360,13 +366,13 @@ public class LuceneSearch implements ITextSearchProvider
 				}
 			}
 		} else {
-			temporalKeySet = getTemporalKeySet(queryString, directory);
-			
+			temporalKeySet = getTemporalKeySet(queryString, directory, limit);
+
 		}
 		return temporalKeySet;
 	}
 
-	protected Set<ITemporalKey> getTemporalKeySet(String queryString, Directory dir)
+	protected Set<ITemporalKey> getTemporalKeySet(String queryString, Directory dir, int limit)
 	{
 		Set<ITemporalKey> temporalKeySet = new HashSet<ITemporalKey>();
 		DirectoryReader reader;
@@ -392,7 +398,10 @@ public class LuceneSearch implements ITextSearchProvider
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopDocs results;
 		try {
-			results = searcher.search(query, null, Integer.MAX_VALUE);
+			if (limit < 0) {
+				limit = Integer.MAX_VALUE;
+			}
+			results = searcher.search(query, null, limit);
 
 			for (ScoreDoc hit : results.scoreDocs) {
 				Document doc;
@@ -417,20 +426,20 @@ public class LuceneSearch implements ITextSearchProvider
 		}
 		return temporalKeySet;
 	}
-	
+
 	public String getTimeQuery(long validAtTime, long asOfTime, String queryString)
 	{
 		if (queryString != null) {
 			queryString = queryString.trim();
 		}
-		String predicate = getTimePredicate(validAtTime,asOfTime);
+		String predicate = getTimePredicate(validAtTime, asOfTime);
 		if (queryString == null || queryString.length() == 0) {
 			return predicate;
 		} else {
 			return predicate + " AND (" + queryString.replaceAll("\\-", "\\\\-") + ")";
 		}
 	}
-	
+
 	public String getTimePredicate(long validAtTime, long asOfTime)
 	{
 		if (validAtTime == -1) {
@@ -441,11 +450,13 @@ public class LuceneSearch implements ITextSearchProvider
 		}
 		String validAtTimeString = DateTool.timeToString(validAtTime, TIME_RESOLUTION);
 		String asOfTimeString = DateTool.timeToString(asOfTime, TIME_RESOLUTION);
-		
-		return String.format(TIME_QUERY_PREDICATE, validAtTimeString, validAtTimeString, asOfTimeString, asOfTimeString);
+
+		return String.format(TIME_QUERY_PREDICATE, validAtTimeString, validAtTimeString, asOfTimeString,
+				asOfTimeString);
 	}
-	
-	public String getWrittenTimeRangeQuery(long validAtTime, long fromWrittenTime, long toWrittenTime, String queryString)
+
+	public String getWrittenTimeRangeQuery(long validAtTime, long fromWrittenTime, long toWrittenTime,
+			String queryString)
 	{
 		if (queryString != null) {
 			queryString = queryString.trim();
@@ -457,7 +468,7 @@ public class LuceneSearch implements ITextSearchProvider
 			return predicate + " AND (" + queryString.replaceAll("\\-", "\\\\-") + ")";
 		}
 	}
-	
+
 	public String getWrittenTimeRangePredicate(long validAtTime, long fromWrittenTime, long toWrittenTime)
 	{
 		if (validAtTime == -1) {
@@ -472,16 +483,17 @@ public class LuceneSearch implements ITextSearchProvider
 		String validAtTimeString = DateTool.timeToString(validAtTime, TIME_RESOLUTION);
 		String fromWrittenTimeString = DateTool.timeToString(fromWrittenTime, TIME_RESOLUTION);
 		String toWrittenTimeString = DateTool.timeToString(toWrittenTime, TIME_RESOLUTION);
-		
-		return String.format(START_WRITTEN_TIME_RANGE_QUERY_PREDICATE, validAtTimeString, validAtTimeString, fromWrittenTimeString, toWrittenTimeString);
+
+		return String.format(START_WRITTEN_TIME_RANGE_QUERY_PREDICATE, validAtTimeString, validAtTimeString,
+				fromWrittenTimeString, toWrittenTimeString);
 	}
 
 	@Override
-	public List<?> combineAndSort(List<?> entities, GridQuery criteria, boolean isMember)  throws  UnsupportedOperationException {
+	public List<?> combineAndSort(List<?> entities, GridQuery criteria, boolean isMember)
+			throws UnsupportedOperationException
+	{
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();
 	}
-
-
 
 }

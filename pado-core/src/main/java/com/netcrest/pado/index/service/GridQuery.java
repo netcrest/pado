@@ -22,7 +22,9 @@ import java.util.Map;
 
 import com.netcrest.pado.index.exception.GridQueryResultSetExpiredException;
 import com.netcrest.pado.internal.impl.GridService;
+import com.netcrest.pado.internal.impl.PadoClientManager;
 import com.netcrest.pado.internal.util.PadoUtil;
+import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * GridQuery contains query criteria for executing the specified query string in
@@ -554,6 +556,24 @@ public abstract class GridQuery implements Serializable
 	public void setLimit(int limit)
 	{
 		this.limit = limit;
+	}
+
+	/**
+	 * Returns the result set limit for a single server. The server limit is
+	 * determined by dividing the limit by the number of running servers. This
+	 * method is for server only. If a pure client invokes this then it returns
+	 * the {@linkplain #getLimit()} value.
+	 */
+	public int getServerLimit()
+	{
+		if (PadoUtil.isPureClient()) {
+			return getLimit();
+		}
+		if (limit > 0) {
+			return (int) Math.ceil(limit / PadoServerManager.getPadoServerManager().getServerCount());
+		} else {
+			return limit;
+		}
 	}
 
 	/**
