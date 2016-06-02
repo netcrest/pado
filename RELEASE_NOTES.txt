@@ -1,14 +1,20 @@
 ﻿Netcrest Pado
 =============
 
-©2013-2015 Netcrest Technologies, LLC. All rights reserved.
+©2013-2016 Netcrest Technologies, LLC. All rights reserved.
 https://github.com/netcrest/pado
 
 Release: Version 0.4.0-B4
-Release Date: 01/20/2016
+Release Date: 06/02/2016
 
 - Replaced the CSV parser with the uniVocity parser.
 - Added support for charset in the CSV file importer.
+- Added support for version KeyType generation in KeyTypeGenerator.
+- Added MaxCharsPerColumn and MaxColumns to increase the string size and the number of column attributes in SchemaInfo.
+- Added deploy_pad that deploys the entire Pado installation to all hosts including locators and servers.
+- Added support for composite keys in pado.xml.
+- Added limit support for PQL.
+- Added initial support for offloading query results to the server file system to reduce the memory footprint. To enabled it set gemfire.PREFER_SERIALIZED=true.
 
 *************************************************************************
 
