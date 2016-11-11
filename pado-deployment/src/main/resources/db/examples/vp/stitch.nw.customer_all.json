@@ -1,0 +1,6 @@
+{
+   "QueryDescription": "",
+   "VirtualPath": "stitch/nw/customer_all",
+   "Query": "select * from nw/customers c \njoin nw/orders o on c.CustomerID:o.CustomerID\njoin nw/shippers ship ON ship.ShipperID:o.ShipVia \njoin nw/order_details od ON od.OrderID:o.OrderID\njoin nw/products p ON p.ProductID:od.ProductID\njoin nw/suppliers s ON s.SupplierID:p.SupplierID\njoin nw/categories cat ON cat.CategoryID:p.CategoryID",
+   "InputDescription": "CustomerInfo: Any string values in nw/customers, i.e., customer ID, customer name, etc."
+}

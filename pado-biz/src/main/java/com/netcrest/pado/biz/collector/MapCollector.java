@@ -28,6 +28,7 @@ import com.netcrest.pado.IGridCollector;
  * @param <T>
  * @param <S>
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MapCollector<T extends List<Map>, S> implements IGridCollector<T, S>
 {
 
@@ -36,6 +37,9 @@ public class MapCollector<T extends List<Map>, S> implements IGridCollector<T, S
 	@Override
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		List<Map> list = (List<Map>)result;
 		for (Map map : list) {
 			resultMap.putAll(map);

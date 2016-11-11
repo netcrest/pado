@@ -21,6 +21,7 @@ import com.netcrest.pado.IGridCollector;
 import com.netcrest.pado.IGridContextClient;
 import com.netcrest.pado.annotation.RouterType;
 
+@SuppressWarnings("rawtypes")
 public class GridContextClientImpl implements IGridContextClient
 {
 	private Set<?> routingKeys;
@@ -148,6 +149,7 @@ public class GridContextClientImpl implements IGridContextClient
 	@Override
 	public void reset()
 	{
+		setGridIds();
 		setAdditionalArguments();
 		setGridCollector(null);
 		setGridLocation(null);

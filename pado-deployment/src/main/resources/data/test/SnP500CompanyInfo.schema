@@ -75,7 +75,7 @@ DateFormat=yyyyMMdd
 # IMPORTANT: IsSplit=true is currently supported for only 8-bit charsets
 #            and tested for US-ASCII. IsSplit must be set to false for all
 #            unsupported charsets.
-IsSplit=true
+IsSplit=false
 
 # Default Charset is US-ASCII. On Unix, use the "file" command to 
 # determine the charset of data files. Some supported charsets are

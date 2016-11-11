@@ -40,6 +40,8 @@ public abstract class CacheInfo extends CacheHeaderInfo
 	protected List<GatewayHubInfo> gatewayHubInfoList = new ArrayList<GatewayHubInfo>(3);
 
 	protected List<PathInfo> pathInfoList = new ArrayList<PathInfo>(10);
+	
+	protected List<VirtualPathInfo> vpPathInfoList;
 
 	/**
 	 * Constructs a CacheInfo object.
@@ -87,11 +89,29 @@ public abstract class CacheInfo extends CacheHeaderInfo
 	 */
 	public PathInfo getPathInfo(String fullPath)
 	{
+		return getPathInfo(pathInfoList, fullPath);
+	}
+	
+	/**
+	 * Returns the VirtualPathInfo object that matches the specified full path.
+	 * 
+	 * @param fullPath
+	 *            The full path.
+	 * @return Returns null if not found
+	 */
+	public VirtualPathInfo getVirtualPathInfo(String fullPath)
+	{
+		return (VirtualPathInfo)getPathInfo(vpPathInfoList, fullPath);
+	}
+
+	private PathInfo getPathInfo(List<?> pathInfoList, String fullPath)
+	{
 		if (fullPath == null) {
 			return null;
 		}
 		PathInfo foundInfo = null;
-		for (PathInfo pathInfo : pathInfoList) {
+		for (Object obj : pathInfoList) {
+			PathInfo pathInfo = (PathInfo) obj;
 			if (pathInfo.getFullPath().equals(fullPath)) {
 				foundInfo = pathInfo;
 				break;
@@ -103,7 +123,7 @@ public abstract class CacheInfo extends CacheHeaderInfo
 		}
 		return foundInfo;
 	}
-
+	
 	private PathInfo getChildPathInfo(PathInfo pathInfo, String fullPath)
 	{
 		PathInfo foundInfo = null;
@@ -122,7 +142,7 @@ public abstract class CacheInfo extends CacheHeaderInfo
 	}
 	
 	/**
-	 * Returns the top-level PathInfo objects.
+	 * Returns the top-level physical PathInfo objects.
 	 */
 	public List<PathInfo> getPathInfoList()
 	{
@@ -130,7 +150,7 @@ public abstract class CacheInfo extends CacheHeaderInfo
 	}
 
 	/**
-	 * Returns all PathInfo objects including children in a flat sorted list
+	 * Returns all physical PathInfo objects including children in a flat sorted list
 	 */
 	public List<PathInfo> getAllPathInfoList()
 	{
@@ -151,9 +171,40 @@ public abstract class CacheInfo extends CacheHeaderInfo
 			getChildPathInfo(childInfo, list);
 		}
 	}
+	
+	protected void getChildVirtualPathInfo(VirtualPathInfo pathInfo, List<VirtualPathInfo> list)
+	{
+		List<PathInfo> childList = pathInfo.getChildList();
+		for (PathInfo childInfo : childList) {
+			list.add((VirtualPathInfo)childInfo);
+			getChildVirtualPathInfo((VirtualPathInfo)childInfo, list);
+		}
+	}
+	
+	/**
+	 * Returns the top-level virtual PathInfo objects.
+	 */
+	public List<VirtualPathInfo> getVirtualPathInfoList()
+	{
+		return vpPathInfoList;
+	}
+	
+	/**
+	 * Returns all virtual PathInfo objects including children in a flat sorted list
+	 */
+	public List<VirtualPathInfo> getAllVirtualPathInfoList()
+	{
+		List<VirtualPathInfo> list = new ArrayList<VirtualPathInfo>(vpPathInfoList.size() + 10);
+		for (VirtualPathInfo pathInfo : vpPathInfoList) {
+			list.add(pathInfo);
+			getChildVirtualPathInfo(pathInfo, list);
+		}
+		Collections.sort(list);
+		return list;
+	}
 
 	/**
-	 * Returns all full paths in a flat list. The returned list includes
+	 * Returns all physical full paths in a flat list. The returned list includes
 	 * all full paths including hidden, local, non-grid paths, etc. It
 	 * always returns a non-null list.
 	 */
@@ -169,7 +220,23 @@ public abstract class CacheInfo extends CacheHeaderInfo
 	}
 	
 	/**
-	 * Returns all PathInfo objects that are visible from applications
+	 * Returns all virtual full paths in a flat list. The returned list includes
+	 * all full paths including hidden, local, non-grid paths, etc. It
+	 * always returns a non-null list.
+	 */
+	public List<String> getAllVirtualFullPaths()
+	{
+		List<VirtualPathInfo> pathInfoList = getAllVirtualPathInfoList();
+		List<String> list = new ArrayList<String>(pathInfoList.size() + 1);
+		for (PathInfo pathInfo : pathInfoList) {
+			list.add(pathInfo.getFullPath());
+		}
+		Collections.sort(list);
+		return list;
+	}
+	
+	/**
+	 * Returns all physical PathInfo objects that are visible from applications
 	 * in a flat list. A PathInfo is app-visible if non-hidden, non-local,
 	 * and has a grid root path. It always returns a non-empty list.
 	 * @param rootPath Root path
@@ -188,7 +255,7 @@ public abstract class CacheInfo extends CacheHeaderInfo
 	}
 	
 	/**
-	 * Returns all full paths that are visible from applications
+	 * Returns all physical full paths that are visible from applications
 	 * in a flat list. A full path is app-visible if non-hidden, non-local,
 	 * and has a grid root path. It always returns a non-empty list.
 	 * @param rootPath Root path

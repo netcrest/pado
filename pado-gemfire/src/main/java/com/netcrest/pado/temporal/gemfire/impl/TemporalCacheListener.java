@@ -190,12 +190,13 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 	{
 		if (spawnThread) {
 			Executors.newSingleThreadExecutor(new ThreadFactory() {
-	            public Thread newThread(Runnable r) {
-	                Thread t = new Thread(r, "Pado-TemporalCacheListener");
-	                t.setDaemon(true);
-	                return t;
-	            }
-	        }).execute(new Runnable() {
+				public Thread newThread(Runnable r)
+				{
+					Thread t = new Thread(r, "Pado-TemporalCacheListener");
+					t.setDaemon(true);
+					return t;
+				}
+			}).execute(new Runnable() {
 
 				public void run()
 				{
@@ -270,6 +271,12 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		temporalThread.enqueue(fullPath, event);
 	}
 
+	@Override
+	public void afterDestroy(EntryEvent event)
+	{
+
+	}
+
 	public void objectDispatched(Object obj)
 	{
 		List<EntryEvent<ITemporalKey, ITemporalData>> list = (List<EntryEvent<ITemporalKey, ITemporalData>>) obj;
@@ -323,8 +330,8 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 			if (tk.getStartValidTime() == -1) {
 				if (existingTdl != null) {
 					if (tk.getEndValidTime() == -1) {
-						GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(region
-								.getFullPath());
+						GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+								.getTemporalManager(region.getFullPath());
 						if (tm.isStatisticsEnabled()) {
 							long startTime = tm.getStatistics().startRemoveCount();
 							index = existingTdl.remove(tk);
@@ -339,8 +346,8 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 					}
 				}
 			} else {
-				GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(region
-						.getFullPath());
+				GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+						.getTemporalManager(region.getFullPath());
 				if (tm.isStatisticsEnabled()) {
 					long startTime = tm.getStatistics().startPutCount();
 					if (existingTdl != null) {
@@ -442,7 +449,7 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		}
 		return list;
 	}
-	
+
 	public List<TemporalEntry> getLastTemporalEntryList()
 	{
 		return getLastTemporalEntryList(-1);
@@ -531,6 +538,16 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		if (identityKey != null) {
 			temporalListMap.remove(identityKey);
 		}
+	}
+
+	public ITemporalData removePermanently(ITemporalKey tk, Region region)
+	{
+		Object identityKey = tk.getIdentityKey();
+		ITemporalList existingTdl = this.temporalListMap.get(identityKey);
+		if (existingTdl == null) {
+			return null;
+		}
+		return existingTdl.removePermanently(tk);
 	}
 
 	public TemporalEntry getNowRelativeEntry(Object idKey)
@@ -766,6 +783,72 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 	}
 
 	/**
+	 * Returns temporal entries that fall in the specified validAtTime and
+	 * written time range. It may return one ore more temporal entries with the
+	 * same identity key.
+	 * 
+	 * @param validAtTime
+	 *            Valid-at time in msec
+	 * @param fromWrittenTime
+	 *            Start of the written time range, inclusive.
+	 * @param toWrittenTime
+	 *            End of the written time range, exclusive.
+	 * @return null if not found
+	 */
+	public List<TemporalEntry> getHistoryWrittenTimeRangeTemporalEntryList(long validAtTime, long fromWrittenTime,
+			long toWrittenTime)
+	{
+		if (validAtTime == -1 && fromWrittenTime == -1 && toWrittenTime == -1) {
+			return getNowRelativeList();
+		}
+		Set<Map.Entry<Object, ITemporalList>> set = temporalListMap.entrySet();
+		List<TemporalEntry> list = new ArrayList<TemporalEntry>(set.size() / 2);
+		for (Map.Entry<Object, ITemporalList> entry : set) {
+			ITemporalList tdl = entry.getValue();
+			List<TemporalEntry> list2 = tdl.getHistoryWrttenTimeRange(validAtTime, fromWrittenTime, toWrittenTime);
+			if (list2 != null) {
+				list.addAll(list2);
+			}
+		}
+		return list;
+	}
+
+	/**
+	 * Returns temporal entries that fall in the specified validAtTime and
+	 * written time range. It may return one ore more temporal entries with the
+	 * same identity key.
+	 * 
+	 * @param identityKeySet
+	 *            Identity key set
+	 * @param validAtTime
+	 *            Valid-at time in msec
+	 * @param fromWrittenTime
+	 *            Start of the written time range, inclusive.
+	 * @param toWrittenTime
+	 *            End of the written time range, exclusive.
+	 * @return null if not found
+	 */
+	public List<TemporalEntry> getHistoryWrittenTimeRangeTemporalEntryList(Set identityKeySet, long validAtTime,
+			long fromWrittenTime, long toWrittenTime)
+	{
+		if (validAtTime == -1 && fromWrittenTime == -1 && toWrittenTime == -1) {
+			return getNowRelativeList(identityKeySet);
+		}
+		Set<Map.Entry<Object, ITemporalList>> set = temporalListMap.entrySet();
+		List<TemporalEntry> list = new ArrayList<TemporalEntry>(set.size() / 2);
+		for (Object identityKey : identityKeySet) {
+			ITemporalList tdl = getTemporalList(identityKey);
+			if (tdl != null) {
+				List<TemporalEntry> list2 = tdl.getHistoryWrttenTimeRange(validAtTime, fromWrittenTime, toWrittenTime);
+				if (list2 != null) {
+					list.addAll(list2);
+				}
+			}
+		}
+		return list;
+	}
+
+	/**
 	 * Returns a list of temporal entries with unique identity keys and that
 	 * have the latest written times in their temporal lists.
 	 * 
@@ -923,11 +1006,7 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		for (ITemporalList tdl : temporalListCollection) {
 			TemporalEntry entry2 = tdl.getAsOf(validAtTime, asOfTime);
 			if (entry2 != null) {
-				if (entry2.getTemporalData() instanceof GemfireTemporalData) {
-					col.add((V) ((GemfireTemporalData) (entry2.getTemporalData())).getValue());
-				} else {
-					col.add((V) entry2.getTemporalData());
-				}
+				col.add((V) entry2.getTemporalData().getValue());
 			}
 		}
 		return col;
@@ -946,10 +1025,27 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		for (ITemporalList tdl : temporalListCollection) {
 			TemporalEntry entry2 = tdl.getWrttenTimeRange(validAtTime, fromWrittenTime, toWrittenTime);
 			if (entry2 != null) {
-				if (entry2.getTemporalData() instanceof GemfireTemporalData) {
-					col.add((V) ((GemfireTemporalData) (entry2.getTemporalData())).getValue());
-				} else {
-					col.add((V) entry2.getTemporalData());
+				col.add((V) entry2.getTemporalData().getValue());
+			}
+		}
+		return col;
+	}
+
+	public List<V> getHistoryWrittenTimeRangeValueList(long validAtTime, long fromWrittenTime, long toWrittenTime)
+	{
+		List<V> list = new ArrayList<V>(temporalListMap.size() / 2);
+		return (List<V>) getHistoryWrittenTimeRangeCollection(validAtTime, fromWrittenTime, toWrittenTime, list);
+	}
+
+	private Collection<V> getHistoryWrittenTimeRangeCollection(long validAtTime, long fromWrittenTime,
+			long toWrittenTime, Collection<V> col)
+	{
+		Collection<ITemporalList> temporalListCollection = temporalListMap.values();
+		for (ITemporalList tdl : temporalListCollection) {
+			List<TemporalEntry> list2 = tdl.getHistoryWrttenTimeRange(validAtTime, fromWrittenTime, toWrittenTime);
+			if (list2 != null) {
+				for (TemporalEntry entry2 : list2) {
+					col.add((V) entry2.getTemporalData().getValue());
 				}
 			}
 		}
@@ -975,8 +1071,8 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 				new ArrayList<ITemporalKey>(identityKeyCollection.size()));
 	}
 
-	private Collection<ITemporalKey> getAsOfTemporalKeyCollection(Collection<K> identityKeyCollection,
-			long validAtTime, long asOfTime, Collection<ITemporalKey> col)
+	private Collection<ITemporalKey> getAsOfTemporalKeyCollection(Collection<K> identityKeyCollection, long validAtTime,
+			long asOfTime, Collection<ITemporalKey> col)
 	{
 		if (validAtTime == -1 && asOfTime == -1) {
 			List<TemporalEntry> list = getNowRelativeList(identityKeyCollection);
@@ -1012,8 +1108,8 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		if (identityKeyCollection == null) {
 			return null;
 		}
-		return (Set<V>) getAsOfValueCollection(identityKeyCollection, validAtTime, asOfTime, new HashSet<V>(
-				identityKeyCollection.size()));
+		return (Set<V>) getAsOfValueCollection(identityKeyCollection, validAtTime, asOfTime,
+				new HashSet<V>(identityKeyCollection.size()));
 	}
 
 	public List<V> getAsOfValueList(Collection<K> identityKeyCollection, long validAtTime, long asOfTime)
@@ -1021,8 +1117,8 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		if (identityKeyCollection == null) {
 			return null;
 		}
-		return (List<V>) getAsOfValueCollection(identityKeyCollection, validAtTime, asOfTime, new ArrayList<V>(
-				identityKeyCollection.size()));
+		return (List<V>) getAsOfValueCollection(identityKeyCollection, validAtTime, asOfTime,
+				new ArrayList<V>(identityKeyCollection.size()));
 	}
 
 	private Collection<V> getAsOfValueCollection(Collection<K> identityKeyCollection, long validAtTime, long asOfTime,
@@ -1103,6 +1199,41 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		return col;
 	}
 
+	public List<V> getHistoryWrittenTimeRangeValueList(Collection<K> identityKeyCollection, long validAtTime,
+			long fromWrittenTime, long toWrittenTime)
+	{
+		if (identityKeyCollection == null) {
+			return null;
+		}
+		return (List<V>) getHistoryWrittenTimeRangeValueCollection(identityKeyCollection, validAtTime, fromWrittenTime,
+				toWrittenTime, new ArrayList<V>(identityKeyCollection.size()));
+	}
+
+	private Collection<V> getHistoryWrittenTimeRangeValueCollection(Collection<K> identityKeyCollection,
+			long validAtTime, long fromWrittenTime, long toWrittenTime, Collection<V> col)
+	{
+		if (validAtTime == -1 && fromWrittenTime == -1 && toWrittenTime == -1) {
+			List<TemporalEntry> list = getNowRelativeList(identityKeyCollection);
+			for (TemporalEntry entry : list) {
+				col.add((V) entry.getTemporalData().getValue());
+			}
+		} else {
+			for (Object identityKey : identityKeyCollection) {
+				ITemporalList tdl = getTemporalList(identityKey);
+				if (tdl != null) {
+					List<TemporalEntry> list2 = tdl.getHistoryWrttenTimeRange(validAtTime, fromWrittenTime,
+							toWrittenTime);
+					for (TemporalEntry entry2 : list2) {
+						if (entry2 != null) {
+							col.add((V) entry2.getTemporalData().getValue());
+						}
+					}
+				}
+			}
+		}
+		return col;
+	}
+
 	private Collection<V> getValueCollection(Collection<ITemporalKey> temporalKeyCollection, Collection<V> col)
 	{
 		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
@@ -1139,8 +1270,8 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		if (temporalKeyCollection == null) {
 			return null;
 		}
-		return (List<ITemporalData>) getTemporalDataCollection(temporalKeyCollection, new ArrayList<ITemporalData>(
-				temporalKeyCollection.size()));
+		return (List<ITemporalData>) getTemporalDataCollection(temporalKeyCollection,
+				new ArrayList<ITemporalData>(temporalKeyCollection.size()));
 	}
 
 	private Collection<ITemporalData> getAsOfTemporalDataCollection(Collection<K> identityKeyCollection,
@@ -1175,6 +1306,28 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 			col.add(entry.getValue());
 		}
 		return col;
+	}
+	
+	public List<TemporalEntry<ITemporalKey, ITemporalData>> getTemporalEntryList(Collection<ITemporalKey> temporalKeyCollection)
+	{
+		if (temporalKeyCollection == null) {
+			return null;
+		}
+		return (List<TemporalEntry<ITemporalKey, ITemporalData>>) getTemporalEntryCollection(temporalKeyCollection,
+				new ArrayList<ITemporalData>(temporalKeyCollection.size()));
+	}
+	
+	private Collection<TemporalEntry<ITemporalKey, ITemporalData>> getTemporalEntryCollection(Collection<ITemporalKey> temporalKeyCollection,
+			Collection<ITemporalData> col)
+	{
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		LocalDataSet localDS = (LocalDataSet) PartitionRegionHelper.getLocalPrimaryData(region);
+		Map<ITemporalKey, ITemporalData> map = localDS.getAll(temporalKeyCollection);
+		List<TemporalEntry<ITemporalKey, ITemporalData>> list = new ArrayList(map.size());
+		for (Map.Entry<ITemporalKey, ITemporalData> entry : map.entrySet()) {
+			list.add(new GemfireTemporalEntry(entry.getKey(), entry.getValue()));
+		}
+		return list;
 	}
 
 	public Set<ITemporalData<K>> getAsOfTemporalDataSet(long validAtTime, long asOfTime)
@@ -1246,5 +1399,27 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 	public int getTemporalListCount()
 	{
 		return temporalListMap.size();
+	}
+
+	/**
+	 * Returns the total count of entries that satisfy the specified valid-at
+	 * and as-of times.
+	 * 
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param asOfTime
+	 *            The as-of time compared against the written times.
+	 */
+	public int getTemporalListCount(long validAtTime, long asOfTime)
+	{
+		Set<Map.Entry<Object, ITemporalList>> set = temporalListMap.entrySet();
+		int count = 0;
+		for (Map.Entry<Object, ITemporalList> entry : set) {
+			ITemporalList tl = entry.getValue();
+			if (tl.getAsOf(validAtTime, asOfTime) != null) {
+				count++;
+			}
+		}
+		return count;
 	}
 }

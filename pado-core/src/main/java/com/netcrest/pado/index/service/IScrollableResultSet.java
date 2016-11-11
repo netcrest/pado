@@ -210,4 +210,9 @@ public interface IScrollableResultSet<T> extends Serializable
 	 */
 	void close();
 
+	/**
+	 * Returns true if the result set has not been created or has been closed.
+	 */
+	boolean isClosed();
+
 }

@@ -281,6 +281,26 @@ public interface ITemporalBiz<K, V> extends IBiz, ITemporalBizLink<K, V>
 	 */
 	@BizMethod
 	@OnPath
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.CollectionCollector")
+	@Override
+	List<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryHistoryWrittenTimeRangeList(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@OnPath
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.CollectionCollector")
+	@Override
+	List<V> getValueHistoryWrittenTimeRangeList(String queryStatement, long validAtTime, long fromWrittenTime,
+			long toWrittenTime);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@OnPath
 	@Override
 	ITemporalKey<K> getKey(K identityKey);
 
@@ -753,4 +773,25 @@ public interface ITemporalBiz<K, V> extends IBiz, ITemporalBizLink<K, V>
 	@Override
 	Set<ITemporalKey<K>>[] getAttachmentsKeys(AttachmentSet<K>[] attachmentIdentityKeySets, long validAtTime,
 			long asOfTime);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	int size();
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@OnPath
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.SumCollector")
+	int size(long validAtTime, long asOfTime);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@OnPath
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.SumCollector")
+	int getTemporalListCount();
 }

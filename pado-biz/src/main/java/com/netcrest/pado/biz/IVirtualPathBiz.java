@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.biz;
 
+import java.util.List;
 import java.util.Map;
 
 import com.netcrest.pado.IBiz;
@@ -23,7 +24,9 @@ import com.netcrest.pado.IVirtualPath;
 import com.netcrest.pado.annotation.BizClass;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.annotation.OnServer;
+import com.netcrest.pado.annotation.WithGridCollector;
 import com.netcrest.pado.data.KeyMap;
+import com.netcrest.pado.index.service.IScrollableResultSet;
 
 /**
  * IVirtualPathBiz provides a means to access and manage virtual paths from the
@@ -33,8 +36,8 @@ import com.netcrest.pado.data.KeyMap;
  * <b>Arguments:
  * {@link IBizLocal#init(IBiz, com.netcrest.pado.IPado, Object...)}</b>
  * <p>
- * <blockquote> <b>String gridId</b> - Optional grid ID. If not
- * specified or null, then the default grid ID is assigned. </blockquote>
+ * <blockquote> <b>String gridId</b> - Optional grid ID. If not specified or
+ * null, then the default grid ID is assigned. </blockquote>
  * 
  * @author dpark
  * 
@@ -43,6 +46,94 @@ import com.netcrest.pado.data.KeyMap;
 @BizClass(name = "IVirtualPathBiz")
 public interface IVirtualPathBiz<T> extends IBiz
 {
+	public static int MAX_DEPTH = 5;
+
+	/**
+	 * <b>Internal use only</b>
+	 * <p>
+	 * Executes the specified virtual path using the specified arguments as
+	 * inputs.
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 * @param depth
+	 *            Depth of the entity object graph. It has meaning only if the
+	 *            virtual path is an entity. Valid values are [-1, 5] inclusive.
+	 *            If less than -1 then -1 is assumed. If greater than 5 then 5
+	 *            is assumed. -1 to start search from the beginning of the
+	 *            depth(s) defined by the virtual path, 0 to search with no
+	 *            depth, >=1 to search depth.
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments
+	 * @return Results of the virtual path execution
+	 */
+	@BizMethod
+	@OnServer
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.CollectionCollector")
+	List<T> __execute(String virtualPath, int depth, long validAt, long asOf, String... args);
+
+	/**
+	 * <b>Internal use only</b>
+	 * <p>
+	 * Executes the query on the entity grid path (EntityGridPath) that the
+	 * specified virtual path has entity relationships.
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 * @param depth
+	 *            Depth of the entity object graph. It has meaning only if the
+	 *            virtual path is an entity. Valid values are [-1, 5] inclusive.
+	 *            If less than -1 then -1 is assumed. If greater than 5 then 5
+	 *            is assumed. -1 to start search from the beginning of the
+	 *            depth(s) defined by the virtual path, 0 to search with no
+	 *            depth, >=1 to search depth.
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments to EntityGridPath
+	 * @return Results of the query on EntityGridPath
+	 */
+	@BizMethod
+	@OnServer
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.CollectionCollector")
+	List<T> __executeEntity(String virtualPath, int depth, long validAt, long asOf, String... args);
+
+	/**
+	 * <b>Internal use only</b>
+	 * <p>
+	 * Executes the specified virtual definition in the grid. Note that this
+	 * method is not optimal as other execution methods as it compiles the
+	 * definition before executing the query.
+	 * 
+	 * @param vpd
+	 *            Virtual path definition
+	 * @param depth
+	 *            Depth of the entity object graph. It has meaning only if the
+	 *            virtual path is an entity. Valid values are [-1, 5] inclusive.
+	 *            If less than -1 then -1 is assumed. If greater than 5 then 5
+	 *            is assumed. -1 to start search from the beginning of the
+	 *            depth(s) defined by the virtual path, 0 to search with no
+	 *            depth, >=1 to search depth.
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments to all variables defined in the specified virtual
+	 *            path definition.
+	 * @return
+	 */
+	@BizMethod
+	@OnServer
+	@WithGridCollector(gridCollectorClass = "com.netcrest.pado.biz.collector.CollectionCollector")
+	List<T> __executeVirtualPathDefinition(KeyMap vpd, int depth, long validAt, long asOf, String... args);
+
 	/**
 	 * Returns the virtual path definition defined in the server. It returns
 	 * null if the specified virtual path is not found.
@@ -120,4 +211,110 @@ public interface IVirtualPathBiz<T> extends IBiz
 	@BizMethod
 	@OnServer
 	public Map<String, KeyMap> getAllVirtualPathDefinitions();
+
+	/**
+	 * Executes the specified virtual path using the specified arguments as
+	 * inputs.
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments
+	 * @return Results of the virtual path execution
+	 */
+	public IScrollableResultSet<T> execute(String virtualPath, long validAt, long asOf, String... args);
+
+	/**
+	 * Executes the specified virtual path using the specified arguments as
+	 * inputs.
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 * @param depth
+	 *            Depth of the entity object graph. It has meaning only if the
+	 *            virtual path is an entity. Valid values are [-1, 5] inclusive.
+	 *            If less than -1 then -1 is assumed. If greater than 5 then 5
+	 *            is assumed. -1 to start search from the beginning of the
+	 *            depth(s) defined by the virtual path, 0 to search with no
+	 *            depth, >=1 to search depth.
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments
+	 * @return Results of the virtual path execution
+	 */
+	public IScrollableResultSet<T> execute(String virtualPath, int depth, long validAt, long asOf, String... args);
+
+	/**
+	 * Executes the query on the entity grid path (EntityGridPath) that the
+	 * specified virtual path has entity relationships.
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments to EntityGridPath
+	 * @return Results of the query on EntityGridPath
+	 */
+	public IScrollableResultSet<T> executeEntity(String virtualPath, long validAt, long asOf, String... args);
+
+	/**
+	 * Executes the query on the entity grid path (EntityGridPath) that the
+	 * specified virtual path has entity relationships.
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 * @param depth
+	 *            Depth of the entity object graph. It has meaning only if the
+	 *            virtual path is an entity. Valid values are [-1, 5] inclusive.
+	 *            If less than -1 then -1 is assumed. If greater than 5 then 5
+	 *            is assumed. -1 to start search from the beginning of the
+	 *            depth(s) defined by the virtual path, 0 to search with no
+	 *            depth, >=1 to search depth.
+	 * 
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments to EntityGridPath
+	 * @return Results of the query on EntityGridPath
+	 */
+	public IScrollableResultSet<T> executeEntity(String virtualPath, int depth, long validAt, long asOf,
+			String... args);
+
+	/**
+	 * Executes the specified virtual definition in the grid. Note that this
+	 * method is not optimal as other execution methods as it compiles the
+	 * definition before executing the query.
+	 * 
+	 * @param vpd
+	 *            Virtual path definition
+	 * @param depth
+	 *            Depth of the entity object graph. It has meaning only if the
+	 *            virtual path is an entity. Valid values are [-1, 5] inclusive.
+	 *            If less than -1 then -1 is assumed. If greater than 5 then 5
+	 *            is assumed. -1 to start search from the beginning of the
+	 *            depth(s) defined by the virtual path, 0 to search with no
+	 *            depth, >=1 to search depth.
+	 * @param validAt
+	 *            Valid at time. -1 for now-relative
+	 * @param asOf
+	 *            As of time. -1 for now-relative
+	 * @param args
+	 *            Arguments to all variables defined in the specified virtual
+	 *            path definition.
+	 * @return
+	 */
+	public IScrollableResultSet<T> executeVirtualPathDefinition(KeyMap vpd, int depth, long validAt, long asOf,
+			String... args);
 }

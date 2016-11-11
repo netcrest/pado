@@ -36,6 +36,9 @@ public class CollectionCollector<T extends List<Collection>, S> implements IGrid
 	@Override
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		List<Collection> list = (List<Collection>) result;
 		if (resultCollection == null) {
 			for (Collection col : list) {

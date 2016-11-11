@@ -18,6 +18,7 @@ package com.netcrest.pado.gemfire.info;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,9 @@ import com.gemstone.gemfire.cache.server.CacheServer;
 import com.gemstone.gemfire.cache.util.GatewayHub;
 import com.netcrest.pado.info.CacheInfo;
 import com.netcrest.pado.info.PathInfo;
+import com.netcrest.pado.info.VirtualPathInfo;
 import com.netcrest.pado.internal.factory.InfoFactory;
+import com.netcrest.pado.pql.VirtualPath2;
 
 public class GemfireCacheInfo extends CacheInfo implements DataSerializable
 {
@@ -44,8 +47,13 @@ public class GemfireCacheInfo extends CacheInfo implements DataSerializable
 	public GemfireCacheInfo()
 	{
 	}
-
+	
 	public GemfireCacheInfo(String gridId, Cache cache)
+	{
+		this(gridId, cache, null);
+	}
+
+	public GemfireCacheInfo(String gridId, Cache cache, String gridRootPath)
 	{
 		super(gridId);
 		
@@ -86,6 +94,16 @@ public class GemfireCacheInfo extends CacheInfo implements DataSerializable
 		lockTimeout = cache.getLockTimeout();
 		lockLease = cache.getLockLease();
 		messageSyncInterval = cache.getMessageSyncInterval();
+		
+		initVirtualPathInfoList(gridRootPath);
+	}
+	
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void initVirtualPathInfoList(String gridRootPath)
+	{
+		GemfireVirtualPathInfo gvpi = new GemfireVirtualPathInfo(VirtualPath2.initializeRootVirtualPath(gridRootPath), true);
+		vpPathInfoList = new ArrayList(gvpi.getChildList());		
 	}
 
 	private GemfireRegionInfo createRegionInfo(Region region, GemfireRegionInfo parentInfo)
@@ -187,6 +205,7 @@ public class GemfireCacheInfo extends CacheInfo implements DataSerializable
 		pathInfoList = DataSerializer.readObject(input);
 		cacheServerInfoList = DataSerializer.readObject(input);
 		gatewayHubInfoList = DataSerializer.readObject(input);
+		vpPathInfoList = DataSerializer.readObject(input);
 	}
 
 	/**
@@ -208,5 +227,6 @@ public class GemfireCacheInfo extends CacheInfo implements DataSerializable
 		DataSerializer.writeObject(pathInfoList, output);
 		DataSerializer.writeObject(cacheServerInfoList, output);
 		DataSerializer.writeObject(gatewayHubInfoList, output);
+		DataSerializer.writeObject(vpPathInfoList, output);
 	}
 }

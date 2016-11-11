@@ -1,0 +1,19 @@
+{
+   "QueryDescription": "Given SupplierID, return product with supplier info",
+   "VirtualPath": "entity/nw/product",
+   "Query": "",
+   "InputDescription": "SupplierID: Supplier ID",
+   "IsPersist": false,
+   "UpdateIntervalInSec": 60,
+   "IsUpdate": false,
+   "IsEntity": true,
+   "EntityGridPath": "nw/products",
+   "EntityRelationships": [
+                {
+                   "Arg": "Supplier",
+                   "IsOne": true,
+                   "Depth": 1,
+                   "Query": "nw/suppliers?SupplierID:${SupplierID}"
+                }
+             ]
+}

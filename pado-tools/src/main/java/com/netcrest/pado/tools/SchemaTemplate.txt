@@ -172,7 +172,23 @@ StartRow=${START_ROW}
 #                      If undefined, then the order in which Primary field names
 #                      are defined is assumed.
 #   [RoutingKey] If specified, then the primary key is used as part of the
-#                routing key for targetting the server to store the key.
+#                routing key for targeting the server to store the key.
 #                RoutingKey m
+# Special Fields:
+#    Special fields are prefixed with ‘+’, i.e., +Special. These fields are not
+#    part of the data source but are included in the data object with the
+#    specified values. 
+#
+#    <field-type>/<value> pair: If <field-type>, then <value> is converted to the specified
+#       field type. 
+#    <macro-name>/<comma separated field names> pair: If <macro-name> is specified, 
+#       then <comma separated field names> passed into the specified macro. The macro
+#       result is assigned to the field.
+#
+# Special Field Format: <field-name>, <field-type>|<macro-name>, <value>|<comma separated field names>
+#
+# Special Field Examples:
+#    +Source, String, Mars
+#    +Type, int, 100
 # ------------------------------------------------------------------------------
 ${FIELDS}

@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.tools.pado.util;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,24 +39,29 @@ import com.netcrest.pado.index.service.IScrollableResultSet;
 import com.netcrest.pado.internal.util.StringUtil;
 import com.netcrest.pado.tools.pado.PadoShell;
 
-public class SimplePrintUtil {
+@SuppressWarnings({ "rawtypes", "unchecked" })
+public class SimplePrintUtil
+{
 	private static boolean printType = false;
 	private static int collectionEntryPrintCount = 5;
 
-	public static boolean isPrintType() {
+	public static boolean isPrintType()
+	{
 		return printType;
 	}
 
-	public static void setPrintType(boolean printType) {
+	public static void setPrintType(boolean printType)
+	{
 		SimplePrintUtil.printType = printType;
 	}
 
-	public static int getCollectionEntryPrintCount() {
+	public static int getCollectionEntryPrintCount()
+	{
 		return collectionEntryPrintCount;
 	}
 
-	public static void setCollectionEntryPrintCount(
-			int collectionEntryPrintCount) {
+	public static void setCollectionEntryPrintCount(int collectionEntryPrintCount)
+	{
 		SimplePrintUtil.collectionEntryPrintCount = collectionEntryPrintCount;
 	}
 
@@ -70,9 +76,9 @@ public class SimplePrintUtil {
 	 * @return Returns the number of rows printed.
 	 * @throws Exception
 	 */
-	public static int printEntries(Region region, Iterator regionIterator,
-			int startIndex, int startRowNum, int rowCount, List keyList)
-			throws Exception {
+	public static int printEntries(Region region, Iterator regionIterator, int startIndex, int startRowNum,
+			int rowCount, List keyList) throws Exception
+	{
 
 		if (region == null || regionIterator == null) {
 			PadoShell.printlnError("Path is null");
@@ -124,8 +130,8 @@ public class SimplePrintUtil {
 		return endIndex - startIndex;
 	}
 
-	public static int printEntries(Region region, Map keyMap, List keyList)
-			throws Exception {
+	public static int printEntries(Region region, Map keyMap, List keyList) throws Exception
+	{
 		if (region == null) {
 			PadoShell.printlnError("Path is null");
 			return 0;
@@ -165,8 +171,8 @@ public class SimplePrintUtil {
 		return rowCount;
 	}
 
-	public static int printEntries(Map gridMapBiz, Set keySet, List keyList)
-			throws Exception {
+	public static int printEntries(Map gridMapBiz, Set keySet, List keyList) throws Exception
+	{
 		if (gridMapBiz == null) {
 			PadoShell.printlnError("Path is null");
 			return 0;
@@ -206,8 +212,9 @@ public class SimplePrintUtil {
 		return row - 1;
 	}
 
-	public static int printEntries(Map map, int startIndex, int startRowNum,
-			int rowCount, int actualSize, List keyList) throws Exception {
+	public static int printEntries(Map map, int startIndex, int startRowNum, int rowCount, int actualSize, List keyList)
+			throws Exception
+	{
 		if (map == null) {
 			PadoShell.printlnError("Map is null");
 			return 0;
@@ -221,8 +228,7 @@ public class SimplePrintUtil {
 		int count = 0;
 		int row = startRowNum;
 		int lastRow = startRowNum + rowCount - 1;
-		for (Iterator itr = entrySet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = entrySet.iterator(); count < rowCount && itr.hasNext(); count++) {
 			Map.Entry entry = (Map.Entry) itr.next();
 			key = entry.getKey();
 			value = entry.getValue();
@@ -247,15 +253,15 @@ public class SimplePrintUtil {
 		return count;
 	}
 
-	public static int printEntries(Map map, int rowCount, List keyList,
-			boolean displaySummary, boolean showValues) throws Exception {
-		return printEntries(map, rowCount, keyList, "Key", "Value",
-				displaySummary, showValues);
+	public static int printEntries(Map map, int rowCount, List keyList, boolean displaySummary, boolean showValues)
+			throws Exception
+	{
+		return printEntries(map, rowCount, keyList, "Key", "Value", displaySummary, showValues);
 	}
 
-	public static int printEntries(Map map, int rowCount, List keyList,
-			String keyColumnName, String valueColumnName,
-			boolean displaySummary, boolean showValues) throws Exception {
+	public static int printEntries(Map map, int rowCount, List keyList, String keyColumnName, String valueColumnName,
+			boolean displaySummary, boolean showValues) throws Exception
+	{
 		if (map == null) {
 			PadoShell.printlnError("Path is null");
 			return 0;
@@ -273,8 +279,7 @@ public class SimplePrintUtil {
 		HashSet keyNameSet = new HashSet();
 		HashSet valueNameSet = new HashSet();
 		Set nameSet = map.entrySet();
-		for (Iterator itr = nameSet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = nameSet.iterator(); count < rowCount && itr.hasNext(); count++) {
 
 			Map.Entry entry = (Map.Entry) itr.next();
 			key = entry.getKey();
@@ -298,20 +303,19 @@ public class SimplePrintUtil {
 			PadoShell.println("Displayed (fetched): " + (row - 1));
 			PadoShell.println("        Actual Size: " + map.size());
 			for (Object keyName : keyNameSet) {
-				PadoShell.println("          " + keyColumnName + " Class: "
-						+ keyName);
+				PadoShell.println("          " + keyColumnName + " Class: " + keyName);
 			}
 			for (Object valueName : valueNameSet) {
-				PadoShell.println("        " + valueColumnName + " Class: "
-						+ valueName);
+				PadoShell.println("        " + valueColumnName + " Class: " + valueName);
 
 			}
 		}
 		return row - 1;
 	}
 
-	public static int printSet(Set set, int rowCount, List keyList,
-			String keyColumnName, boolean displaySummary) throws Exception {
+	public static int printSet(Set set, int rowCount, List keyList, String keyColumnName, boolean displaySummary)
+			throws Exception
+	{
 		if (set == null) {
 			return 0;
 		}
@@ -327,8 +331,7 @@ public class SimplePrintUtil {
 		HashSet keyNameSet = new HashSet();
 		HashSet valueNameSet = new HashSet();
 		Set nameSet = set;
-		for (Iterator itr = nameSet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = nameSet.iterator(); count < rowCount && itr.hasNext(); count++) {
 			key = itr.next();
 			if (keyList != null) {
 				keyList.add(key);
@@ -343,45 +346,38 @@ public class SimplePrintUtil {
 			PadoShell.println("Displayed (fetched): " + (row - 1));
 			PadoShell.println("        Actual Size: " + set.size());
 			for (Object keyName : keyNameSet) {
-				PadoShell.println("          " + keyColumnName + " Class: "
-						+ keyName);
+				PadoShell.println("          " + keyColumnName + " Class: " + keyName);
 			}
 		}
 		return row - 1;
 	}
 
-	private static void computeMaxLengths(List keyList, List valueList,
-			Object key, Object value) {
+	private static void computeMaxLengths(List keyList, List valueList, Object key, Object value)
+	{
 		computeMaxLengths(keyList, key, true);
 		computeMaxLengths(valueList, value, false);
 	}
 
-	private static String printTopHeaders(List list, Object obj,
-			boolean printLastColumnSpaces, String primitiveHeader) {
+	private static String printTopHeaders(List list, Object obj, boolean printLastColumnSpaces, String primitiveHeader)
+	{
 		StringBuffer printStr = new StringBuffer();
 		Object object = obj;
 		if (object == null) {
 			object = "null";
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 
 			int maxLen = (Integer) list.get(0);
 			if (maxLen < primitiveHeader.length()) {
 				maxLen = primitiveHeader.length();
 			}
 			if (printLastColumnSpaces) {
-				printStr.append(StringUtil.getRightPaddedString(
-						primitiveHeader, maxLen, ' '));
+				printStr.append(StringUtil.getRightPaddedString(primitiveHeader, maxLen, ' '));
 			} else {
 				printStr.append(primitiveHeader);
 			}
@@ -398,8 +394,7 @@ public class SimplePrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -413,14 +408,12 @@ public class SimplePrintUtil {
 					String header = name.substring(3);
 					if (listIndex == list.size() - 1) {
 						if (printLastColumnSpaces) {
-							printStr.append(StringUtil.getRightPaddedString(
-									header, maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString(header, maxLen, ' '));
 						} else {
 							printStr.append(header);
 						}
 					} else {
-						printStr.append(StringUtil.getRightPaddedString(
-								header, maxLen, ' '));
+						printStr.append(StringUtil.getRightPaddedString(header, maxLen, ' '));
 						printStr.append("  ");
 					}
 
@@ -432,24 +425,20 @@ public class SimplePrintUtil {
 		return printStr.toString();
 	}
 
-	private static String printBottomHeaders(List list, Object obj,
-			boolean printLastColumnSpaces, String primitiveHeader) {
+	private static String printBottomHeaders(List list, Object obj, boolean printLastColumnSpaces,
+			String primitiveHeader)
+	{
 		StringBuffer printStr = new StringBuffer();
 		Object object = obj;
 		if (object == null) {
 			object = "null";
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 
 			int maxLen = (Integer) list.get(0);
 			if (maxLen < primitiveHeader.length()) {
@@ -457,11 +446,9 @@ public class SimplePrintUtil {
 			}
 			if (printLastColumnSpaces) {
 				printStr.append(StringUtil.getRightPaddedString(
-						StringUtil.getRightPaddedString("",
-								primitiveHeader.length(), '-'), maxLen, ' '));
+						StringUtil.getRightPaddedString("", primitiveHeader.length(), '-'), maxLen, ' '));
 			} else {
-				printStr.append(StringUtil.getRightPaddedString("",
-						primitiveHeader.length(), '-'));
+				printStr.append(StringUtil.getRightPaddedString("", primitiveHeader.length(), '-'));
 			}
 
 		} else {
@@ -477,8 +464,7 @@ public class SimplePrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -494,17 +480,13 @@ public class SimplePrintUtil {
 					if (listIndex == list.size() - 1) {
 						if (printLastColumnSpaces) {
 							printStr.append(StringUtil.getRightPaddedString(
-											StringUtil.getRightPaddedString("",
-													header.length(), '-'),
-											maxLen, ' '));
+									StringUtil.getRightPaddedString("", header.length(), '-'), maxLen, ' '));
 						} else {
-							printStr.append(StringUtil.getRightPaddedString(
-									"", header.length(), '-'));
+							printStr.append(StringUtil.getRightPaddedString("", header.length(), '-'));
 						}
 					} else {
 						printStr.append(StringUtil.getRightPaddedString(
-								StringUtil.getRightPaddedString("",
-										header.length(), '-'), maxLen, ' '));
+								StringUtil.getRightPaddedString("", header.length(), '-'), maxLen, ' '));
 						printStr.append("  ");
 					}
 					listIndex++;
@@ -515,8 +497,9 @@ public class SimplePrintUtil {
 		return printStr.toString();
 	}
 
-	private static void printHeaders(List keyList, List valueList, Object key,
-			Object value, int rowMaxLen) throws Exception {
+	private static void printHeaders(List keyList, List valueList, Object key, Object value, int rowMaxLen)
+			throws Exception
+	{
 		StringBuffer printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("Row", rowMaxLen, ' '));
 		printStr.append("  ");
@@ -548,8 +531,8 @@ public class SimplePrintUtil {
 	 * @param rowCount
 	 * @return The number of rows printed
 	 */
-	public static int printSelectResults(SelectResults sr, int startIndex,
-			int startRowNum, int rowCount) {
+	public static int printSelectResults(SelectResults sr, int startIndex, int startRowNum, int rowCount)
+	{
 		if (sr == null) {
 			PadoShell.printlnError("SelectResults is null");
 			return 0;
@@ -601,7 +584,7 @@ public class SimplePrintUtil {
 		}
 		return endIndex - startIndex;
 	}
-	
+
 	/**
 	 * Prints the SelectResults contents up to the specified rowCount.
 	 * 
@@ -610,7 +593,8 @@ public class SimplePrintUtil {
 	 * @param rowCount
 	 * @return The number of rows printed
 	 */
-	public static int printScrollableResultSet(IScrollableResultSet srs, int startRow) {
+	public static int printScrollableResultSet(IScrollableResultSet srs, int startRow)
+	{
 		if (srs == null) {
 			return 0;
 		}
@@ -639,11 +623,11 @@ public class SimplePrintUtil {
 		return srList.size();
 	}
 
-	public static void printList(List<List<Object>> resultList,
-			List<String> headerList) {
+	public static void printList(List<List<Object>> resultList, List<String> headerList)
+	{
 		StringBuffer printStr = new StringBuffer();
 		for (int j = 0; j < resultList.size(); j++) {
-			printStr.append((j + 1) + "."+"\n");
+			printStr.append((j + 1) + "." + "\n");
 			List<Object> resultArr = resultList.get(j);
 			for (int i = 0; i < resultArr.size(); i++) {
 
@@ -651,24 +635,18 @@ public class SimplePrintUtil {
 				if ("Row".equals(headerList.get(i))) {
 					continue;
 				}
-				
-				printStr.append(headerList.get(i) );
+
+				printStr.append(headerList.get(i));
 				if (object != null) {
-					if (!(object.getClass().getName().startsWith("java")))
-					{
-						printStr.append("(" + object.getClass().getName()
-								+ ")\n");
-					}
-					else
-					{
+					if (!(object.getClass().getName().startsWith("java"))) {
+						printStr.append("(" + object.getClass().getName() + ")\n");
+					} else {
 						printStr.append(" = ");
 					}
 					SimplePrintUtil.printObject(null, object, 0);
-				}
-				else
-				{
+				} else {
 					printStr.append(" = ");
-					printStr.append("null"+"\n");
+					printStr.append("null" + "\n");
 				}
 			}
 			printStr.append("\n\n");
@@ -676,8 +654,8 @@ public class SimplePrintUtil {
 		PadoShell.println(printStr.toString());
 	}
 
-	private static int printSelectResults_iterator(SelectResults sr,
-			int startRowNum, int rowCount) {
+	private static int printSelectResults_iterator(SelectResults sr, int startRowNum, int rowCount)
+	{
 		if (sr == null) {
 			PadoShell.printlnError("SelectResults is null");
 			return 0;
@@ -733,15 +711,13 @@ public class SimplePrintUtil {
 				StringBuffer printStr = new StringBuffer();
 				structType = (StructType) elementType;
 				struct = (Struct) element;
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				PadoShell.println(printStr.toString());
 
 			} else {
 				StringBuffer printStr = new StringBuffer();
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String printObjStr = printObject(maxLenList, element, false);
 				printStr.append(printObjStr);
@@ -756,8 +732,8 @@ public class SimplePrintUtil {
 		return row - 1;
 	}
 
-	private static void computeMaxLengths(List list, StructType structType,
-			Struct struct) {
+	private static void computeMaxLengths(List list, StructType structType, Struct struct)
+	{
 		ObjectType[] fieldTypes = structType.getFieldTypes();
 		String[] fieldNames = structType.getFieldNames();
 		Object[] fieldValues = struct.getFieldValues();
@@ -790,22 +766,18 @@ public class SimplePrintUtil {
 		}
 	}
 
-	private static void computeMaxLengths(List list, Object obj, boolean isKey) {
+	private static void computeMaxLengths(List list, Object obj, boolean isKey)
+	{
 		Object object = obj;
 		if (object == null) {
 			object = "null";
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 			if (list.size() > 0) {
 				int len = (Integer) list.get(0);
 				if (len < object.toString().length()) {
@@ -839,8 +811,7 @@ public class SimplePrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -875,8 +846,8 @@ public class SimplePrintUtil {
 		}
 	}
 
-	private static void printHeaders(List list, StructType structType,
-			Struct struct, int rowMaxLen) {
+	private static void printHeaders(List list, StructType structType, Struct struct, int rowMaxLen)
+	{
 		StringBuffer printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("Row", rowMaxLen, ' '));
 		printStr.append("  ");
@@ -893,13 +864,12 @@ public class SimplePrintUtil {
 			fieldValue = getPrintableValue(fieldValue);
 			int maxLen = (Integer) list.get(listIndex);
 			String header = fieldName;
-			printStr.append(StringUtil.getRightPaddedString(header, maxLen,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(header, maxLen, ' '));
 			printStr.append("  ");
 			listIndex++;
 		}
 		PadoShell.println(printStr.toString());
-		
+
 		printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("", rowMaxLen, '-'));
 		printStr.append("  ");
@@ -911,8 +881,7 @@ public class SimplePrintUtil {
 			fieldValue = getPrintableValue(fieldValue);
 			int maxLen = (Integer) list.get(listIndex);
 			String header = fieldName;
-			printStr.append(StringUtil.getRightPaddedString(
-					StringUtil.getRightPaddedString("", header.length(), '-'),
+			printStr.append(StringUtil.getRightPaddedString(StringUtil.getRightPaddedString("", header.length(), '-'),
 					maxLen, ' '));
 			printStr.append("  ");
 			listIndex++;
@@ -920,14 +889,15 @@ public class SimplePrintUtil {
 		PadoShell.println(printStr.toString());
 	}
 
-	private static void printHeaders(List list, Object object, int rowMaxLen) {
+	private static void printHeaders(List list, Object object, int rowMaxLen)
+	{
 		StringBuffer printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("Row", rowMaxLen, ' '));
 		printStr.append("  ");
 		String topHeaders = printTopHeaders(list, object, false, "Value");
 		printStr.append(topHeaders);
 		PadoShell.println(printStr.toString());
-		
+
 		printStr = new StringBuffer();
 
 		printStr.append(StringUtil.getRightPaddedString("", rowMaxLen, '-'));
@@ -937,7 +907,8 @@ public class SimplePrintUtil {
 		PadoShell.println(printStr.toString());
 	}
 
-	private static String getPrintableType(Object object) {
+	private static String getPrintableType(Object object)
+	{
 		if (isPrintType()) {
 			if (object == null) {
 				return " (N/A)";
@@ -953,8 +924,8 @@ public class SimplePrintUtil {
 		}
 	}
 
-	private static void printStruct(int row,
-			Struct struct, int level) {
+	private static void printStruct(int row, Struct struct, int level)
+	{
 		String spaces = getSpaces(level);
 		String spaces2 = getSpaces(level + 1);
 
@@ -973,13 +944,13 @@ public class SimplePrintUtil {
 		}
 	}
 
-	private static void printObject(int row, String header, Object object,
-			boolean printRow) {
+	private static void printObject(int row, String header, Object object, boolean printRow)
+	{
 		printObject(row, header, object, printRow, 1);
 	}
 
-	private static void printObject(int row, String header, Object object,
-			boolean printRow, int level) {
+	private static void printObject(int row, String header, Object object, boolean printRow, int level)
+	{
 		StringBuffer printStr = new StringBuffer();
 		if (printRow) {
 			printStr.append(row + ". ");
@@ -997,11 +968,12 @@ public class SimplePrintUtil {
 			printStr.append(header + getPrintableType(object));
 		}
 		PadoShell.println(printStr.toString());
-		
+
 		printObject(null, object, level);
 	}
 
-	private static void printObject(String name, Object obj, int level) {
+	private static void printObject(String name, Object obj, int level)
+	{
 		String spaces = getSpaces(level);
 
 		Object object = obj;
@@ -1009,16 +981,12 @@ public class SimplePrintUtil {
 			object = "null";
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date || object instanceof Enum) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object instanceof Date
+				|| object instanceof Enum) {
 			printValue(name, object, level);
 
 		} else if (object instanceof Map) {
@@ -1026,6 +994,8 @@ public class SimplePrintUtil {
 
 		} else if (object instanceof Collection) {
 			printCollection(name, (Collection) object, level);
+		} else if (object.getClass().isArray()) {
+			printArray(name, object, level);
 
 		} else {
 			Class cls = object.getClass();
@@ -1042,8 +1012,7 @@ public class SimplePrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -1066,7 +1035,8 @@ public class SimplePrintUtil {
 		}
 	}
 
-	public static void printList(List resultList) {
+	public static void printList(List resultList)
+	{
 		ArrayList maxLenList = new ArrayList();
 		Object nonNullObject = null;
 		for (int i = 0; i < resultList.size(); i++) {
@@ -1088,8 +1058,7 @@ public class SimplePrintUtil {
 		for (int i = 0; i < resultList.size(); i++) {
 			StringBuffer printStr = new StringBuffer();
 			Object object = resultList.get(i);
-			printStr.append(StringUtil.getRightPaddedString((i + 1) + "",
-					rowMax, ' '));
+			printStr.append(StringUtil.getRightPaddedString((i + 1) + "", rowMax, ' '));
 			printStr.append("  ");
 			String pringObjStr = printObject(maxLenList, object, false);
 			printStr.append(pringObjStr);
@@ -1097,8 +1066,9 @@ public class SimplePrintUtil {
 		}
 	}
 
-	public static int printList(List list, int startIndex, int startRowNum,
-			int rowCount, int actualSize) throws Exception {
+	public static int printList(List list, int startIndex, int startRowNum, int rowCount, int actualSize)
+			throws Exception
+	{
 		if (list == null) {
 			PadoShell.printlnError("Map is null");
 			return 0;
@@ -1127,7 +1097,8 @@ public class SimplePrintUtil {
 		return count;
 	}
 
-	private static Object getPrintableValue(Object value) {
+	private static Object getPrintableValue(Object value)
+	{
 		if (value instanceof Byte) {
 			value = ((Byte) value).toString();
 		} else if (value instanceof byte[]) {
@@ -1153,17 +1124,17 @@ public class SimplePrintUtil {
 		return value;
 	}
 
-	private static void printValue(Object name, Object value, int level) {
+	private static void printValue(Object name, Object value, int level)
+	{
 		String spaces = getSpaces(level);
 		Object printableValue = value;
 		if (value instanceof Byte) {
 			int intVal = ((Byte) value).intValue();
-			printableValue = ((Byte) value).toString() + " [" + intVal + "] [x"
-					+ Integer.toHexString(intVal) + "]";
+			printableValue = ((Byte) value).toString() + " [" + intVal + "] [x" + Integer.toHexString(intVal) + "]";
 		} else if (value instanceof Character) {
 			int intVal = (int) ((Character) value);
-			printableValue = ((Character) value).toString() + " [" + intVal
-					+ "] [x" + Integer.toHexString(intVal) + "]";
+			printableValue = ((Character) value).toString() + " [" + intVal + "] [x" + Integer.toHexString(intVal)
+					+ "]";
 		} else if (value instanceof byte[]) {
 			printableValue = "[B " + ((byte[]) value).length;
 		} else if (value instanceof boolean[]) {
@@ -1178,34 +1149,31 @@ public class SimplePrintUtil {
 			printableValue = "[F " + ((float[]) value).length;
 		} else if (value instanceof double[]) {
 			printableValue = "[D " + ((double[]) value).length;
-		}
-		else if (value instanceof Enum) {
-			printableValue =value.toString();
+		} else if (value instanceof Enum) {
+			printableValue = value.toString();
 		}
 		if (value instanceof Map) {
 			printMap(name, (Map) value, level);
 		} else {
 			if (name == null) {
-				PadoShell.println(spaces + printableValue
-						+ getPrintableType(value));
+				PadoShell.println(spaces + printableValue + getPrintableType(value));
 			} else {
 				if (name.toString().startsWith("[")) {
-					PadoShell.println(spaces + name + " " + printableValue
-							+ getPrintableType(value));
+					PadoShell.println(spaces + name + " " + printableValue + getPrintableType(value));
 				} else {
-					PadoShell.println(spaces + name + " = " + printableValue
-							+ getPrintableType(value));
+					PadoShell.println(spaces + name + " = " + printableValue + getPrintableType(value));
 				}
 			}
 		}
 	}
 
-	private static void printMap(Object name, Map map, int level) {
+	private static void printMap(Object name, Map map, int level)
+	{
 		String spaces = getSpaces(level);
 		String spaces2 = getSpaces(level + 1);
 
 		if (map instanceof KeyMap) {
-			PadoShell.println(spaces + "KeyType: " + ((KeyMap)map).getKeyTypeName());
+			PadoShell.println(spaces + "KeyType: " + ((KeyMap) map).getKeyTypeName());
 		}
 
 		Set<Map.Entry> entrySet = map.entrySet();
@@ -1224,12 +1192,12 @@ public class SimplePrintUtil {
 			}
 		}
 		if (count < entrySet.size()) {
-			PadoShell.println(spaces2 + "<" + (entrySet.size() - count)
-					+ " more ...>");
+			PadoShell.println(spaces2 + "<" + (entrySet.size() - count) + " more ...>");
 		}
 	}
 
-	private static void printCollection(Object name, Collection col, int level) {
+	private static void printCollection(Object name, Collection col, int level)
+	{
 		String spaces = getSpaces(level);
 		String spaces2 = getSpaces(level + 1);
 
@@ -1242,11 +1210,9 @@ public class SimplePrintUtil {
 		// }
 
 		if (name == null) {
-			PadoShell.println(spaces + "size: " + col.size()
-					+ getPrintableType(col));
+			PadoShell.println(spaces + "size: " + col.size() + getPrintableType(col));
 		} else {
-			PadoShell.println(spaces + name + " - size: " + col.size()
-					+ getPrintableType(col));
+			PadoShell.println(spaces + name + " - size: " + col.size() + getPrintableType(col));
 		}
 
 		int count = 0;
@@ -1264,12 +1230,51 @@ public class SimplePrintUtil {
 			}
 		}
 		if (count < col.size()) {
-			PadoShell.println(spaces2 + "<" + (col.size() - count)
-					+ " more ...>");
+			PadoShell.println(spaces2 + "<" + (col.size() - count) + " more ...>");
+		}
+	}
+	
+	private static void printArray(Object name, Object array, int level)
+	{
+		String spaces = getSpaces(level);
+		String spaces2 = getSpaces(level + 1);
+
+		// if (name == null) {
+		// if (isPrintType()) {
+		// PadoShell.println(spaces + getPrintableType(map));
+		// }
+		// } else {
+		// PadoShell.println(spaces + name + getPrintableType(map));
+		// }
+
+		int size = Array.getLength(array);
+		if (name == null) {
+			PadoShell.println(spaces + "size: " + size + getPrintableType(array));
+		} else {
+			PadoShell.println(spaces + name + " - size: " + size + getPrintableType(array));
+		}
+
+		int index = 0;
+		for (index = 0; index < size; index++) {
+			Object value = Array.get(array, index);
+			if (value instanceof Map) {
+				printMap(null, (Map) value, level + 1);
+			} else if (value instanceof Collection) {
+				printCollection(null, (Collection) value, level + 1);
+			} else {
+				printObject("[" + index + "]", value, level + 1);
+			}
+			if (index >= getCollectionEntryPrintCount()) {
+				break;
+			}
+		}
+		if (index < size) {
+			PadoShell.println(spaces2 + "<" + (size - index) + " more ...>");
 		}
 	}
 
-	private static String getSpaces(int level) {
+	private static String getSpaces(int level)
+	{
 		String spaces = "";
 		for (int i = 0; i < level; i++) {
 			spaces += "   ";
@@ -1277,30 +1282,24 @@ public class SimplePrintUtil {
 		return spaces;
 	}
 
-	private static String printObject(List list, Object obj,
-			boolean printLastColumnSpaces) {
+	private static String printObject(List list, Object obj, boolean printLastColumnSpaces)
+	{
 		StringBuffer printStr = new StringBuffer();
 		Object object = obj;
 		if (object == null) {
 			object = "null";
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 			object = getPrintableValue(object);
 			if (list.size() > 0) {
 				int maxLen = (Integer) list.get(0);
 				if (printLastColumnSpaces) {
-					printStr.append(StringUtil.getRightPaddedString(
-							object.toString(), maxLen, ' '));
+					printStr.append(StringUtil.getRightPaddedString(object.toString(), maxLen, ' '));
 				} else {
 					printStr.append(object.toString());
 				}
@@ -1320,8 +1319,7 @@ public class SimplePrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -1336,17 +1334,13 @@ public class SimplePrintUtil {
 					if (listIndex == list.size() - 1) {
 						if (value == null) {
 							if (printLastColumnSpaces) {
-								printStr.append(StringUtil
-										.getRightPaddedString("null", maxLen,
-												' '));
+								printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 							} else {
 								printStr.append("null");
 							}
 						} else {
 							if (printLastColumnSpaces) {
-								printStr.append(StringUtil
-										.getRightPaddedString(value.toString(),
-												maxLen, ' '));
+								printStr.append(StringUtil.getRightPaddedString(value.toString(), maxLen, ' '));
 							} else {
 								printStr.append(value.toString());
 							}
@@ -1354,11 +1348,9 @@ public class SimplePrintUtil {
 
 					} else {
 						if (value == null) {
-							printStr.append(StringUtil.getRightPaddedString(
-									"null", maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 						} else {
-							printStr.append(StringUtil.getRightPaddedString(
-									value.toString(), maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString(value.toString(), maxLen, ' '));
 						}
 						printStr.append("  ");
 					}

@@ -29,7 +29,8 @@ import com.netcrest.pado.temporal.TemporalType;
  * @author dpark
  * 
  */
-public abstract class PathInfo implements Comparable<PathInfo> {
+public abstract class PathInfo implements Comparable<PathInfo>
+{
 	/**
 	 * Name of the path, i.e., the leaf part of the path.
 	 */
@@ -77,6 +78,11 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 */
 	protected int size;
 
+	/**
+	 * true if virtual path, false if physical path
+	 */
+	protected boolean isVirtualPath;
+
 	// /**
 	// * If true, this path is physically or virtually hosted by the grid.
 	// * If false, this path is defined by other grids.
@@ -86,7 +92,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	/**
 	 * Constructs an empty PathInfo object.
 	 */
-	public PathInfo() {
+	public PathInfo()
+	{
 	}
 
 	/**
@@ -96,11 +103,13 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 *            true to include all nested paths, false to return only the
 	 *            top-level paths
 	 */
-	public Set<String> getChildGridPathSet(boolean recursive) {
-		return getChildGridPathSet(this, new HashSet(getChildCount() + 10), recursive);
+	public Set<String> getChildGridPathSet(boolean recursive)
+	{
+		return getChildGridPathSet(this, new HashSet<String>(getChildCount() + 10), recursive);
 	}
 
-	private Set<String> getChildGridPathSet(PathInfo pathInfo, Set<String> childGridPathSet, boolean recursive) {
+	private Set<String> getChildGridPathSet(PathInfo pathInfo, Set<String> childGridPathSet, boolean recursive)
+	{
 		if (pathInfo == null) {
 			return childGridPathSet;
 		}
@@ -117,7 +126,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	/**
 	 * Returns the path name or the leaf part of the path.
 	 */
-	public String getName() {
+	public String getName()
+	{
 		return name;
 	}
 
@@ -127,14 +137,16 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param name
 	 *            Path name
 	 */
-	public void setName(String name) {
+	public void setName(String name)
+	{
 		this.name = name;
 	}
 
 	/**
 	 * Returns the full path including the root path beginning with "/".
 	 */
-	public String getFullPath() {
+	public String getFullPath()
+	{
 		return fullPath;
 	}
 
@@ -144,8 +156,29 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param fullPath
 	 *            Full path
 	 */
-	public void setFullPath(String fullPath) {
+	public void setFullPath(String fullPath)
+	{
 		this.fullPath = fullPath;
+	}
+
+	/**
+	 * Returns true if this path is a virtual path. Returns false if it is a
+	 * physical path. Default is physical path.
+	 */
+	public boolean isVirtualPath()
+	{
+		return isVirtualPath;
+	}
+
+	/**
+	 * Sets the path to virtual (true) or physical (false). Default is physical.
+	 * 
+	 * @param isVirtualPath
+	 *            true to set virtual, false to set physical.
+	 */
+	public void setVirtualPath(boolean isVirtualPath)
+	{
+		this.isVirtualPath = isVirtualPath;
 	}
 
 	/**
@@ -158,7 +191,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * Returns the PathAttributeInfo object that contains path-specific
 	 * attributes.
 	 */
-	public PathAttributeInfo getAttrInfo() {
+	public PathAttributeInfo getAttrInfo()
+	{
 		return attrInfo;
 	}
 
@@ -168,7 +202,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param attrInfo
 	 *            PathAttributeInfo object
 	 */
-	public void setAttrInfo(PathAttributeInfo attrInfo) {
+	public void setAttrInfo(PathAttributeInfo attrInfo)
+	{
 		this.attrInfo = attrInfo;
 	}
 
@@ -177,7 +212,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * then it returns the size of the local primary data set. Otherwise, it
 	 * returns the total size.
 	 */
-	public int getSize() {
+	public int getSize()
+	{
 		return size;
 	}
 
@@ -187,14 +223,16 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param size
 	 *            Path content size
 	 */
-	public void setSize(int size) {
+	public void setSize(int size)
+	{
 		this.size = size;
 	}
 
 	/**
 	 * Returns the list of child PathInfo objects.
 	 */
-	public List<PathInfo> getChildList() {
+	public List<PathInfo> getChildList()
+	{
 		return childList;
 	}
 
@@ -204,21 +242,24 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param childList
 	 *            List of child PathInfo objects
 	 */
-	public void setChildList(List<PathInfo> childList) {
+	public void setChildList(List<PathInfo> childList)
+	{
 		this.childList = childList;
 	}
 
 	/**
 	 * Returns true if there are no child PathInfo objects.
 	 */
-	public boolean isLeaf() {
+	public boolean isLeaf()
+	{
 		return childList == null || childList.size() == 0;
 	}
 
 	/**
 	 * Returns child PathInfo object count.
 	 */
-	public int getChildCount() {
+	public int getChildCount()
+	{
 		if (childList == null) {
 			return 0;
 		}
@@ -228,7 +269,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	/**
 	 * Returns the parent PathInfo object.
 	 */
-	public PathInfo getParent() {
+	public PathInfo getParent()
+	{
 		return parent;
 	}
 
@@ -238,7 +280,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param parent
 	 *            Parent PathInfo object
 	 */
-	public void setParent(PathInfo parent) {
+	public void setParent(PathInfo parent)
+	{
 		this.parent = parent;
 	}
 
@@ -247,7 +290,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * 
 	 * @return Root PathInfo object
 	 */
-	public PathInfo getRootPathInfo() {
+	public PathInfo getRootPathInfo()
+	{
 		PathInfo rootPathInfo = getRootPathInfo(this);
 		return rootPathInfo;
 	}
@@ -258,7 +302,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param pathInfo
 	 *            Path info
 	 */
-	private PathInfo getRootPathInfo(PathInfo pathInfo) {
+	private PathInfo getRootPathInfo(PathInfo pathInfo)
+	{
 		if (pathInfo != null) {
 			pathInfo = getRootPathInfo(pathInfo.getParent());
 		}
@@ -269,7 +314,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * Returns the temporal type. It returns null if this path is not
 	 * temporal-enabled.
 	 */
-	public TemporalType getTemporalType() {
+	public TemporalType getTemporalType()
+	{
 		return temporalType;
 	}
 
@@ -279,21 +325,24 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param temporalType
 	 *            Temporal type
 	 */
-	public void setTemporalType(TemporalType temporalType) {
+	public void setTemporalType(TemporalType temporalType)
+	{
 		this.temporalType = temporalType;
 	}
 
 	/**
 	 * Returns the key type (class) name. It returns null if not defined.
 	 */
-	public String getKeyTypeName() {
+	public String getKeyTypeName()
+	{
 		return keyTypeName;
 	}
 
 	/**
 	 * Returns the value type (class) name. It returns null if not defined.
 	 */
-	public String valueTypeName() {
+	public String getValueTypeName()
+	{
 		return valueTypeName;
 	}
 
@@ -304,7 +353,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 *            If true, it recursively traverses the path until it finds the
 	 *            child path that has the value type of KeyMap.
 	 */
-	public boolean isValueKeyMap(boolean recursive) {
+	public boolean isValueKeyMap(boolean recursive)
+	{
 		boolean flag = valueTypeName != null && (valueTypeName.equals(JsonLite.class.getName()))
 				|| temporalType != null && temporalType.getDataClassName() != null
 						&& (temporalType.getDataClassName().equals(JsonLite.class.getName()));
@@ -323,11 +373,21 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	/**
 	 * Returns true if this path is the root path, i.e., "/".
 	 */
-	public boolean isRoot() {
+	public boolean isRoot()
+	{
 		return fullPath.equals("/");
 	}
+	
+	/**
+	 * Returns true if this path is the grid root path, i.e., "/mygrid".
+	 */
+	public boolean isGridRoot()
+	{
+		return isRoot() == false && getGridRelativePath().length() == 0;
+	}
 
-	public boolean isTemporal(boolean recursive) {
+	public boolean isTemporal(boolean recursive)
+	{
 		boolean flag = temporalType != null;
 
 		if (flag == false && recursive) {
@@ -341,7 +401,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 		return flag;
 	}
 
-	public boolean isHidden(boolean recursive) {
+	public boolean isHidden(boolean recursive)
+	{
 		if (name == null) {
 			return false;
 		}
@@ -370,7 +431,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * @param childPath
 	 *            Child path relative to this path.
 	 */
-	public boolean hasChildPath(String childPath) {
+	public boolean hasChildPath(String childPath)
+	{
 		if (childPath == null) {
 			return false;
 		}
@@ -405,14 +467,16 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	/**
 	 * Returns the full path.
 	 */
-	public String toString() {
+	public String toString()
+	{
 		return fullPath;
 	}
 
 	/**
 	 * Compares the full paths.
 	 */
-	public int compareTo(PathInfo anotherPathInfo) {
+	public int compareTo(PathInfo anotherPathInfo)
+	{
 		if (anotherPathInfo == null) {
 			return 1;
 		}
@@ -426,7 +490,8 @@ public abstract class PathInfo implements Comparable<PathInfo> {
 	 * Returns true only if the specified object has the same full path as this
 	 * object.
 	 */
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj)
+	{
 		if (obj == null) {
 			return false;
 		}

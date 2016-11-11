@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.netcrest.pado.index.exception.GridQueryProviderConfigurationException;
+import com.netcrest.pado.index.helper.BaseComparatorFactory;
 import com.netcrest.pado.index.helper.ComparatorFactory;
 import com.netcrest.pado.index.internal.ServiceFinder;
 
@@ -37,7 +38,7 @@ public class IndexMatrixProviderFactory
 
 	private static volatile IndexMatrixProviderFactory instance;
 	private Map<String, Class<?>> indexMatrixProviderMap = new HashMap<String, Class<?>>();
-	private ComparatorFactory compFactory = null;
+	private BaseComparatorFactory compFactory = null;
 
 	private IndexMatrixProviderFactory()
 	{
@@ -56,6 +57,7 @@ public class IndexMatrixProviderFactory
 				throw new GridQueryProviderConfigurationException("Can not instantiate IndexMatrixProvider", ex);
 			}
 		}
+		// TODO: Remove GemFire package dependency
 		compFactory = new ComparatorFactory();
 	}
 
@@ -70,7 +72,7 @@ public class IndexMatrixProviderFactory
 		return instance;
 	}
 
-	public ComparatorFactory getComparatorFactory()
+	public BaseComparatorFactory getComparatorFactory()
 	{
 		return compFactory;
 	}

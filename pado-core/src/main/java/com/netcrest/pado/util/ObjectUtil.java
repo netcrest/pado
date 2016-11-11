@@ -42,7 +42,9 @@ public class ObjectUtil
 
 		Class types[] = setterMethod.getParameterTypes();
 		Class arg = types[0];
-		if (arg == byte.class || arg == Byte.class) {
+		if (arg == boolean.class || arg == Boolean.class) {
+			setterMethod.invoke(obj, Boolean.parseBoolean(value));
+		} else if (arg == byte.class || arg == Byte.class) {
 			setterMethod.invoke(obj, Byte.parseByte(value));
 		} else if (arg == char.class || arg == Character.class) {
 			setterMethod.invoke(obj, value.charAt(0));
@@ -92,7 +94,9 @@ public class ObjectUtil
 		Object mapValue = null;
 		Class arg = keyType.getType();
 		if (value != null && value.equalsIgnoreCase("null") == false) {
-			if (arg == byte.class || arg == Byte.class) {
+			if (arg == boolean.class || arg == Boolean.class) {
+				mapValue = Boolean.parseBoolean(value);
+			} else if (arg == byte.class || arg == Byte.class) {
 				mapValue = Byte.parseByte(value);
 			} else if (arg == char.class || arg == Character.class) {
 				mapValue = value.charAt(0);
@@ -143,7 +147,11 @@ public class ObjectUtil
 		Object mapValue = null;
 		if (value != null && value.equalsIgnoreCase("null") == false) {
 			try {
-				if (arg == byte.class || arg == Byte.class) {
+				if (arg == boolean.class || arg == Boolean.class) {
+					if (value != null && value.length() > 0) {
+						mapValue = (boolean)Boolean.parseBoolean(value);
+					}
+				} else if (arg == byte.class || arg == Byte.class) {
 					if (value != null && value.length() > 0) {
 						mapValue = (byte)Byte.parseByte(value);
 					}
@@ -350,7 +358,9 @@ public class ObjectUtil
 //			value = fieldsMap.get(field);
 //			Class types[] = setterMethod.getParameterTypes();
 //			Class arg = types[0];
-//			if (arg == byte.class || arg == Byte.class) {
+//			if (arg == boolean.class || arg == Boolean.class) {
+//				setterMethod.invoke(obj, Boolean.parseBoolean(value));
+//			} else if (arg == byte.class || arg == Byte.class) {
 //				setterMethod.invoke(obj, Byte.parseByte(value));
 //			} else if (arg == char.class || arg == Character.class) {
 //				setterMethod.invoke(obj, value.charAt(0));

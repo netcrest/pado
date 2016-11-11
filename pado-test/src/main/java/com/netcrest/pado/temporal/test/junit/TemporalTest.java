@@ -41,15 +41,14 @@ import com.netcrest.pado.temporal.TemporalEntry;
 import com.netcrest.pado.temporal.test.TemporalLoader;
 import com.netcrest.pado.temporal.test.data.Position;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class TemporalTest
 {
 	private static IPado pado;
 	private static ITemporalBiz<Object, KeyMap> temporalBiz;
-	private static Set<ITemporalKey<Object>> temporalKeySet;
 	private static TemporalLoader loader;
 	private static Set<TemporalEntry<Object, KeyMap>> temporalEntrySet;
-	
-	@SuppressWarnings("unchecked")
+
 	@BeforeClass
 	public static void loginPado() throws PadoLoginException
 	{

@@ -9,6 +9,7 @@ DateFormat=yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
 IsCaseSensitive=true
 StartRow=2
 IsTemporal=true
+IsSplit=false
 
 #
 # Schema Definition

@@ -94,6 +94,22 @@ public interface IPadoBiz extends IPadoBizLink
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	GridInfo getGridInfo();
+	
+	/**
+	 * Returns the number of running servers in the specified grid.
+	 * @param gridId Grid ID
+	 */
+	@BizMethod
+	@OnServer
+	int getServerCount(String gridId);
+	
+	/**
+	 * Returns all server IDs that uniquely identify the servers in the specified grid.
+	 * @param gridId Grid ID
+	 */
+	@BizMethod
+	@OnServer
+	Object[] getServerIds(String gridId);
 
 	/**
 	 * Returns AppInfo pertaining to the specified app ID.
@@ -106,11 +122,18 @@ public interface IPadoBiz extends IPadoBizLink
 	AppInfo getAppInfo(String appId);
 
 	/**
-	 * Returns PathInfo of the root of the grid containing all of its children.
+	 * Returns physical PathInfo of the root of the grid containing all of its children.
 	 */
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	PathInfo getPathInfo();
+	
+	/**
+	 * Returns virtual PathInfo of the root of the grid containing all of its children.
+	 */
+	@BizMethod
+	@OnServer(broadcast = false, connectionName = "pado")
+	PathInfo getVirtualPathInfo();
 
 	/**
 	 * Returns all registered KeyType main class names.

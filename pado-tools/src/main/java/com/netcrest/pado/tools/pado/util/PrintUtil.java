@@ -40,14 +40,18 @@ import com.netcrest.pado.internal.util.StringUtil;
 import com.netcrest.pado.temporal.TemporalData;
 import com.netcrest.pado.tools.pado.PadoShell;
 
-public class PrintUtil {
+@SuppressWarnings({ "unchecked", "rawtypes" })
+public class PrintUtil
+{
 	private static boolean tableFormat = false;
 
-	public static boolean isTableFormat() {
+	public static boolean isTableFormat()
+	{
 		return tableFormat;
 	}
 
-	public static void setTableFormat(boolean tableFormat) {
+	public static void setTableFormat(boolean tableFormat)
+	{
 		PrintUtil.tableFormat = tableFormat;
 	}
 
@@ -62,12 +66,11 @@ public class PrintUtil {
 	 * @return Returns the number of rows printed.
 	 * @throws Exception
 	 */
-	public static int printEntries(Region region, Iterator regionIterator,
-			int startIndex, int startRowNum, int rowCount, List keyList)
-			throws Exception {
+	public static int printEntries(Region region, Iterator regionIterator, int startIndex, int startRowNum,
+			int rowCount, List keyList) throws Exception
+	{
 		if (isTableFormat() == false) {
-			return SimplePrintUtil.printEntries(region, regionIterator,
-					startIndex, startRowNum, rowCount, keyList);
+			return SimplePrintUtil.printEntries(region, regionIterator, startIndex, startRowNum, rowCount, keyList);
 		}
 
 		if (region == null || regionIterator == null) {
@@ -117,11 +120,9 @@ public class PrintUtil {
 		// Print keys and values
 		int row = startRowNum;
 		index = startIndex;
-		for (Iterator itr = entryList.iterator(); index < endIndex
-				&& itr.hasNext(); index++) {
+		for (Iterator itr = entryList.iterator(); index < endIndex && itr.hasNext(); index++) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			Region.Entry entry = (Region.Entry) itr.next();
@@ -151,8 +152,8 @@ public class PrintUtil {
 		return endIndex - startIndex;
 	}
 
-	public static int printEntries(Region region, Map keyMap, List keyList)
-			throws Exception {
+	public static int printEntries(Region region, Map keyMap, List keyList) throws Exception
+	{
 		if (isTableFormat() == false) {
 			return SimplePrintUtil.printEntries(region, keyMap, keyList);
 		}
@@ -197,8 +198,7 @@ public class PrintUtil {
 		int row = 1;
 		for (Iterator iterator = indexList.iterator(); iterator.hasNext();) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			Object index = iterator.next();
@@ -225,8 +225,8 @@ public class PrintUtil {
 		return rowCount;
 	}
 
-	public static int printEntries(Map gridMapBiz, Set keySet, List keyList)
-			throws Exception {
+	public static int printEntries(Map gridMapBiz, Set keySet, List keyList) throws Exception
+	{
 
 		if (isTableFormat() == false) {
 			return SimplePrintUtil.printEntries(gridMapBiz, keySet, keyList);
@@ -269,8 +269,7 @@ public class PrintUtil {
 		int row = 1;
 		for (Iterator iterator = keySet.iterator(); iterator.hasNext();) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			key = iterator.next();
@@ -295,11 +294,11 @@ public class PrintUtil {
 		return rowCount;
 	}
 
-	public static int printEntries(Map map, int startIndex, int startRowNum,
-			int rowCount, int actualSize, List keyList) throws Exception {
+	public static int printEntries(Map map, int startIndex, int startRowNum, int rowCount, int actualSize, List keyList)
+			throws Exception
+	{
 		if (isTableFormat() == false) {
-			return SimplePrintUtil.printEntries(map, startIndex, startRowNum,
-					rowCount, actualSize, keyList);
+			return SimplePrintUtil.printEntries(map, startIndex, startRowNum, rowCount, actualSize, keyList);
 		}
 
 		if (map == null) {
@@ -316,8 +315,7 @@ public class PrintUtil {
 		Object value = null;
 		Set entrySet = map.entrySet();
 		int count = 0;
-		for (Iterator itr = entrySet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = entrySet.iterator(); count < rowCount && itr.hasNext(); count++) {
 			Map.Entry entry = (Map.Entry) itr.next();
 			key = entry.getKey();
 			value = entry.getValue();
@@ -344,11 +342,9 @@ public class PrintUtil {
 		count = 0;
 		int row = startRowNum;
 		int lastRow = startRowNum + rowCount - 1;
-		for (Iterator itr = entrySet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = entrySet.iterator(); count < rowCount && itr.hasNext(); count++) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			Map.Entry entry = (Map.Entry) itr.next();
@@ -377,21 +373,21 @@ public class PrintUtil {
 		return count;
 	}
 
-	public static int printSet(Set set, int rowCount, List keyList)
-			throws Exception {
+	public static int printSet(Set set, int rowCount, List keyList) throws Exception
+	{
 		return printSet(set, rowCount, keyList, true);
 	}
 
-	public static int printSet(Set set, int rowCount, List keyList,
-			boolean showSummary) throws Exception {
+	public static int printSet(Set set, int rowCount, List keyList, boolean showSummary) throws Exception
+	{
 		return printSet(set, rowCount, keyList, "Key", showSummary);
 	}
 
-	public static int printSet(Set set, int rowCount, List keyList,
-			String keyColumnName, boolean showSummary) throws Exception {
+	public static int printSet(Set set, int rowCount, List keyList, String keyColumnName, boolean showSummary)
+			throws Exception
+	{
 		if (isTableFormat() == false) {
-			return SimplePrintUtil.printSet(set, rowCount, keyList,
-					keyColumnName, showSummary);
+			return SimplePrintUtil.printSet(set, rowCount, keyList, keyColumnName, showSummary);
 		}
 
 		if (set == null) {
@@ -405,8 +401,7 @@ public class PrintUtil {
 		Set nameSet = set;
 		int count = 0;
 		int keyMin = keyColumnName.length();
-		for (Iterator itr = nameSet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = nameSet.iterator(); count < rowCount && itr.hasNext(); count++) {
 			key = itr.next();
 			computeMaxLengths(keyMaxLenList, key, true, keyMin, 0);
 			keyNameSet.add(key.getClass().getName());
@@ -421,17 +416,14 @@ public class PrintUtil {
 		if (rowMax < 3) {
 			rowMax = 3;
 		}
-		printHeaders(keyMaxLenList, null, key, null, rowMax, keyColumnName,
-				null, false);
+		printHeaders(keyMaxLenList, null, key, null, rowMax, keyColumnName, null, false);
 
 		// Print keys and values
 		int row = 1;
 		count = 0;
-		for (Iterator itr = nameSet.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = nameSet.iterator(); count < rowCount && itr.hasNext(); count++) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			key = itr.next();
@@ -448,38 +440,36 @@ public class PrintUtil {
 			PadoShell.println("Displayed (fetched): " + (row - 1));
 			PadoShell.println("        Actual Size: " + set.size());
 			for (Object keyName : keyNameSet) {
-				PadoShell.println("          " + keyColumnName + " Class: "
-						+ keyName);
+				PadoShell.println("          " + keyColumnName + " Class: " + keyName);
 			}
 		}
 		return row - 1;
 	}
 
-	public static int printEntries(Map map, int rowCount, List keyList)
-			throws Exception {
+	public static int printEntries(Map map, int rowCount, List keyList) throws Exception
+	{
 		return printEntries(map, rowCount, keyList, true, true);
 	}
 
-	public static int printEntries(Map map, int rowCount, List keyList,
-			boolean showSummary, boolean showValues) throws Exception {
-		return printEntries(map, rowCount, keyList, "Key", "Value",
-				showSummary, showValues);
+	public static int printEntries(Map map, int rowCount, List keyList, boolean showSummary, boolean showValues)
+			throws Exception
+	{
+		return printEntries(map, rowCount, keyList, "Key", "Value", showSummary, showValues);
 	}
 
-	public static int printEntries(Map map, int rowCount, List keyList,
-			String keyColumnName, String valueColumnName, boolean showSummary,
-			boolean showValues) throws Exception {
-		return printEntries(map, rowCount, keyList, "Key", "Value",
-				showSummary, showValues, true, false, false);
+	public static int printEntries(Map map, int rowCount, List keyList, String keyColumnName, String valueColumnName,
+			boolean showSummary, boolean showValues) throws Exception
+	{
+		return printEntries(map, rowCount, keyList, "Key", "Value", showSummary, showValues, true, false, false);
 	}
 
-	public static int printEntries(Map map, int rowCount, List keyList,
-			String keyColumnName, String valueColumnName, boolean showSummary,
-			boolean showValues, boolean columnSeperator, boolean sortByKey,
-			boolean sortByValue) throws Exception {
+	public static int printEntries(Map map, int rowCount, List keyList, String keyColumnName, String valueColumnName,
+			boolean showSummary, boolean showValues, boolean columnSeperator, boolean sortByKey, boolean sortByValue)
+			throws Exception
+	{
 		if (isTableFormat() == false) {
-			return SimplePrintUtil.printEntries(map, rowCount, keyList,
-					keyColumnName, valueColumnName, showSummary, showValues);
+			return SimplePrintUtil.printEntries(map, rowCount, keyList, keyColumnName, valueColumnName, showSummary,
+					showValues);
 		}
 
 		if (map == null) {
@@ -505,12 +495,10 @@ public class PrintUtil {
 		int count = 0;
 		int keyMin = keyColumnName.length();
 		int valueMin = valueColumnName.length();
-		for (Iterator itr = indexList.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = indexList.iterator(); count < rowCount && itr.hasNext(); count++) {
 			key = itr.next();
 			value = map.get(key);
-			computeMaxLengths(keyMaxLenList, valueMaxLenList, key, value,
-					keyMin, valueMin);
+			computeMaxLengths(keyMaxLenList, valueMaxLenList, key, value, keyMin, valueMin);
 			keyNameSet.add(key.getClass().getName());
 			if (value != null) {
 				valueNameSet.add(value.getClass().getName());
@@ -526,17 +514,15 @@ public class PrintUtil {
 		if (rowMax < 3) {
 			rowMax = 3;
 		}
-		printHeaders(keyMaxLenList, valueMaxLenList, key, value, rowMax,
-				keyColumnName, valueColumnName, showValues, columnSeperator);
+		printHeaders(keyMaxLenList, valueMaxLenList, key, value, rowMax, keyColumnName, valueColumnName, showValues,
+				columnSeperator);
 
 		// Print keys and values
 		int row = 1;
 		count = 0;
-		for (Iterator itr = indexList.iterator(); count < rowCount
-				&& itr.hasNext(); count++) {
+		for (Iterator itr = indexList.iterator(); count < rowCount && itr.hasNext(); count++) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			key = itr.next();
@@ -563,61 +549,54 @@ public class PrintUtil {
 			PadoShell.println("Displayed (fetched): " + (row - 1));
 			PadoShell.println("        Actual Size: " + map.size());
 			for (Object keyName : keyNameSet) {
-				PadoShell.println("          " + keyColumnName + " Class: "
-						+ keyName);
+				PadoShell.println("          " + keyColumnName + " Class: " + keyName);
 			}
 			for (Object valueName : valueNameSet) {
-				PadoShell.println("        " + valueColumnName + " Class: "
-						+ valueName);
+				PadoShell.println("        " + valueColumnName + " Class: " + valueName);
 
 			}
 		}
 		return row - 1;
 	}
 
-	private static void computeMaxLengths(List keyList, List valueList,
-			Object key, Object value) {
+	private static void computeMaxLengths(List keyList, List valueList, Object key, Object value)
+	{
 		computeMaxLengths(keyList, valueList, key, value, 3, 5); // "Key",
 																	// "Value"
 	}
 
-	private static void computeMaxLengths(List keyList, List valueList,
-			Object key, Object value, int keyMin, int valueMin) {
+	private static void computeMaxLengths(List keyList, List valueList, Object key, Object value, int keyMin,
+			int valueMin)
+	{
 		computeMaxLengths(keyList, key, true, keyMin, valueMin);
 		computeMaxLengths(valueList, value, false, keyMin, valueMin);
 	}
 
-	private static String printTopHeaders(List list, Object obj,
-			boolean printLastColumnSpaces, String primitiveHeader) {
+	private static String printTopHeaders(List list, Object obj, boolean printLastColumnSpaces, String primitiveHeader)
+	{
 		return printTopHeaders(list, obj, printLastColumnSpaces, primitiveHeader, 0);
 	}
 
-	private static String printTopHeaders(List list, Object obj,
-			boolean printLastColumnSpaces, String primitiveHeader,
-			int printColumnIndex) {
+	private static String printTopHeaders(List list, Object obj, boolean printLastColumnSpaces, String primitiveHeader,
+			int printColumnIndex)
+	{
 		StringBuffer printStr = new StringBuffer();
 		Object object = obj;
 		if (object == null) {
 			object = "null";
 		}
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 
 			int maxLen = (Integer) list.get(printColumnIndex);
 			if (maxLen < primitiveHeader.length()) {
 				maxLen = primitiveHeader.length();
 			}
 			if (printLastColumnSpaces) {
-				printStr.append(StringUtil.getRightPaddedString(
-						primitiveHeader, maxLen, ' '));
+				printStr.append(StringUtil.getRightPaddedString(primitiveHeader, maxLen, ' '));
 			} else {
 				printStr.append(primitiveHeader);
 			}
@@ -634,14 +613,12 @@ public class PrintUtil {
 					int maxLen = (Integer) list.get(listIndex);
 					if (listIndex == list.size() - 1) {
 						if (printLastColumnSpaces) {
-							printStr.append(StringUtil.getRightPaddedString(
-									header.toString(), maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString(header.toString(), maxLen, ' '));
 						} else {
 							printStr.append(header);
 						}
 					} else {
-						printStr.append(StringUtil.getRightPaddedString(
-								header.toString(), maxLen, ' '));
+						printStr.append(StringUtil.getRightPaddedString(header.toString(), maxLen, ' '));
 						printStr.append("  ");
 					}
 
@@ -662,8 +639,7 @@ public class PrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -677,14 +653,12 @@ public class PrintUtil {
 					String header = name.substring(3);
 					if (listIndex == list.size() - 1) {
 						if (printLastColumnSpaces) {
-							printStr.append(StringUtil.getRightPaddedString(
-									header, maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString(header, maxLen, ' '));
 						} else {
 							printStr.append(header);
 						}
 					} else {
-						printStr.append(StringUtil.getRightPaddedString(
-								header, maxLen, ' '));
+						printStr.append(StringUtil.getRightPaddedString(header, maxLen, ' '));
 						printStr.append("  ");
 					}
 
@@ -696,30 +670,26 @@ public class PrintUtil {
 		return printStr.toString();
 	}
 
-	private static String printBottomHeaders(List list, Object obj,
-			boolean printLastColumnSpaces, String primitiveHeader) {
+	private static String printBottomHeaders(List list, Object obj, boolean printLastColumnSpaces,
+			String primitiveHeader)
+	{
 		return printBottomHeaders(list, obj, printLastColumnSpaces, primitiveHeader, 0);
 	}
 
-	private static String printBottomHeaders(List list, Object obj,
-			boolean printLastColumnSpaces, String primitiveHeader,
-			int printColumnIndex) {
+	private static String printBottomHeaders(List list, Object obj, boolean printLastColumnSpaces,
+			String primitiveHeader, int printColumnIndex)
+	{
 		StringBuffer printStr = new StringBuffer();
 		Object object = obj;
 		if (object == null) {
 			object = "null";
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 
 			int maxLen = (Integer) list.get(printColumnIndex);
 			if (maxLen < primitiveHeader.length()) {
@@ -727,11 +697,9 @@ public class PrintUtil {
 			}
 			if (printLastColumnSpaces) {
 				printStr.append(StringUtil.getRightPaddedString(
-						StringUtil.getRightPaddedString("",
-								primitiveHeader.length(), '-'), maxLen, ' '));
+						StringUtil.getRightPaddedString("", primitiveHeader.length(), '-'), maxLen, ' '));
 			} else {
-				printStr.append(StringUtil.getRightPaddedString("",
-						primitiveHeader.length(), '-'));
+				printStr.append(StringUtil.getRightPaddedString("", primitiveHeader.length(), '-'));
 			}
 
 		} else if (object instanceof Map) {
@@ -750,20 +718,13 @@ public class PrintUtil {
 					if (listIndex == list.size() - 1) {
 						if (printLastColumnSpaces) {
 							printStr.append(StringUtil.getRightPaddedString(
-									StringUtil.getRightPaddedString("", header
-											.toString().length(), '-'), maxLen,
-									' '));
+									StringUtil.getRightPaddedString("", header.toString().length(), '-'), maxLen, ' '));
 						} else {
-							printStr.append(StringUtil.getRightPaddedString(
-									"", header.toString().length(), '-'));
+							printStr.append(StringUtil.getRightPaddedString("", header.toString().length(), '-'));
 						}
 					} else {
 						printStr.append(StringUtil.getRightPaddedString(
-										StringUtil
-												.getRightPaddedString("",
-														header.toString()
-																.length(), '-'),
-										maxLen, ' '));
+								StringUtil.getRightPaddedString("", header.toString().length(), '-'), maxLen, ' '));
 						printStr.append("  ");
 					}
 					listIndex++;
@@ -782,8 +743,7 @@ public class PrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -799,17 +759,13 @@ public class PrintUtil {
 					if (listIndex == list.size() - 1) {
 						if (printLastColumnSpaces) {
 							printStr.append(StringUtil.getRightPaddedString(
-											StringUtil.getRightPaddedString("",
-													header.length(), '-'),
-											maxLen, ' '));
+									StringUtil.getRightPaddedString("", header.length(), '-'), maxLen, ' '));
 						} else {
-							printStr.append(StringUtil.getRightPaddedString(
-									"", header.length(), '-'));
+							printStr.append(StringUtil.getRightPaddedString("", header.length(), '-'));
 						}
 					} else {
 						printStr.append(StringUtil.getRightPaddedString(
-								StringUtil.getRightPaddedString("",
-										header.length(), '-'), maxLen, ' '));
+								StringUtil.getRightPaddedString("", header.length(), '-'), maxLen, ' '));
 						printStr.append("  ");
 					}
 					listIndex++;
@@ -820,24 +776,23 @@ public class PrintUtil {
 		return printStr.toString();
 	}
 
-	private static void printHeaders(List keyList, List valueList, Object key,
-			Object value, int rowMaxLen) throws Exception {
-		printHeaders(keyList, valueList, key, value, rowMaxLen, "Key", "Value",
-				true);
+	private static void printHeaders(List keyList, List valueList, Object key, Object value, int rowMaxLen)
+			throws Exception
+	{
+		printHeaders(keyList, valueList, key, value, rowMaxLen, "Key", "Value", true);
 	}
 
-	private static void printHeaders(List keyList, List valueList, Object key,
-			Object value, int rowMaxLen, String keyColumnName,
-			String valueColumnName, boolean showValues) throws Exception {
+	private static void printHeaders(List keyList, List valueList, Object key, Object value, int rowMaxLen,
+			String keyColumnName, String valueColumnName, boolean showValues) throws Exception
+	{
 		boolean columnSeperator = true;
-		printHeaders(keyList, valueList, key, value, rowMaxLen, keyColumnName,
-				valueColumnName, showValues, columnSeperator);
+		printHeaders(keyList, valueList, key, value, rowMaxLen, keyColumnName, valueColumnName, showValues,
+				columnSeperator);
 	}
 
-	private static void printHeaders(List keyList, List valueList, Object key,
-			Object value, int rowMaxLen, String keyColumnName,
-			String valueColumnName, boolean showValues, boolean columnSeperator)
-			throws Exception {
+	private static void printHeaders(List keyList, List valueList, Object key, Object value, int rowMaxLen,
+			String keyColumnName, String valueColumnName, boolean showValues, boolean columnSeperator) throws Exception
+	{
 		StringBuffer printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("Row", rowMaxLen, ' '));
 		printStr.append("  ");
@@ -874,7 +829,8 @@ public class PrintUtil {
 		PadoShell.println(printStr.toString());
 	}
 
-	private static void printHeaders(List<String> keyList, List rowMaxLenList) {
+	private static void printHeaders(List<String> keyList, List rowMaxLenList)
+	{
 		int keyIndex = 0;
 		StringBuffer printStr = new StringBuffer();
 		for (String headerName : keyList) {
@@ -886,22 +842,21 @@ public class PrintUtil {
 		printStr = new StringBuffer();
 		keyIndex = 0;
 		for (String headerName : keyList) {
-			String bottomHeaderStr = printBottomHeaders(rowMaxLenList, null, true, headerName,
-					keyIndex++);
+			String bottomHeaderStr = printBottomHeaders(rowMaxLenList, null, true, headerName, keyIndex++);
 			printStr.append(bottomHeaderStr);
 			printStr.append("   ");
 		}
 		PadoShell.println(printStr.toString());
 	}
-	
-	private static void printHeaders(List<String> keyList, List rowMaxLenList,int resultIndex) {
+
+	private static void printHeaders(List<String> keyList, List rowMaxLenList, int resultIndex)
+	{
 		StringBuffer printStr = new StringBuffer();
 		int keyIndex = 0;
-		for(int i=0;i<keyList.size();i++)
-		{
+		for (int i = 0; i < keyList.size(); i++) {
 			String topHeaderStr = printTopHeaders(rowMaxLenList, null, true, keyList.get(i), i);
 			printStr.append(topHeaderStr);
-			if(i==resultIndex) {
+			if (i == resultIndex) {
 				printStr.append(" | ");
 			} else {
 				printStr.append("   ");
@@ -910,19 +865,18 @@ public class PrintUtil {
 		PadoShell.println(printStr.toString());
 		printStr = new StringBuffer();
 		keyIndex = 0;
-		
-		for(int i=0;i<keyList.size();i++)
-		{
+
+		for (int i = 0; i < keyList.size(); i++) {
 			String bottomHeaderStr = printBottomHeaders(rowMaxLenList, null, true, keyList.get(i), i);
 			printStr.append(bottomHeaderStr);
-			if(i==(resultIndex))
+			if (i == (resultIndex))
 				printStr.append(" | ");
 			else
 				printStr.append("   ");
 		}
 		PadoShell.println(printStr.toString());
 	}
-	
+
 	/**
 	 * Prints the SelectResults contents up to the specified rowCount.
 	 * 
@@ -931,7 +885,8 @@ public class PrintUtil {
 	 * @param rowCount
 	 * @return The number of rows printed
 	 */
-	public static int printScrollableResultSet(IScrollableResultSet srs, int startRow, boolean isShowHeader) {
+	public static int printScrollableResultSet(IScrollableResultSet srs, int startRow, boolean isShowHeader)
+	{
 
 		if (isTableFormat() == false) {
 			return SimplePrintUtil.printScrollableResultSet(srs, startRow);
@@ -943,7 +898,7 @@ public class PrintUtil {
 
 		HashSet elementNameSet = new HashSet();
 		ArrayList maxLenList = new ArrayList();
-		
+
 		StructType structType = null;
 		Struct struct = null;
 		List srList = srs.toList();
@@ -958,9 +913,9 @@ public class PrintUtil {
 				computeMaxLengths(maxLenList, element, false);
 				if (element != null) {
 					elementNameSet.add(element.getClass().getName());
-					if  (element instanceof KeyMap) {
-						if (((KeyMap)element).getKeyTypeName() != null) {
-							elementNameSet.add(((KeyMap)element).getKeyTypeName());
+					if (element instanceof KeyMap) {
+						if (((KeyMap) element).getKeyTypeName() != null) {
+							elementNameSet.add(((KeyMap) element).getKeyTypeName());
 						}
 					}
 				}
@@ -986,14 +941,12 @@ public class PrintUtil {
 			StringBuffer printStr = new StringBuffer();
 			if (isStructType) {
 				struct = (Struct) element;
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String structStr = printStruct(maxLenList, struct);
 				printStr.append(structStr);
 			} else {
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String printObjStr = printObject(maxLenList, element, false);
 				printStr.append(printObjStr);
@@ -1016,11 +969,10 @@ public class PrintUtil {
 	 * @param rowCount
 	 * @return The number of rows printed
 	 */
-	public static int printSelectResults(SelectResults sr, int startIndex,
-			int startRowNum, int rowCount) {
+	public static int printSelectResults(SelectResults sr, int startIndex, int startRowNum, int rowCount)
+	{
 		if (isTableFormat() == false) {
-			return SimplePrintUtil.printSelectResults(sr, startIndex,
-					startRowNum, rowCount);
+			return SimplePrintUtil.printSelectResults(sr, startIndex, startRowNum, rowCount);
 		}
 
 		if (sr == null) {
@@ -1059,8 +1011,8 @@ public class PrintUtil {
 				computeMaxLengths(maxLenList, element, false);
 				if (element != null) {
 					elementNameSet.add(element.getClass().getName());
-					if  (element instanceof KeyMap) {
-						elementNameSet.add(((KeyMap)element).getKeyTypeName());
+					if (element instanceof KeyMap) {
+						elementNameSet.add(((KeyMap) element).getKeyTypeName());
 					}
 				}
 			}
@@ -1088,14 +1040,12 @@ public class PrintUtil {
 			if (elementType.isStructType()) {
 				structType = (StructType) elementType;
 				struct = (Struct) element;
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String structStr = printStruct(maxLenList, struct);
 				printStr.append(structStr);
 			} else {
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String printObjStr = printObject(maxLenList, element, false);
 				printStr.append(printObjStr);
@@ -1110,8 +1060,8 @@ public class PrintUtil {
 		return endIndex - startIndex;
 	}
 
-	private static int printSelectResults_iterator(SelectResults sr,
-			int startRowNum, int rowCount) {
+	private static int printSelectResults_iterator(SelectResults sr, int startRowNum, int rowCount)
+	{
 		if (sr == null) {
 			PadoShell.println("SelectResults is null");
 			return 0;
@@ -1141,7 +1091,7 @@ public class PrintUtil {
 				computeMaxLengths(maxLenList, element, false);
 				elementNameSet.add(element.getClass().getName());
 				if (element instanceof KeyMap) {
-					elementNameSet.add(((KeyMap)element).getKeyTypeName());
+					elementNameSet.add(((KeyMap) element).getKeyTypeName());
 				}
 			}
 			row++;
@@ -1169,14 +1119,12 @@ public class PrintUtil {
 			if (elementType.isStructType()) {
 				structType = (StructType) elementType;
 				struct = (Struct) element;
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String structStr = printStruct(maxLenList, struct);
 				printStr.append(structStr);
 			} else {
-				printStr.append(StringUtil.getRightPaddedString(row + "",
-						rowMax, ' '));
+				printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 				printStr.append("  ");
 				String printObjStr = printObject(maxLenList, element, false);
 				printStr.append(printObjStr);
@@ -1191,8 +1139,8 @@ public class PrintUtil {
 		return row - 1;
 	}
 
-	private static void computeMaxLengths(List list,
-			Struct struct) {
+	private static void computeMaxLengths(List list, Struct struct)
+	{
 		StructType structType = struct.getStructType();
 		ObjectType[] fieldTypes = structType.getFieldTypes();
 		String[] fieldNames = structType.getFieldNames();
@@ -1226,32 +1174,29 @@ public class PrintUtil {
 		}
 	}
 
-	private static void computeMaxLengths(List list, Object obj, boolean isKey) {
+	private static void computeMaxLengths(List list, Object obj, boolean isKey)
+	{
 		computeMaxLengths(list, obj, isKey, 3, 5);
 	}
 
-	private static void computeMaxLengths(List list, Object obj, boolean isKey,
-			int keyMin, int valueMin) {
+	private static void computeMaxLengths(List list, Object obj, boolean isKey, int keyMin, int valueMin)
+	{
 		int indexToCompare = 0;
 		computeMaxLengths(list, obj, isKey, keyMin, valueMin, indexToCompare);
 	}
 
-	private static void computeMaxLengths(List list, Object obj, boolean isKey,
-			int keyMin, int valueMin, int indexToCompare) {
+	private static void computeMaxLengths(List list, Object obj, boolean isKey, int keyMin, int valueMin,
+			int indexToCompare)
+	{
 		Object object = obj;
 		if (obj == null) {
 			object = "null";
 		}
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 			if (list.size() > indexToCompare) {
 				int len = (Integer) list.get(indexToCompare);
 				if (len < object.toString().length()) {
@@ -1318,8 +1263,7 @@ public class PrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -1354,8 +1298,8 @@ public class PrintUtil {
 		}
 	}
 
-	private static void printHeaders(List list,
-			Struct struct, int rowMaxLen) {
+	private static void printHeaders(List list, Struct struct, int rowMaxLen)
+	{
 		StringBuffer printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("Row", rowMaxLen, ' '));
 		printStr.append("  ");
@@ -1373,8 +1317,7 @@ public class PrintUtil {
 			fieldValue = getPrintableValue(fieldValue);
 			int maxLen = (Integer) list.get(listIndex);
 			String header = fieldName;
-			printStr.append(StringUtil.getRightPaddedString(header, maxLen,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(header, maxLen, ' '));
 			printStr.append("  ");
 			listIndex++;
 		}
@@ -1390,8 +1333,7 @@ public class PrintUtil {
 			fieldValue = getPrintableValue(fieldValue);
 			int maxLen = (Integer) list.get(listIndex);
 			String header = fieldName;
-			printStr.append(StringUtil.getRightPaddedString(
-					StringUtil.getRightPaddedString("", header.length(), '-'),
+			printStr.append(StringUtil.getRightPaddedString(StringUtil.getRightPaddedString("", header.length(), '-'),
 					maxLen, ' '));
 			printStr.append("  ");
 			listIndex++;
@@ -1399,7 +1341,8 @@ public class PrintUtil {
 		PadoShell.println(printStr.toString());
 	}
 
-	private static void printHeaders(List list, Object object, int rowMaxLen) {
+	private static void printHeaders(List list, Object object, int rowMaxLen)
+	{
 		StringBuffer printStr = new StringBuffer();
 		printStr.append(StringUtil.getRightPaddedString("Row", rowMaxLen, ' '));
 		printStr.append("  ");
@@ -1415,8 +1358,8 @@ public class PrintUtil {
 		PadoShell.println(printStr.toString());
 	}
 
-	private static String printStruct(List list,
-			Struct struct) {
+	private static String printStruct(List list, Struct struct)
+	{
 		StringBuffer printStr = new StringBuffer();
 		StructType structType = struct.getStructType();
 		ObjectType[] fieldTypes = structType.getFieldTypes();
@@ -1430,7 +1373,7 @@ public class PrintUtil {
 			Object fieldValue = fieldValues[i];
 			int maxLen = (Integer) list.get(listIndex);
 			if (fieldValue instanceof TemporalData) {
-				((TemporalData)fieldValue).__getTemporalValue().deserializeAll();
+				((TemporalData) fieldValue).__getTemporalValue().deserializeAll();
 			}
 			if (listIndex == list.size() - 1) {
 				if (fieldValue == null) {
@@ -1440,11 +1383,9 @@ public class PrintUtil {
 				}
 			} else {
 				if (fieldValue == null) {
-					printStr.append(StringUtil.getRightPaddedString("null",
-							maxLen, ' '));
+					printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 				} else {
-					printStr.append(StringUtil.getRightPaddedString(
-							fieldValue.toString(), maxLen, ' '));
+					printStr.append(StringUtil.getRightPaddedString(fieldValue.toString(), maxLen, ' '));
 				}
 				printStr.append("  ");
 			}
@@ -1453,13 +1394,13 @@ public class PrintUtil {
 		return printStr.toString();
 	}
 
-	private static String printObject(List list, Object obj,
-			boolean printLastColumnSpaces) {
+	private static String printObject(List list, Object obj, boolean printLastColumnSpaces)
+	{
 		return printObject(list, obj, printLastColumnSpaces, 0);
 	}
 
-	private static String printObject(List list, Object obj,
-			boolean printLastColumnSpaces, int printColumnIndex) {
+	private static String printObject(List list, Object obj, boolean printLastColumnSpaces, int printColumnIndex)
+	{
 		StringBuffer printStr = new StringBuffer();
 		boolean enableLeftPadding = false;
 		Object object = obj;
@@ -1467,36 +1408,26 @@ public class PrintUtil {
 			object = "null";
 		}
 
-		if (object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class) {
+		if (object.getClass() == Short.class || object.getClass() == Integer.class || object.getClass() == Long.class
+				|| object.getClass() == Float.class || object.getClass() == Double.class) {
 			printLastColumnSpaces = true;
 			enableLeftPadding = true;
 		}
 
-		if (object instanceof String || object.getClass().isPrimitive()
-				|| object.getClass() == Boolean.class
-				|| object.getClass() == Byte.class
-				|| object.getClass() == Character.class
-				|| object.getClass() == Short.class
-				|| object.getClass() == Integer.class
-				|| object.getClass() == Long.class
-				|| object.getClass() == Float.class
-				|| object.getClass() == Double.class
-				|| object.getClass().isArray() || object instanceof Date) {
+		if (object instanceof String || object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class || object.getClass().isArray() || object instanceof Date) {
 
 			object = getPrintableValue(object);
 			if (list.size() > 0) {
 				int maxLen = (Integer) list.get(printColumnIndex);
 				if (printLastColumnSpaces) {
 					if (enableLeftPadding) {
-						printStr.append(StringUtil.getLeftPaddedString(
-								object.toString(), maxLen, ' '));
+						printStr.append(StringUtil.getLeftPaddedString(object.toString(), maxLen, ' '));
 					} else {
-						printStr.append(StringUtil.getRightPaddedString(
-								object.toString(), maxLen, ' '));
+						printStr.append(StringUtil.getRightPaddedString(object.toString(), maxLen, ' '));
 					}
 				} else {
 					printStr.append(object.toString());
@@ -1520,33 +1451,26 @@ public class PrintUtil {
 					if (listIndex == list.size() - 1) {
 						if (value == null) {
 							if (printLastColumnSpaces) {
-								printStr.append(StringUtil
-										.getRightPaddedString("null", maxLen,
-												' '));
+								printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 							} else {
 								printStr.append("null");
 							}
 						} else {
 							if (printLastColumnSpaces) {
-								printStr.append(StringUtil
-										.getRightPaddedString(value.toString(),
-												maxLen, ' '));
+								printStr.append(StringUtil.getRightPaddedString(value.toString(), maxLen, ' '));
 							} else {
 								printStr.append(value.toString());
 							}
 						}
-					} 
-					else {
+					} else {
 						if (value == null) {
-							printStr.append(StringUtil.getRightPaddedString(
-									"null", maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 						} else {
-							printStr.append(StringUtil.getRightPaddedString(
-									value.toString(), maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString(value.toString(), maxLen, ' '));
 						}
 						printStr.append("  ");
 					}
-					
+
 					listIndex++;
 				}
 			}
@@ -1564,8 +1488,7 @@ public class PrintUtil {
 			for (int i = 0; i < methods.length; i++) {
 				method = methods[i];
 				name = method.getName();
-				if (name.length() <= 3 || name.startsWith("get") == false
-						|| name.equals("getClass")) {
+				if (name.length() <= 3 || name.startsWith("get") == false || name.equals("getClass")) {
 					continue;
 				}
 				retType = method.getReturnType();
@@ -1580,17 +1503,13 @@ public class PrintUtil {
 					if (listIndex == list.size() - 1) {
 						if (value == null) {
 							if (printLastColumnSpaces) {
-								printStr.append(StringUtil
-										.getRightPaddedString("null", maxLen,
-												' '));
+								printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 							} else {
 								printStr.append("null");
 							}
 						} else {
 							if (printLastColumnSpaces) {
-								printStr.append(StringUtil
-										.getRightPaddedString(value.toString(),
-												maxLen, ' '));
+								printStr.append(StringUtil.getRightPaddedString(value.toString(), maxLen, ' '));
 							} else {
 								printStr.append(value.toString());
 							}
@@ -1598,11 +1517,9 @@ public class PrintUtil {
 
 					} else {
 						if (value == null) {
-							printStr.append(StringUtil.getRightPaddedString(
-									"null", maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString("null", maxLen, ' '));
 						} else {
-							printStr.append(StringUtil.getRightPaddedString(
-									value.toString(), maxLen, ' '));
+							printStr.append(StringUtil.getRightPaddedString(value.toString(), maxLen, ' '));
 						}
 						printStr.append("  ");
 					}
@@ -1615,28 +1532,26 @@ public class PrintUtil {
 		return printStr.toString();
 	}
 
-	public static void printList(List<List<Object>> resultList,
-			List<String> headerList,int resultIndex) {
-	
+	public static void printList(List<List<Object>> resultList, List<String> headerList, int resultIndex)
+	{
+
 		if (isTableFormat() == false) {
 			SimplePrintUtil.printList(resultList, headerList);
 		} else {
 			ArrayList maxLenList = new ArrayList();
-						
+
 			// Calculate the max length for each field to print.
 			for (List<Object> resultArr : resultList) {
 				for (int i = 0; i < resultArr.size(); i++) {
 					Object object = resultArr.get(i);
 					if (object != null)
-						computeMaxLengths(maxLenList, object.toString(), true,
-								headerList.get(i).length(), 0, i);
+						computeMaxLengths(maxLenList, object.toString(), true, headerList.get(i).length(), 0, i);
 					else
-						computeMaxLengths(maxLenList, object, true, headerList
-								.get(i).length(), 0, i);
+						computeMaxLengths(maxLenList, object, true, headerList.get(i).length(), 0, i);
 				}
 			}
 			// Print Header
-			printHeaders(headerList, maxLenList,resultIndex);
+			printHeaders(headerList, maxLenList, resultIndex);
 			// Print Values
 			for (List<Object> resultArr : resultList) {
 				StringBuffer printStr = new StringBuffer();
@@ -1649,8 +1564,8 @@ public class PrintUtil {
 						ObjStr = printObject(maxLenList, object, true, i);
 					}
 					printStr.append(ObjStr);
-					
-					if(i==(resultIndex)) {
+
+					if (i == (resultIndex)) {
 						printStr.append(" | ");
 					} else {
 						printStr.append("   ");
@@ -1660,12 +1575,14 @@ public class PrintUtil {
 			}
 		}
 	}
-	
-	public static void printList(List resultList) {
+
+	public static void printList(List resultList)
+	{
 		printList(resultList, null);
 	}
 
-	public static void printList(List resultList, List<String>headerList) {
+	public static void printList(List resultList, List<String> headerList)
+	{
 		ArrayList maxLenList = new ArrayList();
 		Object nonNullObject = null;
 		for (int i = 0; i < resultList.size(); i++) {
@@ -1686,13 +1603,12 @@ public class PrintUtil {
 		if (headerList == null) {
 			printHeaders(maxLenList, nonNullObject, rowMax);
 		} else {
-			
+
 		}
 		for (int i = 0; i < resultList.size(); i++) {
 			StringBuffer printStr = new StringBuffer();
 			Object object = resultList.get(i);
-			printStr.append(StringUtil.getRightPaddedString((i + 1) + "",
-					rowMax, ' '));
+			printStr.append(StringUtil.getRightPaddedString((i + 1) + "", rowMax, ' '));
 			printStr.append("  ");
 			String printObjStr = printObject(maxLenList, object, false);
 			printStr.append(printObjStr);
@@ -1700,15 +1616,15 @@ public class PrintUtil {
 		}
 	}
 
-	public static int printList(List list, int startIndex, int startRowNum,
-			int rowCount, int actualSize, List keyList, boolean printSummary) throws Exception {
+	public static int printList(List list, int startIndex, int startRowNum, int rowCount, int actualSize, List keyList,
+			boolean printSummary) throws Exception
+	{
 		if (list == null || list.size() == 0) {
 			return 0;
 		}
 
 		if (isTableFormat() == false) {
-			return SimplePrintUtil.printList(list, startIndex, startRowNum,
-					rowCount, actualSize);
+			return SimplePrintUtil.printList(list, startIndex, startRowNum, rowCount, actualSize);
 		}
 
 		// Determine max column lengths
@@ -1740,8 +1656,7 @@ public class PrintUtil {
 		int lastRow = startRowNum + rowCount - 1;
 		for (Iterator itr = list.iterator(); count < rowCount && itr.hasNext(); count++) {
 			StringBuffer printStr = new StringBuffer();
-			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax,
-					' '));
+			printStr.append(StringUtil.getRightPaddedString(row + "", rowMax, ' '));
 			printStr.append("  ");
 
 			object = itr.next();
@@ -1764,7 +1679,8 @@ public class PrintUtil {
 		return count;
 	}
 
-	private static Object getPrintableValue(Object value) {
+	private static Object getPrintableValue(Object value)
+	{
 		if (value instanceof Byte) {
 			value = ((Byte) value).toString();
 		} else if (value instanceof byte[]) {
@@ -1785,7 +1701,8 @@ public class PrintUtil {
 		return value;
 	}
 
-	private static LinkedHashMap sortHashMapByValues(HashMap passedMap) {
+	private static LinkedHashMap sortHashMapByValues(HashMap passedMap)
+	{
 		List mapKeys = new ArrayList(passedMap.keySet());
 		List mapValues = new ArrayList(passedMap.values());
 		Collections.sort(mapValues, Collections.reverseOrder());
@@ -1800,8 +1717,7 @@ public class PrintUtil {
 			Iterator keyIt = mapKeys.iterator();
 			while (keyIt.hasNext()) {
 				Object key = keyIt.next();
-				if ((passedMap.get(key) == null && val == null)
-						|| (val != null && val.equals(passedMap.get(key)))) {
+				if ((passedMap.get(key) == null && val == null) || (val != null && val.equals(passedMap.get(key)))) {
 					passedMap.remove(key);
 					mapKeys.remove(key);
 					sortedMap.put(key, val);

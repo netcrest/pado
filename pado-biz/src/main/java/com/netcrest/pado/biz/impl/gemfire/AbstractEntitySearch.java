@@ -30,7 +30,7 @@ import com.gemstone.gemfire.cache.partition.PartitionRegionHelper;
 import com.gemstone.gemfire.internal.cache.LocalDataSet;
 import com.netcrest.pado.index.exception.GridQueryException;
 import com.netcrest.pado.index.gemfire.function.IEntitySearchFunction;
-import com.netcrest.pado.index.helper.ComparatorFactory;
+import com.netcrest.pado.index.helper.BaseComparatorFactory;
 import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.internal.IndexMatrixUtil;
 import com.netcrest.pado.index.internal.SearchResults;
@@ -193,7 +193,7 @@ public abstract class AbstractEntitySearch implements IEntitySearchFunction
 	 */
 	protected Object makeKey(Object entity, GridQuery criteria) {
 		if (criteria.getSortField() != null) {
-			ComparatorFactory comparatorFactory = getComparatorFactory ();
+			BaseComparatorFactory comparatorFactory = getComparatorFactory ();
 			if (comparatorFactory != null) {
 				Object field = comparatorFactory.getField(entity.getClass(),
 						criteria.getSortField(), entity);
@@ -217,7 +217,7 @@ public abstract class AbstractEntitySearch implements IEntitySearchFunction
 	 * Get a comparatorFactory configured at cache startup
 	 * @return
 	 */
-	protected ComparatorFactory getComparatorFactory () {
+	protected BaseComparatorFactory getComparatorFactory () {
 		return IndexMatrixProviderFactory.getInstance().getComparatorFactory();
 	}
 

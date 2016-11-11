@@ -95,6 +95,23 @@ public interface IPadoBizLink extends IBiz
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	GridInfo getGridInfo();
+	
+	
+	/**
+	 * Returns the number of running servers in the specified grid.
+	 * @param gridId Grid ID
+	 */
+	@BizMethod
+	@OnServer
+	int getServerCount(String gridId);
+	
+	/**
+	 * Returns all server IDs that uniquely identify the servers in the specified grid.
+	 * @param gridId Grid ID
+	 */
+	@BizMethod
+	@OnServer
+	Object[] getServerIds(String gridId);
 
 	/**
 	 * Returns AppInfo pertaining to the specified app ID.

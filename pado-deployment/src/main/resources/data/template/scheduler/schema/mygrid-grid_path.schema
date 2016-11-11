@@ -88,6 +88,17 @@ StartRow=2
 # Note that if the value type is KeyType or POJO, then the field types defined
 # here are ignored and the fields defined by KeyType or POJO are used instead.
 # Format: <field-name>, <field-type>, [Primary|Temporal|Value]
+#
+# Special fields are prefixed with ‘+’, i.e., +Special. These fields are not
+# part of the data source but are included in the data object with the
+# specified values. 
+# <field-type>/<value> pair: If <field-type>, then <value> is converted to the specified
+#    field type. 
+# <macro-name>/<comma separated field names> pair: If <macro-name> is specified, 
+#    then <comma separated field names> passed into the specified macro. The macro
+#    result is assigned to the field.
+# Special field format: <field-name>, <field-type>|<macro-name>, <value>|<comma separated field names>
+
 Column1Name, String, Primary
 Column2Name, int
 Column3Name, float

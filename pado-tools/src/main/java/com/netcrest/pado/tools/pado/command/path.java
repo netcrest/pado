@@ -22,13 +22,11 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import com.netcrest.pado.biz.IPathBiz;
 import com.netcrest.pado.biz.mon.ISysBiz;
 import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.tools.pado.ICommand;
 import com.netcrest.pado.tools.pado.PadoShell;
 import com.netcrest.pado.tools.pado.SharedCache;
-import com.netcrest.pado.tools.pado.util.PadoShellUtil;
 import com.netcrest.pado.tools.pado.util.PrintUtil;
 import com.netcrest.pado.util.GridUtil;
 
@@ -38,23 +36,7 @@ public class path implements ICommand
 	private static Options options = new Options();
 	static {
 		options.addOption("?", false, "");
-		options.addOption("p", false, "");
-		options.addOption("v", false, "");
-		options.addOption("pv", false, "");
-		options.addOption("vp", false, "");
-		options.addOption("refid", true, "");
-		options.addOption("temporal", false, "");
-		options.addOption("temporalLucene", false, "");
-		options.addOption("type", true, "");
-		options.addOption("buckets", true, "");
-		options.addOption("diskStoreName", true, "");
-		options.addOption("colocatedWith", true, "");
-		options.addOption("redundantCopies", true, "");
-		options.addOption("gatewaySenderIds", true, "");
 	}
-
-	private static String[] excludes = new String[] { "type", "diskStoreName", "buckets", "colocatedWith",
-			"redundantCopies" };
 
 	@Override
 	public void initialize(PadoShell padoShell)
@@ -72,7 +54,7 @@ public class path implements ICommand
 	@Override
 	public String getShortDescription()
 	{
-		return "Make one or more directories (or paths).";
+		return "Prints details of the specified path(s).";
 	}
 
 	@Override

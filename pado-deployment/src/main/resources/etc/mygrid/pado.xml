@@ -43,6 +43,42 @@
 			<composite-key indexes-comma-separated="1,2" delimiter=":"/>
 		</path>
 
+		<path name="nw">
+			<path name="categories" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="customers" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="employee_territories" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="employees" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="order_details" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="orders" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="products" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="regions" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="shippers" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="suppliers" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+			<path name="territories" refid="partition" temporal-enabled="true" lucene-enabled="true" key-class-name="String"
+				value-class-name="com.netcrest.pado.data.jsonlite.JsonLite">
+			</path>
+		</path>
+
 		<path name="trade" refid="partition" temporal-enabled="true" lucene-enabled="true"/>
 		<path name="nontemporal" refid="partition" />
 		<path name="test1" refid="partition" />

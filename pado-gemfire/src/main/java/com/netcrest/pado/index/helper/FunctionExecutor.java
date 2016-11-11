@@ -17,6 +17,7 @@ package com.netcrest.pado.index.helper;
 
 import java.io.Serializable;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 
 import com.gemstone.gemfire.cache.CacheFactory;
@@ -28,6 +29,7 @@ import com.gemstone.gemfire.cache.execute.Execution;
 import com.gemstone.gemfire.cache.execute.Function;
 import com.gemstone.gemfire.cache.execute.FunctionService;
 import com.gemstone.gemfire.cache.execute.ResultCollector;
+import com.gemstone.gemfire.distributed.DistributedMember;
 
 /**
  * Facilitates Function execution and allows local unit test by specifing
@@ -37,7 +39,7 @@ import com.gemstone.gemfire.cache.execute.ResultCollector;
 public class FunctionExecutor {
 
 	public static enum Realm {
-		REGION, SERVER, ALL_SERVERS, MEMBER, ALL_MEMBERS, LOCAL, UNDEFINED
+		REGION, SERVER, ALL_SERVERS, MEMBER, MEMBER_RANDOM, ALL_MEMBERS, LOCAL, UNDEFINED
 	}
 
 	public static ResultCollector execute(Realm realm, Region region, Pool pool, 
@@ -53,6 +55,9 @@ public class FunctionExecutor {
 					functionId, functionClass);
 		case MEMBER:
 			return executeMember(filters, argument, resultCollector,
+					functionId, functionClass);	
+		case MEMBER_RANDOM:
+			return executeMemberRandom(filters, argument, resultCollector,
 					functionId, functionClass);
 		case ALL_SERVERS:
 			return executeServers(pool, regionService, filters, argument, resultCollector,
@@ -147,8 +152,27 @@ public class FunctionExecutor {
 	private static ResultCollector executeMember(Set filters, Serializable argument,
 			ResultCollector resultCollector, String functionId,
 			Class functionClass) {
-		Execution exec = FunctionService.onMember(CacheFactory.getAnyInstance().getDistributedSystem(), CacheFactory.getAnyInstance().getDistributedSystem().getDistributedMember()).withCollector(
+		Execution exec = FunctionService.onMember(CacheFactory.getAnyInstance().getDistributedSystem().getDistributedMember()).withCollector(
 					resultCollector);
+		
+		if (argument != null) {
+			exec = exec.withArgs(argument);
+		}
+		return exec.execute(functionId);
+	}
+	
+	private static ResultCollector executeMemberRandom(Set filters, Serializable argument,
+			ResultCollector resultCollector, String functionId,
+			Class functionClass) {
+		Set<DistributedMember> set = CacheFactory.getAnyInstance().getDistributedSystem().getAllOtherMembers();
+		int index = new Random().nextInt(set.size() + 1);
+		DistributedMember member;
+		if (index == set.size()) {
+			member = CacheFactory.getAnyInstance().getDistributedSystem().getDistributedMember();
+		} else {
+			member = set.toArray(new DistributedMember[set.size()])[index];
+		}
+		Execution exec = FunctionService.onMember(member).withCollector(resultCollector);
 		
 		if (argument != null) {
 			exec = exec.withArgs(argument);

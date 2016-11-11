@@ -16,7 +16,7 @@
 				<exclude>com.netcrest.pado:pado-biz-gemfire</exclude>
 				<exclude>com.netcrest.pado:pado-test</exclude>
 				<exclude>com.gemstone.gemfire:gemfire</exclude>
-				<exclude>antlr*</exclude>
+				<exclude>antlr:antlr</exclude>
 				<exclude>commons-io*</exclude>
 				<exclude>dom4j*</exclude>
 				<exclude>hamcrest*</exclude>
@@ -60,7 +60,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 		</fileSet>
-		
+
 		<fileSet>
 			<directory>..</directory>
 			<includes>

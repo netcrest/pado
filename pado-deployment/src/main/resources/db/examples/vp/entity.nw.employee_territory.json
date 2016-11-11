@@ -1,0 +1,20 @@
+{
+   "InputDescription": "SupplierID: Supplier ID",
+   "EntityRelationships": [
+      {
+         "Depth": 1,
+         "Arg": "Employee",
+         "Query": "nw/employees?EmployeeID:${EmployeeID}",
+         "IsOne": true
+      },
+      {
+         "Depth": 1,
+         "Arg": "Territory",
+         "Query": "nw/territories?TerritoryID:${TerritoryID}",
+         "IsOne": true
+      }
+   ],
+   "EntityGridPath": "nw/employee_territories",
+   "VirtualPath": "entity/nw/employee_territory",
+   "IsEntity": true
+}

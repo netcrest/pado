@@ -44,10 +44,6 @@ public class GemfirePadoServerInitializer implements Declarable
 		// Register DataSerializable class IDs.Load the class.
 		new DataSerializables();
 
-		// Initialize temporal thread pool. Max number of threads = 2 * number
-		// of processors
-		QueueDispatcherMultiplexerPool.initialize((int) (Runtime.getRuntime().availableProcessors() * 2));
-
 		// Initialize pado.xml
 		initConfig(props);
 

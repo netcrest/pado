@@ -118,7 +118,6 @@ public class PqlTest
 
 	}
 
-	@SuppressWarnings("rawtypes")
 	// @Test
 	public void testPql()
 	{

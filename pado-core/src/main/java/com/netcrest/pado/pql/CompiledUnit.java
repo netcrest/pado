@@ -25,9 +25,13 @@ import java.util.List;
 
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
+import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.index.provider.lucene.DateTool;
 import com.netcrest.pado.index.provider.lucene.LuceneSearch;
+import com.netcrest.pado.internal.pql.antlr4.PqlEvalDriver;
+import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.server.PadoServerManager;
+import com.netcrest.pado.server.VirtualPathEngine;
 import com.netcrest.pado.util.GridUtil;
 
 /**
@@ -103,7 +107,14 @@ public class CompiledUnit
 	private String[] paths;
 	private String[] fullPaths;
 	private boolean isPathOnly;
+	private String[] argNames; // VirtualPath
+	private String[] argValues; // VirtualPath argument values
+	private boolean isVirtualPath;
 	private QueryLanguage queryLanguage = QueryLanguage.NONE;
+	
+	private String functionName;
+	private String[] functionArgs;
+	private String functionArgStr;
 
 	public enum QueryLanguage
 	{
@@ -124,9 +135,10 @@ public class CompiledUnit
 	{
 		compile(pql, keyType);
 	}
-	
+
 	/**
 	 * Invoked by VirtualCompiledUnit
+	 * 
 	 * @param pql
 	 */
 	public CompiledUnit(String pql)
@@ -164,6 +176,16 @@ public class CompiledUnit
 		return attributes;
 	}
 	
+	public Object[] getArgValues(KeyMap<?> keyMap)
+	{
+		Object args[] = new Object[attributes.length];
+		for (int i = 0; i < attributes.length; i++) {
+//			args[i] = keyMap.get((KeyType) attributes[i]);
+			args[i] = keyMap.get(attributes[i]);
+		}
+		return args;
+	}
+
 	public String getQuery(Object inputObject)
 	{
 		if (inputObject == null) {
@@ -174,28 +196,22 @@ public class CompiledUnit
 
 	public String getQuery(KeyMap<?> keyMap)
 	{
-		Object args[] = new Object[attributes.length];
-		for (int i = 0; i < attributes.length; i++) {
-			args[i] = keyMap.get((KeyType) attributes[i]);
-		}
+		Object args[] = getArgValues(keyMap);
 		return String.format(compiledQuery, args);
 	}
 
 	public String getTemporalQuery(KeyMap<?> keyMap)
 	{
-		Object args[] = new Object[attributes.length];
-		for (int i = 0; i < attributes.length; i++) {
-			args[i] = keyMap.get((KeyType) attributes[i]);
-		}
+		Object args[] = getArgValues(keyMap);
 		return String.format(compiledTemporalQuery, args);
 	}
-	
+
 	public Object[] getTemporalArgs(KeyMap<?> keyMap, long validAt, long asOf)
 	{
 		if (paths == null) {
 			return null;
 		}
-		
+
 		if (validAt == -1) {
 			validAt = System.currentTimeMillis();
 			if (asOf == -1) {
@@ -205,50 +221,92 @@ public class CompiledUnit
 		if (asOf == -1) {
 			asOf = System.currentTimeMillis();
 		}
-		
+
 		Object args[] = null;
-		int index;
-		switch (queryLanguage) {
-		case OQL:
-			args = new Object[paths.length * 3 + attributes.length];
-			if (keyMap == null) {
-				 index = attributes.length;
-			} else {
-				for (index = 0; index < attributes.length; index++) {
-					args[index] = keyMap.get((KeyType) attributes[index]);
+
+		if (isVirtualPath) {
+			int index;
+			switch (queryLanguage) {
+			case OQL:
+				args = new Object[paths.length * 3 + attributes.length];
+				if (keyMap == null) {
+					index = attributes.length;
+				} else {
+					for (index = 0; index < attributes.length; index++) {
+						args[index] = keyMap.get((String) attributes[index]);
+					}
 				}
-			}
-			for (int i = 0; i < paths.length; i++) {
-				args[index++] = validAt;
-				args[index++] = validAt;
-				args[index++] = asOf;
-			}
-			break;
-		case LUCENE:
-			args = new Object[paths.length * 4 + attributes.length];
-			if (keyMap == null) {
-				 index = attributes.length;
-			} else {
-				for (index = 0; index < attributes.length; index++) {
-					args[index] = keyMap.get((KeyType) attributes[index]);
+				for (int i = 0; i < paths.length; i++) {
+					args[index++] = validAt;
+					args[index++] = validAt;
+					args[index++] = asOf;
 				}
+				break;
+			case LUCENE:
+				args = new Object[paths.length * 4 + attributes.length];
+				if (keyMap == null) {
+					index = attributes.length;
+				} else {
+					for (index = 0; index < attributes.length; index++) {
+						args[index] = keyMap.get((String) attributes[index]);
+					}
+				}
+				String validAtStr = DateTool.timeToString(validAt, dateResolution);
+				String asOfStr = DateTool.timeToString(asOf, dateResolution);
+				for (int i = 0; i < paths.length; i++) {
+					args[index++] = validAtStr;
+					args[index++] = validAtStr;
+					args[index++] = asOfStr;
+					args[index++] = asOfStr;
+				}
+				break;
+			default:
+				break;
 			}
-			String validAtStr = DateTool.timeToString(validAt, dateResolution);
-			String asOfStr = DateTool.timeToString(asOf, dateResolution);
-			for (int i = 0; i < paths.length; i++) {
-				args[index++] = validAtStr;
-				args[index++] = validAtStr;
-				args[index++] = asOfStr;
-				args[index++] = asOfStr;
+		} else {
+			int index;
+			switch (queryLanguage) {
+			case OQL:
+				args = new Object[paths.length * 3 + attributes.length];
+				if (keyMap == null) {
+					index = attributes.length;
+				} else {
+					for (index = 0; index < attributes.length; index++) {
+						args[index] = keyMap.get((KeyType) attributes[index]);
+					}
+				}
+				for (int i = 0; i < paths.length; i++) {
+					args[index++] = validAt;
+					args[index++] = validAt;
+					args[index++] = asOf;
+				}
+				break;
+			case LUCENE:
+				args = new Object[paths.length * 4 + attributes.length];
+				if (keyMap == null) {
+					index = attributes.length;
+				} else {
+					for (index = 0; index < attributes.length; index++) {
+						args[index] = keyMap.get((KeyType) attributes[index]);
+					}
+				}
+				String validAtStr = DateTool.timeToString(validAt, dateResolution);
+				String asOfStr = DateTool.timeToString(asOf, dateResolution);
+				for (int i = 0; i < paths.length; i++) {
+					args[index++] = validAtStr;
+					args[index++] = validAtStr;
+					args[index++] = asOfStr;
+					args[index++] = asOfStr;
+				}
+				break;
+			default:
+				return null;
 			}
-			break;
-		default:
-			return null;
 		}
-		
+
 		return args;
 	}
-	
+
 	public String getTemporalIdentityQuery(long validAt, long asOf)
 	{
 		return getTemporalIdentityQuery(null, validAt, asOf);
@@ -262,12 +320,12 @@ public class CompiledUnit
 		}
 		return String.format(temporalIdentityQuery, args);
 	}
-	
+
 	public String getTemporalKeyQuery(long validAt, long asOf)
 	{
 		return getTemporalKeyQuery(null, validAt, asOf);
 	}
-	
+
 	public String getTemporalKeyQuery(KeyMap<?> keyMap, long validAt, long asOf)
 	{
 		Object[] args = getTemporalArgs(keyMap, validAt, asOf);
@@ -276,7 +334,7 @@ public class CompiledUnit
 		}
 		return String.format(temporalKeyQuery, args);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public String getTemporalIdentityQuery(Object input, List[] results, long validAt, long asOf)
 	{
@@ -289,7 +347,7 @@ public class CompiledUnit
 		case OQL:
 			args = new Object[paths.length * 3 + attributes.length];
 			if (input instanceof KeyMap) {
-				if (fillQueryArgs((KeyMap)input, results, args) == false) {
+				if (fillQueryArgs((KeyMap) input, results, args) == false) {
 					return null;
 				}
 			} else {
@@ -307,7 +365,7 @@ public class CompiledUnit
 		case LUCENE:
 			args = new Object[paths.length * 4 + attributes.length];
 			if (input instanceof KeyMap) {
-				if (fillQueryArgs((KeyMap)input, results, args) == false) {
+				if (fillQueryArgs((KeyMap) input, results, args) == false) {
 					return null;
 				}
 			} else {
@@ -356,7 +414,7 @@ public class CompiledUnit
 	{
 		return token.substring(2, token.length() - 1);
 	}
-	
+
 	/*
 	 * Returns a non-null variable list by parsing the specified pql query
 	 * string. It tokenizes all variables in the same order found in pql.
@@ -378,7 +436,7 @@ public class CompiledUnit
 		}
 		return variableList;
 	}
-	
+
 	// portfolio?(${AccountId} AND BankId:${BankId}) OR (${
 	private List<String> getAndList(String pql)
 	{
@@ -451,6 +509,63 @@ public class CompiledUnit
 		}
 	}
 
+	// @SuppressWarnings("rawtypes")
+	// private void compile(KeyMap vpd)
+	// {
+	// this.vpd = vpd;
+	//
+	// // Parse. Collect all variables.
+	// List<String> variableList = getVariableList(pql);
+	//
+	// // Create compiled query string
+	// String compiledPql = pql;
+	// attributes = new KeyType[variableList.size()];
+	// for (int i = 0; i < variableList.size(); i++) {
+	// String token = variableList.get(i);
+	// String attr = getAttribute(token);
+	// token = "\\$\\{" + attr + "\\}";
+	// attributes[i] = attr;
+	//
+	// // TODO: Handle non-String types, i.e., compiledPql =
+	// compiledPql.replaceAll(token, "%dL");
+	// compiledPql = compiledPql.replaceAll(token, "%s");
+	// }
+	// compiledQuery = compiledPql;
+	// isPathOnly = compiledPql.matches(".*[\\.:=].*") == false;
+	// if (isPathOnly) {
+	// paths = new String[] { compiledQuery };
+	// } else {
+	// if (compiledQuery.matches(".*[=<>].*")) {
+	// queryLanguage = QueryLanguage.OQL;
+	// } else if (compiledQuery.matches(".*:.*")) {
+	// queryLanguage = QueryLanguage.LUCENE;
+	// } else {
+	// queryLanguage = QueryLanguage.OQL;
+	// compiledQuery += "=%s";
+	// }
+	//
+	// switch (queryLanguage) {
+	// case OQL:
+	// compiledQuery = compiledQuery.replaceAll("%s", "'%s'");
+	// compiledQuery = buildTemporalOql(compiledQuery);
+	// break;
+	//
+	// case LUCENE:
+	// compiledQuery = buildTemporalLucene(compiledPql);
+	// break;
+	// default:
+	// break;
+	// }
+	// }
+	//
+	// if (paths != null) {
+	// fullPaths = new String[paths.length];
+	// for (int i = 0; i < paths.length; i++) {
+	// fullPaths[i] = GridUtil.getFullPath(paths[i]);
+	// }
+	// }
+	// }
+
 	class ResultIndex
 	{
 		ResultIndex(int index, String attributeName)
@@ -483,9 +598,9 @@ public class CompiledUnit
 			return false;
 		}
 		if (KeyMap.class.isAssignableFrom(input.getClass())) {
-			return fillQueryArgs((KeyMap)input, results, args);
+			return fillQueryArgs((KeyMap) input, results, args);
 		}
-		
+
 		for (int i = 0; i < attributes.length; i++) {
 			AttributeIndex ai = (AttributeIndex) attributes[i];
 			if (ai.toResultIndex == -1) {
@@ -502,7 +617,7 @@ public class CompiledUnit
 							Object val = ((KeyMap) result).get(ai.toAttributeName);
 							if (val != null) {
 								if (val instanceof Collection) {
-									Collection col = (Collection)val;
+									Collection col = (Collection) val;
 									for (Object item : col) {
 										if (item != null) {
 											String strVal = item.toString().trim();
@@ -520,7 +635,7 @@ public class CompiledUnit
 							}
 						}
 					}
-					
+
 					// Build attribute value list separated by space
 					if (set.size() > 0) {
 						StringBuffer buffer = new StringBuffer();
@@ -549,11 +664,13 @@ public class CompiledUnit
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Returns compiled PQL string. It returns null if the results do not
 	 * contain the values needed to construct the query.
-	 * @param input Supports only primitive types.
+	 * 
+	 * @param input
+	 *            Supports only primitive types.
 	 * @param results
 	 */
 	public String getQuery(Object input, List[] results)
@@ -562,16 +679,16 @@ public class CompiledUnit
 			return null;
 		}
 		if (KeyMap.class.isAssignableFrom(input.getClass())) {
-			return getQuery((KeyMap)input, results);
+			return getQuery((KeyMap) input, results);
 		}
-		
+
 		Object args[] = new Object[attributes.length];
 		if (fillQueryArgs(input, results, args) == false) {
 			return null;
 		}
 		return String.format(compiledQuery, args);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public boolean fillQueryArgs(KeyMap<?> inputKeyMap, List[] results, Object[] args)
 	{
@@ -592,7 +709,7 @@ public class CompiledUnit
 							Object val = ((KeyMap) result).get(ai.toAttributeName);
 							if (val != null) {
 								if (val instanceof Collection) {
-									Collection col = (Collection)val;
+									Collection col = (Collection) val;
 									for (Object item : col) {
 										if (item != null) {
 											String strVal = item.toString().trim();
@@ -623,9 +740,10 @@ public class CompiledUnit
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Returns the executable (final) query.
+	 * 
 	 * @param inputKeyMap
 	 * @param results
 	 * @return null if query cannot be built due to unavailable data. This means
@@ -637,39 +755,92 @@ public class CompiledUnit
 		if (fillQueryArgs(inputKeyMap, results, args) == false) {
 			return null;
 		}
-//		for (int i = 0; i < attributes.length; i++) {
-//			AttributeIndex ai = (AttributeIndex) attributes[i];
-//			if (ai.resultIndex == -1) {
-//				Object attributeValue = inputKeyMap.get(ai.attributeName);
-//				if (attributeValue == null) {
-//					return null;
-//				}
-//				args[i] = attributeValue.toString();
-//			} else {
-//				List list = results[ai.resultIndex];
-//				if (list != null) {
-//					StringBuffer buffer = new StringBuffer();
-//					for (Object result : list) {
-//						if (result instanceof KeyMap) {
-//							Object val = ((KeyMap) result).get(ai.attributeName);
-//							if (val != null) {
-//								buffer.append(val.toString());
-//								buffer.append(" ");
-//							}
-//						}
-//					}
-//					String attributeValues = buffer.toString().trim();
-//					if (attributeValues.length() > 0) {
-//						args[i] = attributeValues;
-//					} else {
-//						return null;
-//					}
-//				}
-//			}
-//		}
+		// for (int i = 0; i < attributes.length; i++) {
+		// AttributeIndex ai = (AttributeIndex) attributes[i];
+		// if (ai.resultIndex == -1) {
+		// Object attributeValue = inputKeyMap.get(ai.attributeName);
+		// if (attributeValue == null) {
+		// return null;
+		// }
+		// args[i] = attributeValue.toString();
+		// } else {
+		// List list = results[ai.resultIndex];
+		// if (list != null) {
+		// StringBuffer buffer = new StringBuffer();
+		// for (Object result : list) {
+		// if (result instanceof KeyMap) {
+		// Object val = ((KeyMap) result).get(ai.attributeName);
+		// if (val != null) {
+		// buffer.append(val.toString());
+		// buffer.append(" ");
+		// }
+		// }
+		// }
+		// String attributeValues = buffer.toString().trim();
+		// if (attributeValues.length() > 0) {
+		// args[i] = attributeValues;
+		// } else {
+		// return null;
+		// }
+		// }
+		// }
+		// }
 		return String.format(compiledQuery, args);
 	}
-	
+
+	private List<String> getAttributeList(String pql)
+	{
+		// Parse. Collect all variables.
+		List<String> aiList = new ArrayList<String>();
+		
+		String str;
+		int index;
+		if (functionArgStr == null) {
+			index = pql.indexOf("?");
+			if (index != -1 && pql.length() > index + 1) {
+				str = pql.substring(index + 1);
+			} else {
+				str = pql;
+			}
+		} else {
+			str = functionArgStr;
+		}
+		
+		index = str.indexOf("${");
+		while (index != -1) {
+			String fromAttributeName = null;
+			int fieldIndex = str.indexOf(":");
+			if (fieldIndex != -1 && fieldIndex < index) {
+				fromAttributeName = str.substring(0, fieldIndex).trim();
+				fieldIndex = fromAttributeName.lastIndexOf(" ");
+				if (fieldIndex != -1) {
+					fromAttributeName = fromAttributeName.substring(fieldIndex).trim();
+				}
+			}
+			int closeIndex = str.indexOf("}");
+			if (closeIndex != -1) {
+				String token = str.substring(index, closeIndex + 1);
+				String variable = getAttribute(token);
+				str = str.substring(closeIndex + 1);
+				if (isFunction() == false && str.startsWith(".")) {
+					String variableAttributeName;
+					index = str.indexOf(" ");
+					if (index == -1) {
+						variableAttributeName = str.substring(1);
+					} else {
+						variableAttributeName = str.substring(1, index).trim();
+					}
+					aiList.add(variableAttributeName);
+				} else {
+					// Primitive variable
+					aiList.add(variable);
+				}
+			}
+			index = str.indexOf("${");
+		}
+		return aiList;
+	}
+
 	private List<AttributeIndex> getAttributeIndexList(String pql)
 	{
 		// Parse. Collect all variables.
@@ -725,7 +896,180 @@ public class CompiledUnit
 		return aiList;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void compileInput(String pql)
+	{
+		if (pql == null) {
+			return;
+		}
+		this.pql = pql;
+		this.isVirtualPath = true;
+
+		argNames = PqlEvalDriver.getArgNames(pql);
+		parseFunction(pql);
+		attributes = getAttributeList(pql).toArray(new String[0]);
+
+		// Create compiled query string. Replace all variables with
+		// String substitution.
+		// item_location?ShortItemNo:${ShortItemNo}
+		// compiledPql = item_location?ShortItemNo:%s
+		// ${Input}.CustomerNumber
+		// inputMap.put("CustomerNumber", "CustomerNumber")
+		// compiledPql = null
+		// customer?CustomerNumber:${1}.PrmsCustomerNumber
+		// refMaps[1].put(CustomerNumber", "PrmsCustomerNumber");
+		// compiledPql = customer?CustomerNumber:%s
+
+		isInputOnly = true;
+		String compiledPql;
+		if (functionName == null) {
+			compiledPql = pql;
+			for (int i = 0; i < argNames.length; i++) {
+				String argName = argNames[i];
+				String token = "\\$\\{" + argName + "\\}";
+				compiledPql = compiledPql.replaceAll(token, "%s");
+			}
+			isPathOnly = compiledPql.matches(".*[\\?\\.:=].*") == false;
+		} else if (functionName.equals("Identity")) {
+			compiledPql = functionArgStr;
+			for (int i = 0; i < argNames.length; i++) {
+				String argName = argNames[i];
+				String token = "\\$\\{" + argName + "\\}";
+				compiledPql = compiledPql.replaceAll(token, "%s");
+			}
+			isPathOnly = false;
+		} else {
+			throw new PadoException("Macro (function) not supported: " + functionName);
+		}
+		compiledQuery = compiledPql;
+
+		if (isPathOnly) {
+			paths = new String[] { compiledQuery };
+		} else {
+			if (compiledQuery.matches(".*[=<>].*")) {
+				queryLanguage = QueryLanguage.OQL;
+			} else if (PqlParser.findTopNClause(compiledQuery) != null) {
+				queryLanguage = QueryLanguage.LUCENE;
+				// This is topN query for lucene
+				// Since GridQuery should have the fetchSize and topN flag
+				// we can just replace the topN clause as empty string
+				String topNClause = PqlParser.findTopNClause(compiledQuery);
+				compiledPql = compiledQuery.replace(topNClause, "");
+				compiledPql = compiledPql.trim();
+			} else {
+				queryLanguage = QueryLanguage.LUCENE;
+				// } else if (compiledQuery.matches(".*:.*") ||
+				// compiledQuery.matches(".*\\?%.*")) {
+				// queryLanguage = QueryLanguage.LUCENE;
+				// } else {
+				// queryLanguage = QueryLanguage.OQL;
+				// compiledQuery += "=%s";
+			}
+
+			switch (queryLanguage) {
+			case OQL:
+				compiledQuery = compiledQuery.replaceAll("%s", "'%s'");
+				compiledQuery = buildTemporalOql(compiledQuery);
+				break;
+
+			case LUCENE:
+				compiledQuery = buildTemporalLucene(compiledPql);
+				break;
+			default:
+				break;
+			}
+		}
+
+		if (paths != null) {
+			fullPaths = new String[paths.length];
+			for (int i = 0; i < paths.length; i++) {
+				fullPaths[i] = GridUtil.getFullPath(paths[i]);
+			}
+		}
+
+		// Determine argument values.
+		// OrderID:10251 AND CustomerID:VICTE AND ShipVia:1
+		// TODO: Replace it with antlr4. It's a hack for now.
+		if (PadoUtil.isPureClient() == false) {
+			if (paths != null && paths.length > 0) {
+				VirtualPath2 vp = VirtualPathEngine.getVirtualPathEngine().getVirtualPath(paths[0]);
+				if (vp != null) {
+					String args[] = vp.getArgNames();
+					if (args != null) {
+						argValues = new String[args.length];
+						String split[] = compiledQuery.split(" +[Aa][Nn][Dd] +");
+						for (String token : split) {
+							String[] tokens = token.split(":");
+							if (tokens.length >= 2) {
+								String argName = tokens[0];
+								String argValue = tokens[1];
+								int index = 0;
+								for (String arg : args) {
+									if (arg.equals(argName)) {
+										argValues[index] = argValue;
+									}
+									index++;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void parseFunction(String pql)
+	{
+		if (pql == null) {
+			return;
+		}
+
+		int index = pql.indexOf('?');
+		if (index > 0) {
+			String p = pql.substring(0, index).trim();
+			if (p.length() > 0) {
+				paths = new String[] { p.trim() };
+			}
+			if (index < pql.length() - 1) {
+				String predicate = pql.substring(index + 1).trim();
+				index = predicate.indexOf('(');
+				if (index > 0) {
+					String fn = predicate.substring(0, index);
+					if (fn.indexOf(':') == -1) {
+						int index2 = predicate.indexOf(')');
+						if (index2 != -1 && index < index2) {
+							functionArgStr = predicate.substring(index + 1, index2);
+							String[] fa = functionArgStr.split(",");
+							int i = 0;
+							for (String arg : fa) {
+								fa[i] = arg.trim();
+								i++;
+							}
+							functionArgs = fa;
+							functionName = fn;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public boolean isFunction()
+	{
+		return functionName != null;
+	}
+	
+	public String getFunctionName()
+	{
+		return functionName;
+	}
+
+	public String[] getArgValues()
+	{
+		return argValues;
+	}
+
+	private void compileInput_old(String pql)
 	{
 		if (pql == null) {
 			return;
@@ -762,7 +1106,7 @@ public class CompiledUnit
 			compiledPql = compiledPql.replaceAll(token, "%s");
 		}
 		attributes = list.toArray(new AttributeIndex[list.size()]);
-		
+
 		compiledQuery = compiledPql;
 		isPathOnly = compiledPql.matches(".*[\\?\\.:=].*") == false;
 		if (isPathOnly) {
@@ -770,23 +1114,22 @@ public class CompiledUnit
 		} else {
 			if (compiledQuery.matches(".*[=<>].*")) {
 				queryLanguage = QueryLanguage.OQL;
-			} 
-			else if (PqlParser.findTopNClause(compiledQuery) != null) {
+			} else if (PqlParser.findTopNClause(compiledQuery) != null) {
 				queryLanguage = QueryLanguage.LUCENE;
-				//This is topN query for lucene
-				//Since GridQuery should have the fetchSize and topN flag
-				//we can just replace the topN clause as empty string
-				String topNClause =  PqlParser.findTopNClause(compiledQuery);
+				// This is topN query for lucene
+				// Since GridQuery should have the fetchSize and topN flag
+				// we can just replace the topN clause as empty string
+				String topNClause = PqlParser.findTopNClause(compiledQuery);
 				compiledPql = compiledQuery.replace(topNClause, "");
 				compiledPql = compiledPql.trim();
-			}
-			else {
+			} else {
 				queryLanguage = QueryLanguage.LUCENE;
-//			} else if (compiledQuery.matches(".*:.*") || compiledQuery.matches(".*\\?%.*")) {
-//				queryLanguage = QueryLanguage.LUCENE;
-//			} else {
-//				queryLanguage = QueryLanguage.OQL;
-//				compiledQuery += "=%s";
+				// } else if (compiledQuery.matches(".*:.*") ||
+				// compiledQuery.matches(".*\\?%.*")) {
+				// queryLanguage = QueryLanguage.LUCENE;
+				// } else {
+				// queryLanguage = QueryLanguage.OQL;
+				// compiledQuery += "=%s";
 			}
 
 			switch (queryLanguage) {
@@ -834,7 +1177,8 @@ public class CompiledUnit
 			ArrayList<String> pathList = new ArrayList<String>(3);
 			String token;
 			int index;
-//			"portfolio.SecId='pos_e.test' AND portfolio.PortfolioName='pos_e' AND portfolio.Num=123.5";
+			// "portfolio.SecId='pos_e.test' AND portfolio.PortfolioName='pos_e'
+			// AND portfolio.Num=123.5";
 			boolean openQuote = false;
 			String value = "";
 			boolean openValue = false;
@@ -844,7 +1188,7 @@ public class CompiledUnit
 					openQuote = !openQuote;
 					if (!openQuote) {
 						processingBuffer.append(c);
-//						value = processingBuffer.toString();
+						// value = processingBuffer.toString();
 						processingBuffer.delete(0, processingBuffer.length());
 					}
 					break;
@@ -874,12 +1218,12 @@ public class CompiledUnit
 					} else {
 						processingBuffer.append((char) c);
 					}
-					break; 
+					break;
 				case '=':
 				case '>':
 				case '<':
 					if (!openQuote) {
-						openValue=true;
+						openValue = true;
 					}
 					processingBuffer.delete(0, processingBuffer.length());
 					break;
@@ -948,20 +1292,20 @@ public class CompiledUnit
 		temporalIdentityQuery = "(" + compiledQuery + ") AND " + LuceneSearch.TIME_QUERY_PREDICATE;
 		return compiledQuery;
 	}
-	
+
 	public class AttributeIndex
 	{
 		String fromAttributeName;
 		String toAttributeName;
 		int toResultIndex;
-		
+
 		AttributeIndex(String fromAttributeName, String toAttributeName, int toResultIndex)
 		{
 			this.fromAttributeName = fromAttributeName;
 			this.toAttributeName = toAttributeName;
 			this.toResultIndex = toResultIndex;
 		}
-		
+
 		boolean isInput()
 		{
 			return toResultIndex < 0;

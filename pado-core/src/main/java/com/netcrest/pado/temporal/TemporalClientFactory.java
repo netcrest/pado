@@ -77,8 +77,8 @@ public class TemporalClientFactory<K, V>
 	 */
 	public static TemporalClientFactory getTemporalClientFactory() throws ClassNotFoundException
 	{
-		return getTemporalClientFactory("temporal", "com.netcrest.pado.temporal.impl.TemporalKey",
-				"com.netcrest.pado.temporal.impl.TemporalValue", "com.netcrest.pado.temporal.impl.TemporalData");
+		return getTemporalClientFactory("temporal", "com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalKey",
+				"com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalValue", "com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalData");
 	}
 
 	/**

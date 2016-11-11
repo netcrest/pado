@@ -35,13 +35,16 @@ import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.gemfire.GemfirePadoServerManager;
 import com.netcrest.pado.gemfire.info.GemfireConfigInfo;
 import com.netcrest.pado.gemfire.info.GemfireRegionInfo;
+import com.netcrest.pado.gemfire.info.GemfireVirtualPathInfo;
 import com.netcrest.pado.gemfire.util.GemfireSerializer;
 import com.netcrest.pado.info.AppInfo;
 import com.netcrest.pado.info.ConfigInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.LoginInfo;
+import com.netcrest.pado.info.PathInfo;
 import com.netcrest.pado.internal.factory.InfoFactory;
 import com.netcrest.pado.io.IObjectSerializer;
+import com.netcrest.pado.pql.VirtualPath2;
 import com.netcrest.pado.server.PadoServerManager;
 
 public class GemfirePadoBizImpl implements IPadoBiz
@@ -113,7 +116,7 @@ public class GemfirePadoBizImpl implements IPadoBiz
 			configInfo.setClientLocators(sm.getClientLocators());
 			configInfo.setClientMultiuserAuthenticationEnabled(sm.isClientConnectionMultiuserAuthenticationEnabled());
 			configInfo.setClientIndexMatrixConnectionName(sm.getClientIndexMatrixConnectionName());
-			Set<IObjectSerializer> objectSerializerSet = new HashSet(3);
+			Set<IObjectSerializer> objectSerializerSet = new HashSet<IObjectSerializer>(3);
 			objectSerializerSet.add(new GemfireSerializer());
 
 		} catch (FileNotFoundException ex) {
@@ -146,6 +149,24 @@ public class GemfirePadoBizImpl implements IPadoBiz
 	{
 		return PadoServerManager.getPadoServerManager().getGridInfo();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getServerCount(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerCount(gridId);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Object[] getServerIds(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerIds(gridId);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -165,6 +186,17 @@ public class GemfirePadoBizImpl implements IPadoBiz
 		GemfirePadoServerManager sm = GemfirePadoServerManager.getPadoServerManager();
 		GemfireRegionInfo regionInfo = new GemfireRegionInfo(sm.getRootRegion(), true);
 		return regionInfo;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public GemfireVirtualPathInfo getVirtualPathInfo()
+	{
+		GemfirePadoServerManager sm = GemfirePadoServerManager.getPadoServerManager();
+		GemfireVirtualPathInfo virtualPathInfo = new GemfireVirtualPathInfo(VirtualPath2.getRootVirtualPath(), true);
+		return virtualPathInfo;
 	}
 
 	/**

@@ -1,0 +1,6 @@
+{
+   "QueryDescription": "List all orders pertaining to the specified product information",
+   "VirtualPath": "stitch/nw/product_order",
+   "Query": "select p.ProductID, p.ProductName, od.OrderID, od.Quantity, od.UnitPrice, od.Discount as CompanyDiscount, p.UnitsInStock  \nfrom nw/order_details od, stitch/nw/product p \nwhere p?${ProductInfo} AND od.ProductID:p.ProductID",
+   "InputDescription": "ProductInfo: Any string values in stitch/nw/products, i.e., product name, product ID, supplier ID, etc."
+}

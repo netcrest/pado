@@ -1,0 +1,6 @@
+{
+   "QueryDescription": "Given order information, aggregate all order relevant data including order details, products, suppliers and categories. Return the results in aggregated object graphs, i.e. \"uses' entity relationships.",
+   "VirtualPath": "stitch/nw/order_entity",
+   "Query": "select * from nw/orders o\nwhere o.OrderID:${OrderID} AND o.CustomerID:${CustomerID} AND o.ShipVia:${ShipVia}",
+   "InputDescription": "OrderInfo: Any string values in nw/orders i.e., customer ID, order ID, ship country ,etc."
+}

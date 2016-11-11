@@ -29,10 +29,10 @@ public class PadoQueryParser
 {
 	private final static Map<KeyType, CompiledUnit> compiledUnitMap = new HashMap<KeyType, CompiledUnit>();
 
-	private final static Map<String, VirtualCompiledUnit> vcuMap = new HashMap<String, VirtualCompiledUnit>();
-	
-	public TokenizedQuery parseQuery_NotUsed(String thisAttributeName, String thisPath, Object thisKey, KeyMap thisKeyMap,
-			String rootPath, String pql, boolean isTemporal)
+	private final static Map<String, VirtualCompiledUnit2> vcuMap = new HashMap<String, VirtualCompiledUnit2>();
+
+	public TokenizedQuery parseQuery_NotUsed(String thisAttributeName, String thisPath, Object thisKey,
+			KeyMap thisKeyMap, String rootPath, String pql, boolean isTemporal)
 	{
 		if (pql == null) {
 			return null;
@@ -372,10 +372,52 @@ public class PadoQueryParser
 	}
 
 	/**
+	 * Returns the virtual compiled unit that represents the specified virtual
+	 * path definition. It creates a new one if it doesn't exist. It returns
+	 * null if the specified vpd is null or VirtualPath is not defined in vpd.
+	 * 
+	 * @param vpd
+	 *            Virtual path definition
+	 */
+	public static VirtualCompiledUnit2 getVirtualCompiledUnit(KeyMap vpd)
+	{
+		if (vpd == null) {
+			return null;
+		}
+
+		String virtualPath = (String) vpd.get("VirtualPath");
+		if (virtualPath == null) {
+			return null;
+		}
+		VirtualCompiledUnit2 vcu = vcuMap.get(vpd.get("VirtualPath"));
+		if (vcu == null) {
+			vcu = new VirtualCompiledUnit2(vpd);
+			vcuMap.put(virtualPath, vcu);
+
+		}
+		return vcu;
+	}
+
+	/**
+	 * Removes the specified virtual path
+	 * 
+	 * @param virtualPath
+	 *            Virtual path
+	 */
+	public synchronized static void removeVirtualCompiledUnit(String virtualPath)
+	{
+		if (virtualPath == null) {
+			return;
+		}
+		compiledUnitMap.remove(virtualPath);
+	}
+
+	/**
 	 * Removes all cached CUs.
 	 */
 	public synchronized static void reset()
 	{
 		compiledUnitMap.clear();
+		vcuMap.clear();
 	}
 }

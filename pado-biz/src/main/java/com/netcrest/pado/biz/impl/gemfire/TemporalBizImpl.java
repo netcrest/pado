@@ -19,6 +19,8 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +29,14 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import com.gemstone.gemfire.cache.CacheFactory;
+import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.cache.execute.RegionFunctionContext;
+import com.gemstone.gemfire.cache.partition.PartitionRegionHelper;
+import com.gemstone.gemfire.cache.query.QueryService;
+import com.gemstone.gemfire.cache.query.SelectResults;
+import com.gemstone.gemfire.cache.query.internal.DefaultQuery;
+import com.gemstone.gemfire.internal.cache.LocalDataSet;
 import com.netcrest.pado.IBizContextClient;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
@@ -36,10 +45,21 @@ import com.netcrest.pado.biz.gemfire.IGemfireGridContextServer;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.gemfire.info.GemfireGridInfo;
+import com.netcrest.pado.gemfire.util.GemfireGridUtil;
+import com.netcrest.pado.index.exception.GridQueryException;
+import com.netcrest.pado.index.helper.ComparatorFactory;
+import com.netcrest.pado.index.helper.IndexMatrixOperationUtility;
+import com.netcrest.pado.index.provider.ITextSearchProvider;
+import com.netcrest.pado.index.provider.TextSearchProviderFactory;
 import com.netcrest.pado.index.provider.gemfire.OqlSearch;
 import com.netcrest.pado.index.provider.lucene.LuceneSearch;
 import com.netcrest.pado.index.service.IScrollableResultSet;
 import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.pql.CompiledUnit;
+import com.netcrest.pado.pql.PqlParser;
+import com.netcrest.pado.pql.PqlParser.OrderByQueryString;
+import com.netcrest.pado.pql.VirtualCompiledUnit2;
+import com.netcrest.pado.pql.CompiledUnit.QueryLanguage;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.server.VirtualPathEngine;
 import com.netcrest.pado.temporal.AttachmentResults;
@@ -61,12 +81,14 @@ import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalValue;
 import com.netcrest.pado.temporal.gemfire.impl.TemporalCacheListener;
 import com.netcrest.pado.util.GridUtil;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 {
 	@Resource
 	IBizContextServer bizContext;
 
-	@SuppressWarnings("unchecked")
+	private ComparatorFactory comparatorFactory = new ComparatorFactory();
+
 	private ITemporalList<K, V> getTemporalList(K identityKey)
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
@@ -124,6 +146,19 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	}
 
 	@Override
+	public void __setVirtualEntityPath(String virtualEntityPath)
+	{
+		// client only
+	}
+
+	@Override
+	public String __getVirtualEntityPath()
+	{
+		// client only
+		return null;
+	}
+
+	@Override
 	public void setDepth(int depth)
 	{
 		// client only
@@ -175,7 +210,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	// return (V) value;
 	// }
 
-	@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
 	@BizMethod
 	@Override
 	public V get(K identityKey)
@@ -186,11 +220,15 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		}
 		boolean isReference = false;
 		int depth = -1;
+		String virtualEntityPath = null;
 		Object[] args = bizContext.getGridContextServer().getAdditionalArguments();
 		if (args != null && args.length > 0) {
 			isReference = (Boolean) args[0];
 			if (args.length > 1) {
 				depth = (Integer) args[1];
+			}
+			if (args.length > 2) {
+				virtualEntityPath = (String) args[2];
 			}
 		}
 		Object value = entry.getValue();
@@ -215,7 +253,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return get(identityKey, validAtTime, System.currentTimeMillis());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@BizMethod
 	@Override
 	public V get(K identityKey, long validAtTime, long asOfTime)
@@ -240,11 +277,15 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 
 		boolean isReference = false;
 		int depth = -1;
+		String virtualEntityPath = null;
 		Object[] args = bizContext.getGridContextServer().getAdditionalArguments();
 		if (args != null && args.length > 0) {
 			isReference = (Boolean) args[0];
 			if (args.length > 1) {
 				depth = (Integer) args[1];
+			}
+			if (args.length > 2) {
+				virtualEntityPath = (String) args[2];
 			}
 		}
 		if (isReference) {
@@ -260,7 +301,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return (V) value;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@BizMethod
 	@Override
 	public TemporalEntry<K, V> getEntry(K identityKey)
@@ -278,12 +318,16 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 				Object args[] = bizContext.getGridContextServer().getAdditionalArguments();
 				boolean isReference = false;
 				int depth = -1;
+				String virtualEntityPath = null;
 				if (args != null) {
 					if (args.length > 0) {
 						isReference = (Boolean) args[0];
 					}
 					if (args.length > 1) {
 						depth = (Integer) args[1];
+					}
+					if (args.length > 2) {
+						virtualEntityPath = (String) args[2];
 					}
 				}
 
@@ -323,6 +367,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			if (value instanceof KeyMap) {
 				Object args[] = bizContext.getGridContextServer().getAdditionalArguments();
 				boolean isReference = false;
+				String virtualEntityPath = null;
 				int depth = -1;
 				if (args != null) {
 					if (args.length > 0) {
@@ -330,6 +375,9 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 					}
 					if (args.length > 1) {
 						depth = (Integer) args[1];
+					}
+					if (args.length > 2) {
+						virtualEntityPath = (String) args[2];
 					}
 				}
 
@@ -351,15 +399,14 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return getEntries(validAtTime, System.currentTimeMillis());
 	}
 
-	@SuppressWarnings("unchecked")
 	@BizMethod
 	@Override
 	public Map<ITemporalKey<K>, ITemporalData<K>> getEntries(long validAtTime, long asOfTime)
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
 		if (tm == null) {
 			return null;
 		}
@@ -370,12 +417,16 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		Object args[] = bizContext.getGridContextServer().getAdditionalArguments();
 		boolean isReference = false;
 		int depth = -1;
+		String virtualEntityPath = null;
 		if (args != null) {
 			if (args.length > 0) {
 				isReference = (Boolean) args[0];
 			}
 			if (args.length > 1) {
 				depth = (Integer) args[1];
+			}
+			if (args.length > 2) {
+				virtualEntityPath = (String) args[2];
 			}
 		}
 
@@ -453,7 +504,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		// client only
 		return null;
 	}
-	
+
 	@Override
 	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
 			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
@@ -462,8 +513,63 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		// client only
 		return null;
 	}
+	
+	@BizMethod
+	@Override
+	public List<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryHistoryWrittenTimeRangeList(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime)
+	{
+		Set<ITemporalKey> temporalKeySet = null;
+		CompiledUnit cu = new CompiledUnit(queryStatement);
+		String[] fullPaths = cu.getFullPaths();
+		if (fullPaths == null || fullPaths.length != 1) {
+			return null;
+		}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+		List<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> resultList = null;
+		String fullPath = fullPaths[0];
+		if (cu.getQueryLanguage() == QueryLanguage.LUCENE) {
+			GemfireTemporalManager tm = GemfireTemporalManager.getTemporalManager(fullPath);
+			if (tm != null) {
+				String qs;
+				LuceneSearch luceneSearch = LuceneSearch.getLuceneSearch(fullPath);
+				qs = luceneSearch.getWrittenTimeRangeQuery(validAtTime, fromWrittenTime, toWrittenTime,
+						cu.getCompiledQuery());
+				temporalKeySet = luceneSearch.getTemporalKeySet(fullPath, qs, -1);
+				resultList = tm.getTemporalCacheListener().getTemporalEntryList(temporalKeySet);
+			}
+		}
+		return resultList;
+	}
+
+	@BizMethod
+	@Override
+	public List<V> getValueHistoryWrittenTimeRangeList(String queryStatement, long validAtTime, long fromWrittenTime,
+			long toWrittenTime)
+	{
+		Set<ITemporalKey> temporalKeySet = null;
+		CompiledUnit cu = new CompiledUnit(queryStatement);
+		String[] fullPaths = cu.getFullPaths();
+		if (fullPaths == null || fullPaths.length != 1) {
+			return null;
+		}
+
+		List resultList = null;
+		String fullPath = fullPaths[0];
+		if (cu.getQueryLanguage() == QueryLanguage.LUCENE) {
+			GemfireTemporalManager tm = GemfireTemporalManager.getTemporalManager(fullPath);
+			if (tm != null) {
+				String qs;
+				LuceneSearch luceneSearch = LuceneSearch.getLuceneSearch(fullPath);
+				qs = luceneSearch.getWrittenTimeRangeQuery(validAtTime, fromWrittenTime, toWrittenTime,
+						cu.getCompiledQuery());
+				temporalKeySet = luceneSearch.getTemporalKeySet(fullPath, qs, -1);
+				resultList = tm.getTemporalCacheListener().getValueList(temporalKeySet);
+			}
+		}
+		return resultList;
+	}
+
 	@BizMethod
 	@Override
 	public ITemporalKey<K> getKey(K identityKey)
@@ -490,7 +596,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return entry.getTemporalKey();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@BizMethod
 	@Override
 	public Set<ITemporalKey<K>> getKeySet(long validAtTime, long asOfTime)
@@ -522,8 +627,8 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
 		if (tm == null) {
 			return null;
 		}
@@ -544,7 +649,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return getAllEntrySet(identityKey, validAtTime, System.currentTimeMillis());
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@BizMethod
 	@Override
 	public Set<TemporalEntry<K, V>> getAllEntrySet(K identityKey, long validAtTime, long asOfTime)
@@ -558,12 +662,16 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		Object args[] = bizContext.getGridContextServer().getAdditionalArguments();
 		boolean isReference = false;
 		int depth = -1;
+		String virtualEntityPath = null;
 		if (args != null) {
 			if (args.length > 0) {
 				isReference = (Boolean) args[0];
 			}
 			if (args.length > 1) {
 				depth = (Integer) args[1];
+			}
+			if (args.length > 2) {
+				virtualEntityPath = (String) args[2];
 			}
 		}
 
@@ -585,7 +693,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	{
 		return null;
 	}
-	
+
 	/**
 	 * Not used. ILocalBiz (HPIM) handles it.
 	 */
@@ -663,7 +771,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	 * Not used. ILocalBiz handles it. ILocalBiz handles it by invoking
 	 * IGridMap.put().
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public TemporalEntry<K, V> put(K identityKey, V value, long startValidTime, long endValidTime, long writtenTime,
 			boolean isDelta)
@@ -733,7 +840,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@Override
 	public void remove(K identityKey)
@@ -744,7 +850,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@Override
 	public boolean isRemoved(K identityKey)
@@ -757,7 +862,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@Override
 	public boolean isExist(K identityKey)
@@ -786,17 +890,16 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
-		String filePath = System.getProperty("pado.temporal.dump.file", "data/temporal/" + rfc.getDataSet().getName()
-				+ ".txt");
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
+		String filePath = System.getProperty("pado.temporal.dump.file",
+				"data/temporal/" + rfc.getDataSet().getName() + ".txt");
 		tm.dumpAll(filePath, includeDeltas);
 	}
 
 	/**
 	 * This used?
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@BizMethod
 	@Override
 	public AttachmentResults<V> getAttachments(K identityKey)
@@ -805,8 +908,8 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
 		if (tm == null) {
 			return null;
 		}
@@ -824,6 +927,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		IFilter filter = null;
 		boolean isReference = false;
 		int depth = -1;
+		String virtualEntityPath = null;
 		String name = "default";
 		if (args != null) {
 			if (args.length > 0) {
@@ -837,6 +941,9 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			}
 			if (args.length > 3) {
 				depth = (Integer) args[3];
+			}
+			if (args.length > 4) {
+				virtualEntityPath = (String) args[4];
 			}
 		}
 		if (filterSet == null) {
@@ -926,15 +1033,14 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return null;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@BizMethod
 	@Override
 	public List<V> __getAttachments(long validAtTime, long asOfTime)
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
 		if (tm == null) {
 			return null;
 		}
@@ -952,6 +1058,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		IFilter filter = null;
 		int depth = -1;
 		boolean isReference = false;
+		String virtualEntityPath = null;
 		if (args != null) {
 			if (args.length > 0) {
 				filter = (IFilter) args[0];
@@ -961,6 +1068,9 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			}
 			if (args.length > 2) {
 				depth = (Integer) args[2];
+			}
+			if (args.length > 3) {
+				virtualEntityPath = (String) args[3];
 			}
 		}
 		if (filterSet == null) {
@@ -1036,7 +1146,6 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return __getAttachmentsBroadcast(validAtTime, asOfTime);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@BizMethod
 	@Override
 	public Map<String, List<V>> __getAttachmentsBroadcast(long validAtTime, long asOfTime)
@@ -1045,6 +1154,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		AttachmentSet attSets[] = null;
 		int depth = -1;
 		boolean isReference = false;
+		Object serverId = null;
 		if (args != null) {
 			if (args.length > 0) {
 				attSets = (AttachmentSet[]) args[0];
@@ -1054,6 +1164,9 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			}
 			if (args.length > 2) {
 				depth = (Integer) args[2];
+			}
+			if (args.length > 3) {
+				serverId = args[3];
 			}
 		}
 
@@ -1068,148 +1181,193 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			for (AttachmentSet attSet : attSets) {
 				String identityKeyQueryStatement = attSet.getQueryStatement();
 				if (VirtualPathEngine.getVirtualPathEngine().isVirtualPath(attSet.getGridPath())) {
-					List list = VirtualPathEngine.getVirtualPathEngine().execute(identityKeyQueryStatement,
-							validAtTime, asOfTime);
+					String virtualPath = attSet.getGridPath();
+					VirtualCompiledUnit2 vcu = VirtualPathEngine.getVirtualPathEngine()
+							.getVirtualCompiledUnit(virtualPath);
+
+					List list = null;
+					if (vcu != null && vcu.isEntity()) {
+						String entityGridPath = vcu.getEntityGridPath();
+						list = getLocalResults(entityGridPath, null /* identityKeySet */, identityKeyQueryStatement,
+								null /* filter */, validAtTime, asOfTime);
+						if (list != null && depth != 0) {
+							// supports KeyMap only
+							VirtualPathEntityFinder finder = new VirtualPathEntityFinder();
+							// TODO: Support bulk reference
+							for (Object object : list) {
+								KeyMap keyMap = (KeyMap) object;
+								finder.getReferences(PadoServerManager.getPadoServerManager().getCatalog(), virtualPath,
+										keyMap, depth, validAtTime, asOfTime, null);
+							}
+						}
+						// } else if
+						// (PadoServerManager.getPadoServerManager().isMaster())
+						// {
+					} else if (serverId == null || serverId.equals(GemfireGridUtil.getDistributedMember().getId())) {
+						identityKeyQueryStatement = virtualPath + "?" + identityKeyQueryStatement;
+						list = VirtualPathEngine.getVirtualPathEngine().execute(identityKeyQueryStatement, validAtTime,
+								asOfTime);
+					}
 					if (list != null) {
 						map.put(attSet.getName(), list);
 					}
 				} else {
 
-					String fullPath = GridUtil.getFullPath(attSet.getGridPath());
-					GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(fullPath);
-					if (tm == null) {
-						continue;
-					}
-
-					// Start recording stats
-					long startTime = 0;
-					if (tm.isStatisticsEnabled()) {
-						startTime = tm.getStatistics().startAsOfEntityAttachmentsSearchCount();
-					}
-
-					TemporalCacheListener cl = tm.getTemporalCacheListener();
-
 					Set identityKeySet = attSet.getAttachments();
-					if (identityKeyQueryStatement.startsWith("select")) {
-						// OQL
-						try {
-							OqlSearch os = OqlSearch.getOqlSearch();
-							String qs = os.getTimePredicate(fullPath, validAtTime, asOfTime) + " AND ("
-									+ identityKeyQueryStatement + ")";
-							List<Object> localList = os.searchLocal(qs);
-//								List<Object> localList = os.searchLocal(identityKeyQueryStatement);
-							if (localList != null) {
-								if (identityKeySet != null) {
-									identityKeySet.addAll(localList);
-								} else {
-									identityKeySet = new HashSet(localList);
-								}
-							}
-						} catch (Exception e) {
-							// if query error, log and skip this attribute
-							// set
-							Logger.error(e);
-							continue;
-						}
-					} else {
-						LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
-						String qs = ls.getTimePredicate(validAtTime, asOfTime);
-						if (identityKeyQueryStatement != null && identityKeyQueryStatement.length() > 0) {
-							qs += " AND ("	+ identityKeyQueryStatement + ")";
-						}
-						Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs, -1);
-//							Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, identityKeyQueryStatement);
-						if (identityKeySet != null) {
-							if (identityKeySearchedSet != null) {
-								identityKeySet.addAll(identityKeySearchedSet);
-							}
-						} else {
-							identityKeySet = identityKeySearchedSet;
-						}
-					}
 					IFilter filter = attSet.getFilter();
-					List list = new ArrayList();
+					List list = getLocalResults(attSet.getGridPath(), identityKeySet, identityKeyQueryStatement, filter,
+							validAtTime, asOfTime);
 					map.put(attSet.getName(), list);
 
-					if (identityKeySet != null) {
-						if (filter == null) {
-							for (Object identityKey : identityKeySet) {
-								TemporalEntry asof = cl.getAsOf(identityKey, validAtTime, asOfTime);
-								if (asof != null) {
-									if (asof.getTemporalData() instanceof GemfireTemporalData) {
-										list.add(((GemfireTemporalData) asof.getTemporalData()).getValue());
-									} else {
-										list.add(asof.getTemporalData());
-									}
-								}
-							}
-						} else {
-							for (Object identityKey : identityKeySet) {
-								TemporalEntry asof = cl.getAsOf(identityKey, validAtTime, asOfTime);
-								if (asof != null) {
-									if (filter.isValid(asof.getTemporalKey(), asof.getTemporalData())) {
-										if (asof.getTemporalData() instanceof GemfireTemporalData) {
-											list.add(((GemfireTemporalData) asof.getTemporalData()).getValue());
-										} else {
-											list.add(asof.getTemporalData());
-										}
-									}
-								}
-							}
-						}
-					}
-
-					// Stop recording stats
-					if (tm.isStatisticsEnabled()) {
-						tm.getStatistics().endAsOfEntityAttachmentsSearchCount(startTime);
-					}
 				}
 			}
 		}
 
-		if (isReference) {
-			if (depth != 0) {
+		if (isReference && depth != 0) {
 
-				// Aggregate all KeyMap objects with the same KeyType into one
-				// list
-				Map<KeyType, List<KeyMap>> mapOfKeyMapLists = new HashMap();
-				Set<Map.Entry<String, List<V>>> set = map.entrySet();
-				for (Map.Entry<String, List<V>> entry : set) {
-					entry.getKey();
-					List list = entry.getValue();
-					if (list.size() > 0) {
-						if (list.get(0) instanceof KeyMap) {
-							KeyMap keyMap = (KeyMap) list.get(0);
-							List<KeyMap> list2 = mapOfKeyMapLists.get(keyMap.getKeyType());
-							if (list2 == null) {
-								list2 = new ArrayList(list);
-								mapOfKeyMapLists.put(keyMap.getKeyType(), list2);
-							} else {
-								list2.addAll(list);
-							}
+			// Aggregate all KeyMap objects with the same KeyType into one
+			// list
+			Map<KeyType, List<KeyMap>> mapOfKeyMapLists = new HashMap();
+			Set<Map.Entry<String, List<V>>> set = map.entrySet();
+			for (Map.Entry<String, List<V>> entry : set) {
+				entry.getKey();
+				List list = entry.getValue();
+				if (list.size() > 0) {
+					if (list.get(0) instanceof KeyMap) {
+						KeyMap keyMap = (KeyMap) list.get(0);
+						List<KeyMap> list2 = mapOfKeyMapLists.get(keyMap.getKeyType());
+						if (list2 == null) {
+							list2 = new ArrayList(list);
+							mapOfKeyMapLists.put(keyMap.getKeyType(), list2);
+						} else {
+							list2.addAll(list);
 						}
 					}
 				}
+			}
 
-				// Find references per aggregated list.
-				Object keyMapReferenceId = getKeyMapReferenceId();
-				Collection<List<KeyMap>> col = mapOfKeyMapLists.values();
-				for (List<KeyMap> keyMapList : col) {
-					ReferenceFinder finder = new ReferenceFinder();
-					finder.getKeyMapCollectionReferences(keyMapList, depth, validAtTime, asOfTime, keyMapReferenceId);
-				}
+			// Find references per aggregated list.
+			Object keyMapReferenceId = getKeyMapReferenceId();
+			Collection<List<KeyMap>> col = mapOfKeyMapLists.values();
+			for (List<KeyMap> keyMapList : col) {
+				ReferenceFinder finder = new ReferenceFinder();
+				finder.getKeyMapCollectionReferences(keyMapList, depth, validAtTime, asOfTime, keyMapReferenceId);
 			}
 		}
 		return map;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private List getLocalResults(String gridPath, Set identityKeySet, String identityKeyQueryStatement, IFilter filter,
+			long validAtTime, long asOfTime)
+	{
+		String fullPath = GridUtil.getFullPath(gridPath);
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(fullPath);
+		if (tm == null) {
+			return null;
+		}
+
+		// Start recording stats
+		long startTime = 0;
+		if (tm.isStatisticsEnabled()) {
+			startTime = tm.getStatistics().startAsOfEntityAttachmentsSearchCount();
+		}
+
+		OrderByQueryString orderByQueryString = null;
+		TemporalCacheListener cl = tm.getTemporalCacheListener();
+		if (identityKeyQueryStatement.startsWith("select")) {
+			// OQL
+			try {
+				OqlSearch os = OqlSearch.getOqlSearch();
+				String qs = os.getTimePredicate(fullPath, validAtTime, asOfTime) + " AND (" + identityKeyQueryStatement
+						+ ")";
+				List<Object> localList = os.searchLocal(qs);
+				// List<Object> localList =
+				// os.searchLocal(identityKeyQueryStatement);
+				if (localList != null) {
+					if (identityKeySet != null) {
+						identityKeySet.addAll(localList);
+					} else {
+						identityKeySet = new HashSet(localList);
+					}
+				}
+			} catch (Exception e) {
+				// if query error, log and skip this attribute
+				// set
+				Logger.error(e);
+				return null;
+			}
+		} else {
+			LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
+			String qs = ls.getTimePredicate(validAtTime, asOfTime);
+			if (identityKeyQueryStatement != null && identityKeyQueryStatement.length() > 0) {
+				orderByQueryString = PqlParser.getOrderBy(identityKeyQueryStatement);
+				if (orderByQueryString.queryString != null && orderByQueryString.queryString.length() > 0) {
+					qs += " AND (" + orderByQueryString.queryString + ")";
+				}
+			}
+			Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs, -1);
+			// Set identityKeySearchedSet =
+			// ls.getIdentityKeySet(fullPath,
+			// identityKeyQueryStatement);
+			if (identityKeySet != null) {
+				if (identityKeySearchedSet != null) {
+					identityKeySet.addAll(identityKeySearchedSet);
+				}
+			} else {
+				identityKeySet = identityKeySearchedSet;
+			}
+		}
+		List list = new ArrayList();
+
+		if (identityKeySet != null) {
+			if (filter == null) {
+				for (Object identityKey : identityKeySet) {
+					TemporalEntry asof = cl.getAsOf(identityKey, validAtTime, asOfTime);
+					if (asof != null) {
+						if (asof.getTemporalData() instanceof GemfireTemporalData) {
+							list.add(((GemfireTemporalData) asof.getTemporalData()).getValue());
+						} else {
+							list.add(asof.getTemporalData());
+						}
+					}
+				}
+			} else {
+				for (Object identityKey : identityKeySet) {
+					TemporalEntry asof = cl.getAsOf(identityKey, validAtTime, asOfTime);
+					if (asof != null) {
+						if (filter.isValid(asof.getTemporalKey(), asof.getTemporalData())) {
+							if (asof.getTemporalData() instanceof GemfireTemporalData) {
+								list.add(((GemfireTemporalData) asof.getTemporalData()).getValue());
+							} else {
+								list.add(asof.getTemporalData());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (list.size() > 0 && orderByQueryString != null && orderByQueryString.orderBy != null) {
+			Comparator comparator = comparatorFactory.getComparator(list.get(0), orderByQueryString.orderBy,
+					orderByQueryString.isAscending, false);
+			Collections.sort(list, comparator);
+		}
+
+		// Stop recording stats
+		if (tm.isStatisticsEnabled()) {
+			tm.getStatistics().endAsOfEntityAttachmentsSearchCount(startTime);
+		}
+		return list;
+
+	}
+
 	@BizMethod
 	@Override
 	public Map<String, List<TemporalEntry<K, V>>> __getAttachmentsEntriesBroadcast(long validAtTime, long asOfTime)
 	{
 		boolean isReference = false;
 		int depth = -1;
+		String virtualEntityPath = null;
 		AttachmentSet attSets[] = null;
 		Object args[] = bizContext.getGridContextServer().getAdditionalArguments();
 		if (args != null && args.length > 0) {
@@ -1219,6 +1377,9 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			}
 			if (args.length > 2) {
 				depth = (Integer) args[2];
+			}
+			if (args.length > 3) {
+				virtualEntityPath = (String) args[3];
 			}
 		}
 
@@ -1250,9 +1411,14 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 
 				Set identityKeySet = attSet.getAttachments();
 				String queryStatement = attSet.getQueryStatement();
+				OrderByQueryString orderByQueryString = null;
 				if (queryStatement != null && queryStatement.length() > 0) {
 					LuceneSearch ls = LuceneSearch.getLuceneSearch(fullPath);
-					String qs = ls.getTimePredicate(validAtTime, asOfTime) + " AND (" + queryStatement + ")";
+					String qs = ls.getTimePredicate(validAtTime, asOfTime);
+					orderByQueryString = PqlParser.getOrderBy(queryStatement);
+					if (orderByQueryString.queryString != null && orderByQueryString.queryString.length() > 0) {
+						qs += " AND (" + orderByQueryString.queryString + ")";
+					}
 					Set identityKeySearchedSet = ls.getIdentityKeySet(fullPath, qs, -1);
 					if (identityKeySearchedSet != null) {
 						if (identityKeySet == null) {
@@ -1292,6 +1458,17 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 							finder.getCollectionReferences(list, depth, validAtTime, asOfTime, getKeyMapReferenceId());
 						}
 					}
+				}
+				if (list.size() > 0 && orderByQueryString != null && orderByQueryString.orderBy != null) {
+					boolean sortByKey = orderByQueryString.orderBy.equals("IdentityKey")
+							|| orderByQueryString.orderBy.equals("Username")
+							|| orderByQueryString.orderBy.equals("WrittenTime")
+							|| orderByQueryString.orderBy.equals("EndWrittenTime")
+							|| orderByQueryString.orderBy.equals("StartValidTime")
+							|| orderByQueryString.orderBy.equals("EndValidTime");
+					Comparator comparator = comparatorFactory.getComparator(list.get(0), orderByQueryString.orderBy,
+							orderByQueryString.isAscending, sortByKey);
+					Collections.sort(list, comparator);
 				}
 
 				// Stop recording stats
@@ -1397,15 +1574,14 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return null;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes", "unused" })
 	@BizMethod
 	@Override
 	public Map<ITemporalKey<K>, ITemporalData<K>> __getAttachmentsEntries(long validAtTime, long asOfTime)
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
 		if (tm == null) {
 			return null;
 		}
@@ -1421,6 +1597,7 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		Set filterSet = rfc.getFilter();
 		Object args[] = bizContext.getGridContextServer().getAdditionalArguments();
 		boolean isReference = false;
+		String virtualEntityPath = null;
 		int depth = -1;
 		IFilter filter = null;
 		if (args != null && args.length > 0) {
@@ -1430,6 +1607,9 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			}
 			if (args.length > 2) {
 				depth = (Integer) args[2];
+			}
+			if (args.length > 3) {
+				virtualEntityPath = (String) args[3];
 			}
 		}
 
@@ -1549,15 +1729,14 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 		return null;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@BizMethod
 	@Override
 	public Set<ITemporalKey<K>> __getAttachmentsKeys(long validAtTime, long asOfTime)
 	{
 		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
 				.getRegionFunctionContext();
-		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager.getTemporalManager(rfc.getDataSet()
-				.getFullPath());
+		GemfireTemporalManager tm = (GemfireTemporalManager) TemporalManager
+				.getTemporalManager(rfc.getDataSet().getFullPath());
 		if (tm == null) {
 			return null;
 		}
@@ -1745,5 +1924,37 @@ public class TemporalBizImpl<K, V> implements ITemporalBiz<K, V>
 			String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		return null;
+	}
+
+	@Override
+	public int size()
+	{
+		return size(-1, -1);
+	}
+
+	@Override
+	@BizMethod
+	public int size(long validAtTime, long asOfTime)
+	{
+		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
+				.getRegionFunctionContext();
+		TemporalManager tm = TemporalManager.getTemporalManager(rfc.getDataSet().getFullPath());
+		if (tm == null) {
+			return 0;
+		}
+		return tm.getTemporalListCount(validAtTime, asOfTime);
+	}
+
+	@Override
+	@BizMethod
+	public int getTemporalListCount()
+	{
+		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
+				.getRegionFunctionContext();
+		TemporalManager tm = TemporalManager.getTemporalManager(rfc.getDataSet().getFullPath());
+		if (tm == null) {
+			return 0;
+		}
+		return tm.getTemporalListCount();
 	}
 }

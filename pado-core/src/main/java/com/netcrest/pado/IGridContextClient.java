@@ -203,6 +203,7 @@ public interface IGridContextClient
 	 * subsequent IBiz method calls. The values listed under the "See Also:" tag
 	 * are cleared by this method.
 	 * 
+	 * @see #setGridIds(String...)
 	 * @see #setAdditionalArguments(Object...)
 	 * @see #setGridCollector(IGridCollector)
 	 * @see #setGridLocation(String)

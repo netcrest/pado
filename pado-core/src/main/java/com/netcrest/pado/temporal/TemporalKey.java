@@ -25,7 +25,8 @@ import com.netcrest.pado.IRoutingKey;
  * information:
  * <p>
  * <ul>
- * <li><b>Identity Key</b> - The primary key that identifies a temporal entity.</li>
+ * <li><b>Identity Key</b> - The primary key that identifies a temporal entity.
+ * </li>
  * <li><b>Start/End Valid Time</b> - A range of time (inclusive) in which the
  * entity valid. This range is compared with the valid-at time when searching
  * temporal entities.</li>
@@ -68,7 +69,7 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	/**
 	 * End written time in msec.
 	 */
-	protected long endWrittenTime;
+	protected long endWrittenTime = TemporalUtil.MAX_TIME;
 
 	/**
 	 * User name
@@ -125,11 +126,12 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	}
 
 	/**
-	 * Returns the end written time. It returns -1 if it is not set.
+	 * Returns the end written time. It {@link TemporalUtil#MAX_TIME} if not
+	 * set.
 	 */
 	public long getEndWrittenTime()
 	{
-		return this.endValidTime;
+		return this.endWrittenTime;
 	}
 
 	/**
@@ -186,11 +188,9 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 			return false;
 		}
 		TemporalKey that = (TemporalKey) obj;
-		return this.writtenTime == that.getWrittenTime()
-				&& this.startValidTime == that.getStartValidTime()
-				&& this.endValidTime == that.getEndValidTime()
-				&& (this.identityKey == that.getIdentityKey() || this.identityKey != null
-						&& this.identityKey.equals(that.getIdentityKey()));
+		return this.writtenTime == that.getWrittenTime() && this.startValidTime == that.getStartValidTime()
+				&& this.endValidTime == that.getEndValidTime() && (this.identityKey == that.getIdentityKey()
+						|| this.identityKey != null && this.identityKey.equals(that.getIdentityKey()));
 	}
 
 	/**
@@ -216,14 +216,14 @@ public abstract class TemporalKey<K> implements ITemporalKey<K>, Comparable<Temp
 	public String toString()
 	{
 		StringBuffer buffer = new StringBuffer(100).append("TemporalKey[").append("identityKey=")
-				.append(this.identityKey).append(", writtenTime=")
-				.append(this.writtenTime).append(", startValidTime=").append(this.startValidTime)
-				.append(", endValidTime=").append(this.endValidTime).append("]");
+				.append(this.identityKey).append(", writtenTime=").append(this.writtenTime).append(", startValidTime=")
+				.append(this.startValidTime).append(", endValidTime=").append(this.endValidTime).append("]");
 		return buffer.toString();
 	}
 
 	/**
-	 * Returns a string representation in date formatted form of the temporal key.
+	 * Returns a string representation in date formatted form of the temporal
+	 * key.
 	 */
 	public String toStringDate()
 	{

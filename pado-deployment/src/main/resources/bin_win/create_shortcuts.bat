@@ -51,7 +51,8 @@ bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\1.2. Kill All.lnk" %DIR%\kill_all.ba
 bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\1.3. Clean All.lnk" %DIR%\clean_all.bat "" %DIR% "Cleans all grids (%GRIDS%) - removes log and stats files" 1 %DIR%"\images\Clean.ico
 bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\1.4. Check All.lnk" %DIR%\check_all.bat "-prompt" %DIR% "Displays all running grids (%GRIDS%)" 1 %DIR%"\images\Check.ico
 bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\2.1. bin_win.lnk" %windir%\system32\cmd.exe "/K setenv.bat" %DIR% "bin_win" 1
-bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\3.1. gfsh.lnk" %DIR%\start_gfsh.bat "" %DIR% "Starts gfsh" 1 %DIR%"\images\Fish.ico"
+bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\3.1. PadoShell.lnk" %DIR%\pado.bat "" %DIR% "Starts PadoShell" 1 %DIR%"\images\pado_40x40.ico"
+bin_win\XXMKLINK.EXE /q "%SHORTCUT_ALL_DIR%\3.2. gfsh.lnk" %DIR%\start_gfsh.bat "" %DIR% "Starts gfsh" 1 %DIR%"\images\Fish.ico"
 
 REM
 REM Grids
@@ -64,7 +65,8 @@ REM
    bin_win\XXMKLINK.EXE /q "!ALL_SITES_DIR!\1.3. Clean All Sites.lnk" %DIR%\clean_grid.bat "-grid !GRID!" %DIR% "Cleans all sites (%SITES%) - removes log and stats files" 1 %DIR%"\images\Clean.ico
    bin_win\XXMKLINK.EXE /q "!ALL_SITES_DIR!\1.4. Check Grid.lnk" %DIR%\check_grid.bat "-grid !GRID! -prompt" %DIR% "Displays all running sites (%SITE%) in grid, !GRID!" 1 %DIR%"\images\Check.ico
    bin_win\XXMKLINK.EXE /q "!ALL_SITES_DIR!\2.1. bin_win.lnk" %windir%\system32\cmd.exe "/K setenv.bat" %DIR% "bin_win" 1
-   bin_win\XXMKLINK.EXE /q "!ALL_SITES_DIR!\3.1. gfsh.lnk" %DIR%\start_gfsh.bat "" %DIR% "Starts gfsh" 1 %DIR%"\images\Fish.ico"
+   bin_win\XXMKLINK.EXE /q "!ALL_SITES_DIR!\3.1. PadoShell.lnk" %DIR%\pado.bat "" %DIR% "Starts PadoShell" 1 %DIR%"\images\pado_40x40.ico"
+   bin_win\XXMKLINK.EXE /q "!ALL_SITES_DIR!\3.2. gfsh.lnk" %DIR%\start_gfsh.bat "" %DIR% "Starts gfsh" 1 %DIR%"\images\Fish.ico"
 
    REM
    REM Shortcuts for each site
@@ -77,7 +79,8 @@ REM
       bin_win\XXMKLINK.EXE /q "!SITE_DIR!\1.3. Clean !SITE!.lnk" %DIR%\clean_site.bat "-grid !GRID! -site !SITE!" %DIR% "cleans !SITE! - Removes log and stats files" 1 %DIR%"\images\Clean.ico
       bin_win\XXMKLINK.EXE /q "!SITE_DIR!\1.4. Check Site.lnk" %DIR%\check_site.bat "-site !SITE! -prompt" %DIR% "Displays all running servers in site, !SITE!" 1 %DIR%"\images\Check.ico
       bin_win\XXMKLINK.EXE /q "!SITE_DIR!\2.1. bin_win.lnk" %windir%\system32\cmd.exe "/K setenv.bat" %DIR% "bin_win" 1
-      bin_win\XXMKLINK.EXE /q "!SITE_DIR!\3.1 gfsh.lnk" %DIR%\start_gfsh.bat "" %DIR% "Starts gfsh" 1 %DIR%"\images\Fish.ico"
+      bin_win\XXMKLINK.EXE /q "!SITE_DIR!\3.1 PadoShell.lnk" %DIR%\pado.bat "" %DIR% "Starts PadoShell" 1 %DIR%"\images\pado_40x40.ico"
+      bin_win\XXMKLINK.EXE /q "!SITE_DIR!\3.2 gfsh.lnk" %DIR%\start_gfsh.bat "" %DIR% "Starts gfsh" 1 %DIR%"\images\Fish.ico"
    )
 )
 
@@ -90,6 +93,11 @@ REM
 REM Command linet window - bin_win
 REM
 bin_win\XXMKLINK.EXE /q "%SHORTCUT_DIR%\bin_win.lnk" %windir%\system32\cmd.exe "/K setenv.bat" %DIR% "bin_win" 1
+
+REM
+REM PadoShell
+REM
+bin_win\XXMKLINK.EXE /q "%SHORTCUT_DIR%\PadoShell.lnk" %DIR%\pado.bat "" %DIR% "Starts PadoShell" 1 %DIR%"\images\pado_40x40.ico"
 
 REM
 REM gfsh

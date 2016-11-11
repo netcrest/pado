@@ -28,6 +28,7 @@ import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.info.AppInfo;
 import com.netcrest.pado.info.ConfigInfo;
+import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.UserLoginInfo;
 import com.netcrest.pado.info.message.MessageType;
 import com.netcrest.pado.internal.Constants;
@@ -35,6 +36,7 @@ import com.netcrest.pado.internal.impl.PadoClientManager;
 import com.netcrest.pado.internal.security.AESCipher;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.link.IPadoBizLink;
+import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * The Pado class provides the first client entry point to connecting to a grid.
@@ -120,6 +122,11 @@ public abstract class Pado implements IPado
 	 * Catalog specific to the logged in user.
 	 */
 	protected ICatalog catalog;
+	
+	/** 
+	 * The logged on grid ID.
+	 */
+//	private String gridId;
 
 	/**
 	 * User login information.
@@ -609,10 +616,39 @@ public abstract class Pado implements IPado
 	@Override
 	public String getGridId()
 	{
-		if (padoBiz == null) {
+		if (loginInfo == null) {
 			return null;
 		}
-		return padoBiz.getGridInfo().getGridId();
+		return loginInfo.getGridId();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public GridInfo getGridInfo(String gridId)
+	{
+		padoBiz.getBizContext().reset();
+		padoBiz.getBizContext().getGridContextClient().setGridIds(gridId);
+		return padoBiz.getGridInfo();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getServerCount(String gridId)
+	{
+		return padoBiz.getServerCount(gridId);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Object[] getServerIds(String gridId)
+	{
+		return padoBiz.getServerIds(gridId);
 	}
 
 	/**

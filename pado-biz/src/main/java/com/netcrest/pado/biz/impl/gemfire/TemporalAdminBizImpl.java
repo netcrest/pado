@@ -189,6 +189,22 @@ public class TemporalAdminBizImpl<K, V> implements ITemporalAdminBiz<K, V>
 		}
 		tm.clearTemporalList(identityKey);
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@Override
+	public ITemporalData<K> removePermanently(ITemporalKey<K> temporalKey)
+	{
+		RegionFunctionContext rfc = ((IGemfireGridContextServer) (bizContext.getGridContextServer()))
+				.getRegionFunctionContext();
+		TemporalManager tm = TemporalManager.getTemporalManager(rfc.getDataSet().getFullPath());
+		if (tm == null) {
+			return null;
+		}
+		return tm.removePermanently(temporalKey);
+	}
 
 	/**
 	 * {@inheritDoc}

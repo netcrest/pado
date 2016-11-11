@@ -82,16 +82,16 @@ public class GridUtil
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Returns the full path of the specified grid path. It returns null if the
 	 * grid path is undefined or this VM is a pure client. Use this method only
 	 * in the server side.
 	 * 
 	 * @param gridPath
-	 *            grid path
+	 *            grid path Grid path. If null, returns null, If empty string,
+	 *            returns the root path.
 	 */
-	@SuppressWarnings("rawtypes")
 	public static String getFullPath(String gridPath)
 	{
 		if (gridPath == null) {
@@ -106,8 +106,30 @@ public class GridUtil
 		}
 		if (gridPath.startsWith("/")) {
 			return rootPath + gridPath;
+		} else if (gridPath.length() == 0) {
+			return rootPath;
 		} else {
 			return rootPath + "/" + gridPath;
+		}
+	}
+
+	/**
+	 * Returns the path name, i.e., the last token in the specified path split
+	 * by '/'.
+	 * 
+	 * @param path
+	 *            Any path (grid path, full path, or path name)
+	 */
+	public static String getPathName(String path)
+	{
+		if (path == null) {
+			return null;
+		}
+		int index = path.lastIndexOf('/');
+		if (index >= 0) {
+			return path.substring(index + 1);
+		} else {
+			return path;
 		}
 	}
 }

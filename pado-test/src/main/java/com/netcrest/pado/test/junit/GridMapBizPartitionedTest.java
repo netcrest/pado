@@ -29,6 +29,8 @@ import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.Pado;
 import com.netcrest.pado.biz.IGridMapBiz;
+import com.netcrest.pado.biz.IPathBiz;
+import com.netcrest.pado.biz.IPathBiz.PathType;
 import com.netcrest.pado.exception.EntryExistsException;
 import com.netcrest.pado.exception.PadoException;
 
@@ -44,12 +46,16 @@ import com.netcrest.pado.exception.PadoException;
  * @author dpark
  * 
  */
+@SuppressWarnings("unchecked")
 public class GridMapBizPartitionedTest
 {
 	static IPado pado;
 	static String appId = "test";
 	static String GRID_PATH = "test/partitioned";
+	static String ARRAY_GRID_PATH = "test/partitioned_array";
 	static IGridMapBiz<String, String> gridMapBiz;
+	static IGridMapBiz<String, String[][]> arrayMapBiz;
+	static IPathBiz pathBiz;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
@@ -61,7 +67,17 @@ public class GridMapBizPartitionedTest
 		pado = Pado.login(appId, "netcrest", "dpark", "dpark".toCharArray());
 		ICatalog catalog = pado.getCatalog();
 		gridMapBiz = catalog.newInstance(IGridMapBiz.class, GRID_PATH);
+		arrayMapBiz = catalog.newInstance(IGridMapBiz.class, ARRAY_GRID_PATH);
+		pathBiz = catalog.newInstance(IPathBiz.class);
+		createPaths();
 		putData();
+		putArrayData();
+	}
+
+	private static void createPaths()
+	{
+		pathBiz.createPath(pado.getGridId(), GRID_PATH, PathType.PARTITION, true);
+		pathBiz.createPath(pado.getGridId(), ARRAY_GRID_PATH, PathType.PARTITION, true);
 	}
 
 	// Put data
@@ -72,6 +88,24 @@ public class GridMapBizPartitionedTest
 			String key = "put" + i;
 			String value = "putValue" + i;
 			gridMapBiz.put(key, value);
+		}
+	}
+
+	// Put double array data
+	private static void putArrayData()
+	{
+		int accountCount = 10;
+		for (int i = 0; i < accountCount; i++) {
+			String key = "put" + i;
+			int count = 10;
+			String[][] array = new String[count][count];
+			for (int j = 0; j < count; j++) {
+				array[j] = new String[count];
+				for (int k = 0; k < count; k++) {
+					array[j][k] = "putValue" + k;
+				}
+			}
+			arrayMapBiz.put(key, array);
 		}
 	}
 
@@ -86,7 +120,7 @@ public class GridMapBizPartitionedTest
 	public void testPutAlGetAlll()
 	{
 		int count = 10;
-		
+
 		// PutAll
 		Map<String, String> map = new HashMap();
 		for (int i = 0; i < count; i++) {
@@ -95,7 +129,7 @@ public class GridMapBizPartitionedTest
 			map.put(key, value);
 		}
 		gridMapBiz.putAll(map);
-		
+
 		// GetAll
 		Set<String> keySet = new HashSet();
 		for (int i = 0; i < count; i++) {
@@ -109,10 +143,34 @@ public class GridMapBizPartitionedTest
 
 	@Test
 	public void testPutGet()
-	{		
+	{
 		// Put
 		putData();
-		
+
+		// Get
+		int count = 10;
+		for (int i = 0; i < count; i++) {
+			String key = "put" + i;
+			String value = gridMapBiz.get(key);
+			String expected = "putValue" + i;
+			String actual = value;
+			Assert.assertEquals(expected, actual);
+		}
+	}
+
+	@Test
+	public void testPutGetArray()
+	{
+		// Put
+		putArrayData();
+
+		// Delay some so that is fully put in to the grid
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// ignore
+		}
+
 		// Get
 		int count = 10;
 		for (int i = 0; i < count; i++) {
@@ -233,7 +291,7 @@ public class GridMapBizPartitionedTest
 		String expected = "putValue1";
 		String actual = gridMapBiz.remove(key);
 		Assert.assertNull(actual);
-		
+
 		// put back data
 		putData();
 	}
@@ -284,7 +342,7 @@ public class GridMapBizPartitionedTest
 		String key = "put1";
 		gridMapBiz.invalidate(key);
 		// TODO: validate test
-		
+
 		// put back data
 		putData();
 	}

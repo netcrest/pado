@@ -82,6 +82,19 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	boolean isReference();
 
 	/**
+	 * Sets the virtual entity path. This method is for internal use only.
+	 * 
+	 * @param virtualEntityPath
+	 *            Virtual entity path for creating object graphs
+	 */
+	void __setVirtualEntityPath(String virtualEntityPath);
+
+	/**
+	 * Returns the virtual entity path. Internal use only.
+	 */
+	String __getVirtualEntityPath();
+
+	/**
 	 * Sets the maximum depth of the object graph to traverse when searching the
 	 * object references. This parameter is provided to handle circular
 	 * references.
@@ -549,9 +562,9 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	 * Returns the temporal values that satisfy the specified valid-at and end
 	 * written time range for the given PQL or OQL query string. Note that this
 	 * method retrieves not more than one valid object per temporal list. If
-	 * OQL, the select project must be identity key. It searches temporal values
-	 * that fall in the specified written time range. It returns null if the
-	 * values are not found. The returned result set is scrollable as it may
+	 * OQL, the select projection must be identity key. It searches temporal
+	 * values that fall in the specified written time range. It returns null if
+	 * the values are not found. The returned result set is scrollable as it may
 	 * contain a large number of entries. <i>For pure clients only.</i>
 	 * 
 	 * @param queryStatement
@@ -585,9 +598,9 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	 * Returns the temporal values that satisfy the specified valid-at and end
 	 * written time range for the given PQL or OQL query string. Note that this
 	 * method retrieves not more than one valid object per temporal list. If
-	 * OQL, the select project must be identity key. It searches temporal values
-	 * that fall in the specified written time range. It returns null if the
-	 * values are not found. The returned result set is scrollable as it may
+	 * OQL, the select projection must be identity key. It searches temporal
+	 * values that fall in the specified written time range. It returns null if
+	 * the values are not found. The returned result set is scrollable as it may
 	 * contain a large number of entries. <i>For pure clients only.</i>
 	 * 
 	 * @param queryStatement
@@ -692,6 +705,50 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
 			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit);
+
+	/**
+	 * Returns the temporal entries that satisfy the specified valid-at and end
+	 * written time range for the given PQL query string. Note that this method
+	 * may retrieve one or more valid objects per temporal list. It searches
+	 * temporal values that fall in the specified written time range.
+	 * 
+	 * @param queryStatement
+	 *            PQL and OQL query string. If OQL, i.e., begins with "select"
+	 *            then the select projection must be identity key. For example,
+	 *            "select distinct e.key.IdentityKey from /mygrid/portfolio.entrySet e where e.value.value['PortfolioId']='port_a'"
+	 * @param validAtTime
+	 *            The time at which the value is valid. -1 for current time.
+	 * @param fromWrittenTime
+	 *            start of the written time range. -1 for current time
+	 * @param toWrittenTime
+	 *            end of the written time range. -1 for current time.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server.
+	 */
+	List<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryHistoryWrittenTimeRangeList(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime);
+	
+	/**
+	 * Returns the temporal values that satisfy the specified valid-at and end
+	 * written time range for the given PQL query string. Note that this method
+	 * may retrieve one or more valid objects per temporal list. It searches
+	 * temporal values that fall in the specified written time range.
+	 * 
+	 * @param queryStatement
+	 *            PQL and OQL query string. If OQL, i.e., begins with "select"
+	 *            then the select projection must be identity key. For example,
+	 *            "select distinct e.key.IdentityKey from /mygrid/portfolio.entrySet e where e.value.value['PortfolioId']='port_a'"
+	 * @param validAtTime
+	 *            The time at which the value is valid. -1 for current time.
+	 * @param fromWrittenTime
+	 *            start of the written time range. -1 for current time
+	 * @param toWrittenTime
+	 *            end of the written time range. -1 for current time.
+	 * @throws PadoException
+	 *             Thrown if this method is invoked by a server.
+	 */
+	List<V> getValueHistoryWrittenTimeRangeList(String queryStatement, long validAtTime, long fromWrittenTime,
+			long toWrittenTime);
 
 	/**
 	 * Returns the latest temporal key that satisfies the specified identity
@@ -1542,4 +1599,26 @@ public interface ITemporalBizLink<K, V> extends IBiz
 	 */
 	Set<ITemporalKey<K>>[] getAttachmentsKeys(AttachmentSet<K>[] attachmentIdentityKeySets, long validAtTime,
 			long asOfTime);
+
+	/**
+	 * Returns the total count of now-relative entries.
+	 */
+	int size();
+
+	/**
+	 * Returns the total count of entries that satisfy the specified valid-at
+	 * and as-of times.
+	 * 
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param asOfTime
+	 *            The as-of time compared against the written times.
+	 */
+	int size(long validAtTime, long asOfTime);
+
+	/**
+	 * Returns the total count of temporal lists. The returned number represents
+	 * the total number of unique identity keys.
+	 */
+	int getTemporalListCount();
 }

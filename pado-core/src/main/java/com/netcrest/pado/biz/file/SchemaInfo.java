@@ -60,9 +60,9 @@ public class SchemaInfo
 	public final static String PROP_IS_TEMPORAL = "IsTemporal";
 	public final static String PROP_IS_HISTORY = "IsHistory";
 	public final static String PROP_TEMPORAL_TYPE = "TemporalType";
-	public final static String PROP_TEMPORAL_START_VALID_TIME = "StartValidTime";
-	public final static String PROP_TEMPORAL_END_VALID_TIME = "EndValidTime";
-	public final static String PROP_TEMPORAL_WRITTEN_TIME = "WrittenTime";
+	public final static String PROP_TEMPORAL_START_VALID_TIME = "TemporalStartTime";
+	public final static String PROP_TEMPORAL_END_VALID_TIME = "TemporalEndTime";
+	public final static String PROP_TEMPORAL_WRITTEN_TIME = "TemporalWrittenTime";
 	public final static String PROP_TEMPORAL_TIME_RESOLUTION = "TemporalTimeResolution";
 	public final static String PROP_USER_NAME = "Username";
 	public final static String PROP_SKIP_COLUMNS = "SkipColumns";
@@ -110,6 +110,9 @@ public class SchemaInfo
 	private int[] routingKeyIndexes = new int[0];
 	private String[] valueColumnNames;
 	private Class<?>[] valueColumnTypes;
+	private String[] speicalColumnNames;
+	private Class<?>[] specialColumnTypes;
+	private String[] speicalColumnValues;
 	private Class<?> bulkLoaderClass;
 	private Class<?> fileLoaderClass;
 	private Class<?> rowFilterClass;
@@ -172,6 +175,9 @@ public class SchemaInfo
 			ArrayList<String> routingKeyList = new ArrayList<String>(4);
 			ArrayList<String> valueColumnNameList = new ArrayList<String>();
 			ArrayList<Class<?>> valueColumnTypeList = new ArrayList<Class<?>>();
+			ArrayList<String> specialValueColumnNameList = new ArrayList<String>();
+			ArrayList<Class<?>> specialValueColumnTypeList = new ArrayList<Class<?>>();
+			ArrayList<String> specialValueColumnValueList = new ArrayList<String>();
 			while ((line = reader.readLine()) != null) {
 				lineCount++;
 				String line2 = line.trim();
@@ -312,6 +318,10 @@ public class SchemaInfo
 						if (tokens.length > 0) {
 							ColumnItem ci = new ColumnItem();
 							ci.name = tokens[0].trim();
+							boolean isSpecialColumn = ci.name.startsWith("+");
+							if (isSpecialColumn) {
+								ci.name = ci.name.replaceFirst("^\\++(?!$)", "");
+							}
 							if (tokens.length > 1) {
 								String typeName = tokens[1].trim();
 								ci.type = ClassUtil.getType(tokens[1].trim());
@@ -323,36 +333,42 @@ public class SchemaInfo
 							}
 							if (tokens.length > 2) {
 								String token = tokens[2].trim();
-								if (token.equalsIgnoreCase(ColumnCategory.Primary.name())) {
-									ci.category = ColumnCategory.Primary;
-									pkList.add(ci.name);
-									if (isKeyColumns == false) {
+								if (isSpecialColumn) {
+									ci.specialColumnValue = token;
+									specialValueColumnNameList.add(ci.name);
+									specialValueColumnTypeList.add(ci.type);
+									specialValueColumnValueList.add(ci.specialColumnValue);
+								} else {
+									if (token.equalsIgnoreCase(ColumnCategory.Primary.name())) {
+										ci.category = ColumnCategory.Primary;
+										pkList.add(ci.name);
+										if (isKeyColumns == false) {
+											valueColumnNameList.add(ci.name);
+											valueColumnTypeList.add(ci.type);
+										}
+										pkColumnItemListInReadOrder.add(ci.name);
+									} else if (token.equalsIgnoreCase(ColumnCategory.PrimaryRouting.name())) {
+										ci.category = ColumnCategory.PrimaryRouting;
+										pkList.add(ci.name);
+										if (isKeyColumns == false) {
+											valueColumnNameList.add(ci.name);
+											valueColumnTypeList.add(ci.type);
+										}
+										ci.isRoutingKey = true;
+										routingKeyList.add(ci.name);
+										pkColumnItemListInReadOrder.add(ci.name);
+									} else if (token.equalsIgnoreCase(ColumnCategory.Temporal.name())) {
+										ci.category = ColumnCategory.Temporal;
+										temporalList.add(ci.name);
+										if (isKeyColumns == false) {
+											valueColumnNameList.add(ci.name);
+											valueColumnTypeList.add(ci.type);
+										}
+									} else if (token.equalsIgnoreCase(ColumnCategory.Value.name())) {
+										ci.category = ColumnCategory.Value;
 										valueColumnNameList.add(ci.name);
 										valueColumnTypeList.add(ci.type);
 									}
-									pkColumnItemListInReadOrder.add(ci.name);
-								}
-								if (token.equalsIgnoreCase(ColumnCategory.PrimaryRouting.name())) {
-									ci.category = ColumnCategory.PrimaryRouting;
-									pkList.add(ci.name);
-									if (isKeyColumns == false) {
-										valueColumnNameList.add(ci.name);
-										valueColumnTypeList.add(ci.type);
-									}
-									ci.isRoutingKey = true;
-									routingKeyList.add(ci.name);
-									pkColumnItemListInReadOrder.add(ci.name);
-								} else if (token.equalsIgnoreCase(ColumnCategory.Temporal.name())) {
-									ci.category = ColumnCategory.Temporal;
-									temporalList.add(ci.name);
-									if (isKeyColumns == false) {
-										valueColumnNameList.add(ci.name);
-										valueColumnTypeList.add(ci.type);
-									}
-								} else if (token.equalsIgnoreCase(ColumnCategory.Value.name())) {
-									ci.category = ColumnCategory.Value;
-									valueColumnNameList.add(ci.name);
-									valueColumnTypeList.add(ci.type);
 								}
 							} else {
 								valueColumnNameList.add(ci.name);
@@ -376,8 +392,10 @@ public class SchemaInfo
 			this.allColumnItems = columnItemList.toArray(new ColumnItem[columnItemList.size()]);
 			this.pkColumnNames = pkList.toArray(new String[pkList.size()]);
 
-			// pkIndexNames must in the sequence that is defined by the primary key indexes
-			// in the schema file. If the sequence is undefined, then sequence primary fields in the
+			// pkIndexNames must in the sequence that is defined by the primary
+			// key indexes
+			// in the schema file. If the sequence is undefined, then sequence
+			// primary fields in the
 			// order read.
 			if (pkColumnItemList.size() == 0) {
 				this.pkIndexNames = pkColumnItemListInReadOrder.toArray(new String[0]);
@@ -392,6 +410,9 @@ public class SchemaInfo
 			this.routingKeyIndexNames = routingKeyList.toArray(new String[routingKeyList.size()]);
 			this.valueColumnNames = valueColumnNameList.toArray(new String[valueColumnNameList.size()]);
 			this.valueColumnTypes = valueColumnTypeList.toArray(new Class[valueColumnTypeList.size()]);
+			this.speicalColumnNames = specialValueColumnNameList.toArray(new String[specialValueColumnNameList.size()]);
+			this.specialColumnTypes = specialValueColumnTypeList.toArray(new Class[specialValueColumnTypeList.size()]);
+			this.speicalColumnValues = specialValueColumnValueList.toArray(new String[specialValueColumnValueList.size()]);
 			if (this.bulkLoaderClass == null) {
 				this.bulkLoaderClass = Class.forName(DEFAULT_BULK_LOADER_CLASS_NAME);
 			}
@@ -497,12 +518,12 @@ public class SchemaInfo
 	{
 		return quoteEscape;
 	}
-	
+
 	public int getMaxCharsPerColumn()
 	{
 		return maxCharsPerColumn;
 	}
-	
+
 	public int getMaxColumns()
 	{
 		return maxColumns;
@@ -561,6 +582,21 @@ public class SchemaInfo
 	public Class<?>[] getValueColumnTypes()
 	{
 		return valueColumnTypes;
+	}
+
+	public String[] getSpeicalColumnNames()
+	{
+		return speicalColumnNames;
+	}
+
+	public Class<?>[] getSpeicalColumnTypes()
+	{
+		return specialColumnTypes;
+	}
+	
+	public String[] getSpecialColumnValues()
+	{
+		return speicalColumnValues;
 	}
 
 	public Class<?> getBulkLoaderClass()
@@ -795,6 +831,8 @@ public class SchemaInfo
 		private ColumnCategory category = ColumnCategory.Value;
 		private boolean isRoutingKey;
 		private int primaryKeyIndex = -1;
+		private boolean isSpecialColumn = false;
+		private String specialColumnValue;
 
 		public String getName()
 		{
@@ -820,11 +858,21 @@ public class SchemaInfo
 		{
 			return primaryKeyIndex;
 		}
+		
+		public boolean isSpecialColumn()
+		{
+			return isSpecialColumn;
+		}
+		
+		public String getSpecialColumnValue()
+		{
+			return specialColumnValue;
+		}
 
 		@Override
 		public String toString()
 		{
-			return "ColumnItem [name=" + name + ", type=" + type + ", category=" + category + "]";
+			return "ColumnItem [name=" + name + ", type=" + type + ", category=" + category + ", isSpecialColumn=" + isSpecialColumn + "]";
 		}
 	}
 }

@@ -21,7 +21,6 @@ import java.util.Map;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.temporal.TemporalEntry;
-import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalData;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public final class TemporalEntryComparator extends DynamicComparator
@@ -63,11 +62,9 @@ public final class TemporalEntryComparator extends DynamicComparator
 				}
 			}
 		} else {
-			Object obj = te.getTemporalData();
-			if (obj instanceof GemfireTemporalData) {
-				obj = ((GemfireTemporalData)obj).getValue();
-			}
-			if (obj != null) {
+			Object obj = null;
+			if (te.getTemporalData() != null) {
+				obj = te.getTemporalData().getValue();
 				if (obj instanceof KeyMap) {
 					KeyType keyType = ((KeyMap)obj).getKeyType();
 					if (keyType != null) {
@@ -80,11 +77,15 @@ public final class TemporalEntryComparator extends DynamicComparator
 				if (returnType == null) {
 					if (obj instanceof Map) {
 						Object value = ((Map)obj).get(fieldName);
-						if (value != null) {
+						if (value == null) {
+							if ("IdentityKey".equals(fieldName)) {
+								returnType = te.getTemporalKey().getIdentityKey().getClass();
+							}
+						} else {
 							returnType = value.getClass();
 						}
 					} else {
-						this.method = ComparatorFactory.getMethod(obj.getClass(), fieldName);
+						this.method = BaseComparatorFactory.getMethod(obj.getClass(), fieldName);
 					}
 				}
 			}

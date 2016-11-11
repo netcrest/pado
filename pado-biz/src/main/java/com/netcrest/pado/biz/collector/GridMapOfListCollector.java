@@ -29,14 +29,17 @@ import com.netcrest.pado.IGridCollector;
  * @param <T>
  * @param <S>
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class GridMapOfListCollector<T extends List<Map>, S> implements IGridCollector<T, S>
 {
-
 	private Map<String, List> resultMap = new HashMap(10);
 	
 	@Override
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		List<Map> list = (List<Map>)result;
 		List resultList = resultMap.get(gridId);
 		if (resultList == null) {

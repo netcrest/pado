@@ -670,9 +670,9 @@ public class GemfirePadoServerManager extends PadoServerManager
 					rf.setPartitionAttributes(paf.create());
 				}
 			}
-			
+
 			region = rf.createSubregion(parentRegion, pathConfig.getName());
-			
+
 			// If partitioned region then set composite key if defined
 			if (paf != null) {
 				CompositeKeyInfo ckInfo = pathConfig.getCompositeKeyInfo();
@@ -2168,7 +2168,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		gridInfo.setClientConnectionMultiuserAuthenticationEnabled(isClientConnectionMultiuserAuthenticationEnabled());
 		gridInfo.setClientLocators(getClientLocators());
 		gridInfo.setBizSet(getAllAppBizInfos());
-		gridInfo.setCacheInfo(new GemfireCacheInfo(gridInfo.getGridId(), cache));
+		gridInfo.setCacheInfo(new GemfireCacheInfo(gridInfo.getGridId(), cache, gridInfo.getGridRootPath()));
 		return gridInfo;
 	}
 
@@ -2633,7 +2633,22 @@ public class GemfirePadoServerManager extends PadoServerManager
 	@Override
 	public int getServerCount()
 	{
-		// Add 1 to include itself.
-		return CacheFactory.getAnyInstance().getMembers().size() + 1;
+		return GemfireGridUtil.getDistributedMemberIds().length;
+	}
+
+	// TODO: This method returns this grid's server count. It should return the
+	// server count of the specified grid.
+	@Override
+	public int getServerCount(String gridId)
+	{
+		return this.getServerCount();
+	}
+
+	// TODO: This method returns this grid's server IDs. It should return the
+	// server count of the specified grid.
+	@Override
+	public Object[] getServerIds(String gridId)
+	{
+		return GemfireGridUtil.getDistributedMemberIds();
 	}
 }

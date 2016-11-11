@@ -1,0 +1,31 @@
+{
+   "QueryDescription": "Given order information, aggregate all order relevant data including order details, products, suppliers and categories. Return the results in aggregated object graphs, i.e. \"uses' entity relationships.",
+   "VirtualPath": "entity/nw/order",
+   "Query": "select * from nw/orders o\njoin nw/orders o ON  o?${OrderInfo}\njoin nw/shippers ship TO ONE Shipper ON ship.ShipperID:o.ShipVia\njoin nw/order_details od TO MANY OrderDetailList ON od.OrderID:o.OrderID\njoin nw/products p TO ONE Product ON p.ProductID:od.ProductID\njoin nw/suppliers s TO ONE Supplier ON s.SupplierID:p.SupplierID\njoin nw/categories cat TO ONE Category ON cat.CategoryID:p.CategoryID\nNEST BY AGGREGATION",
+   "InputDescription": "OrderInfo: Any string values in nw/orders i.e., customer ID, order ID, ship country ,etc.",
+   "IsPersist": false,
+   "UpdateIntervalInSec": 60,
+   "IsUpdate": false,
+   "IsEntity": true,
+   "EntityGridPath": "nw/orders",
+   "EntityRelationships": [
+                {
+                   "Arg": "Customer",
+                   "IsOne": true,
+                   "Depth": 1,
+                   "Query": "nw/customers?CustomerID:${CustomerID}"
+                },
+                {
+                   "Arg": "OrderDetailList",
+                   "IsOne": false,
+                   "Depth": 1,
+                   "Query": "nw/order_details?OrderID:${OrderID}"
+                },
+                {
+                   "Arg": "Shipper",
+                   "IsOne": true,
+                   "Depth": 1,
+                   "Query": "nw/shippers?ShipperID:${ShipVia}"
+                }
+             ]
+} 

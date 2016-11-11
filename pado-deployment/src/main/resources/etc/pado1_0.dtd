@@ -94,7 +94,7 @@ via the importer tools provided by Pado. For those paths that do not require
 data ingestion via importer tools, composite-key must explicitly be defined in
 pado.xml.
 Attributes:
-indexes-comma-separated - Comma separated indexes of primary fields.
+indexes-comma-separated - Comma separated indexes of primary fields. Indexes begin from 0.
 delimiter - Delimiter used to construct composite keys. Default: .
 -->
 <!ELEMENT composite-key (description?)>

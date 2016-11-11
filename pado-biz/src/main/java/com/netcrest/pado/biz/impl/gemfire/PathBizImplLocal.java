@@ -27,6 +27,7 @@ import com.netcrest.pado.IBizContextClient;
 import com.netcrest.pado.IBizLocal;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.biz.IPathBiz;
+import com.netcrest.pado.data.Entry;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.IncompatibleTypeException;
 import com.netcrest.pado.exception.NestedPathExistsException;
@@ -222,6 +223,22 @@ public class PathBizImplLocal implements IPathBiz, IBizLocal
 	{
 		setGridId(gridId);
 		return biz.exists(gridId, gridPath);
+	}
+	
+	/**
+	 * Returns an entry randomly selected from the specified grid path.
+	  * @param gridId
+	 *            Grid ID
+	 * @param gridPath
+	 *            Grid path
+	 * @return null if the path is undefined or empty.
+	 */
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Entry getRandomEntry(String gridId, String gridPath)
+	{
+		setGridId(gridId);
+		return biz.getRandomEntry(gridId, gridPath);
 	}
 
 	/**

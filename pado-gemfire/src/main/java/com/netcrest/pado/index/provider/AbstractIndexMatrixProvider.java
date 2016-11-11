@@ -38,13 +38,15 @@ import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.cache.RegionService;
 import com.gemstone.gemfire.cache.execute.ResultCollector;
+import com.gemstone.gemfire.distributed.DistributedMember;
 import com.netcrest.pado.gemfire.GemfireGridService;
 import com.netcrest.pado.gemfire.GemfirePadoServerManager;
 import com.netcrest.pado.gemfire.info.GemfireGridInfo;
 import com.netcrest.pado.gemfire.info.GemfireRegionInfo;
+import com.netcrest.pado.gemfire.util.GemfireGridUtil;
 import com.netcrest.pado.index.exception.GridQueryException;
 import com.netcrest.pado.index.gemfire.internal.GemfireIndexGridQuery;
-import com.netcrest.pado.index.helper.ComparatorFactory;
+import com.netcrest.pado.index.helper.BaseComparatorFactory;
 import com.netcrest.pado.index.helper.FunctionExecutor.Realm;
 import com.netcrest.pado.index.helper.IndexMatrixOperationUtility;
 import com.netcrest.pado.index.internal.Constants;
@@ -61,6 +63,8 @@ import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.PathInfo;
 import com.netcrest.pado.internal.impl.GridService;
 import com.netcrest.pado.server.PadoServerManager;
+import com.netcrest.pado.server.VirtualPathEngine;
+import com.netcrest.pado.util.GridUtil;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvider
@@ -74,12 +78,13 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 
 	private List<IIndexMatrixProviderListener> listeners = new ArrayList<IIndexMatrixProviderListener>();
 	private final static ExecutorService pool = Executors.newCachedThreadPool(new ThreadFactory() {
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(r, "Pado-IndexMatrixProviderCached");
-            t.setDaemon(true);
-            return t;
-        }
-    });
+		public Thread newThread(Runnable r)
+		{
+			Thread t = new Thread(r, "Pado-IndexMatrixProviderCached");
+			t.setDaemon(true);
+			return t;
+		}
+	});
 	protected volatile Properties providerProps = null;
 
 	@Override
@@ -186,7 +191,7 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 	@Override
 	public Comparator<?> getComparator(Object result, String sortField, boolean ascending, boolean sortKey)
 	{
-		ComparatorFactory factory = IndexMatrixProviderFactory.getInstance().getComparatorFactory();
+		BaseComparatorFactory factory = IndexMatrixProviderFactory.getInstance().getComparatorFactory();
 		if (factory != null) {
 			return factory.getComparator(result, sortField, ascending, sortKey);
 		}
@@ -440,44 +445,64 @@ public abstract class AbstractIndexMatrixProvider implements IIndexMatrixProvide
 		return null;
 	}
 
-	protected Realm getRealmForGrid(GridInfo gridInfo, String fullPath)
+	protected Realm getRealmForGrid(GridInfo gridInfo, GridQuery query)
 	{
 		Realm realm;
 		if (gridInfo != null) {
-			PathInfo pathInfo = gridInfo.getCacheInfo().getPathInfo(fullPath);
-			GemfireRegionInfo regionInfo = (GemfireRegionInfo) pathInfo;
-			if (PadoServerManager.getPadoServerManager().isPadoPath(fullPath) == false) {
-				// if non-pado region
-				if (gridInfo.getGridId().equals(PadoServerManager.getPadoServerManager().getGridId())) {
-					// if query is for this grid
-					if (regionInfo.isDataPolicyPartitionedRegion(false)) {
-						realm = Realm.REGION;
-					} else if (regionInfo.isScopeLocalRegion(false)) {
-						realm = Realm.ALL_MEMBERS;
-					} else {
-						realm = Realm.MEMBER;
-					}
+
+			PathInfo pathInfo = gridInfo.getCacheInfo().getPathInfo(query.getFullPath());
+			if (pathInfo == null) {
+				String gridPath = GridUtil.getChildPath(query.getFullPath());
+				if (VirtualPathEngine.getVirtualPathEngine().isEntityVirtualPath(gridPath)) {
+					realm = Realm.ALL_MEMBERS;
+//					DistributedMember member = GemfireGridUtil.getRandomDistributedMember();
+//					query.setParameter("memberId", member.getId());
+				} else if (VirtualPathEngine.getVirtualPathEngine().isVirtualPath(gridPath)) {
+					realm = Realm.MEMBER;
+//					DistributedMember member = GemfireGridUtil.getRandomDistributedMember();
+//					query.setParameter("memberId", member.getId());
 				} else {
-					// query is for remote grid
-					if (regionInfo.isDataPolicyPartitionedRegion(false) || regionInfo.isScopeLocalRegion(false)) {
-						realm = Realm.ALL_SERVERS;
+					if (gridInfo.getGridId().equals(PadoServerManager.getPadoServerManager().getGridId())) {
+						realm = Realm.MEMBER;
 					} else {
 						realm = Realm.SERVER;
 					}
 				}
-
 			} else {
-
-				// if pado region
-				if (regionInfo != null && regionInfo.isDataPolicyPartitionedRegion(false)) {
-					realm = Realm.REGION;
-				} else {
+				GemfireRegionInfo regionInfo = (GemfireRegionInfo) pathInfo;
+				if (PadoServerManager.getPadoServerManager().isPadoPath(query.getFullPath()) == false) {
+					// if non-pado region
 					if (gridInfo.getGridId().equals(PadoServerManager.getPadoServerManager().getGridId())) {
-						realm = Realm.MEMBER;
-					} else if (regionInfo.isScopeLocalRegion(false)) {
-						realm = Realm.ALL_SERVERS;
+						// if query is for this grid
+						if (regionInfo.isDataPolicyPartitionedRegion(false)) {
+							realm = Realm.REGION;
+						} else if (regionInfo.isScopeLocalRegion(false)) {
+							realm = Realm.ALL_MEMBERS;
+						} else {
+							realm = Realm.MEMBER;
+						}
 					} else {
-						realm = Realm.SERVER;
+						// query is for remote grid
+						if (regionInfo.isDataPolicyPartitionedRegion(false) || regionInfo.isScopeLocalRegion(false)) {
+							realm = Realm.ALL_SERVERS;
+						} else {
+							realm = Realm.SERVER;
+						}
+					}
+
+				} else {
+
+					// if pado region
+					if (regionInfo != null && regionInfo.isDataPolicyPartitionedRegion(false)) {
+						realm = Realm.REGION;
+					} else {
+						if (gridInfo.getGridId().equals(PadoServerManager.getPadoServerManager().getGridId())) {
+							realm = Realm.MEMBER;
+						} else if (regionInfo.isScopeLocalRegion(false)) {
+							realm = Realm.ALL_SERVERS;
+						} else {
+							realm = Realm.SERVER;
+						}
 					}
 				}
 			}

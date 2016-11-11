@@ -49,6 +49,7 @@ public class put implements ICommand
 		options.addOption("kv", false, "");
 		options.addOption("vk", false, "");
 		options.addOption("buffer", true, "");
+		options.addOption("path", true, "");
 	}
 
 	@Override

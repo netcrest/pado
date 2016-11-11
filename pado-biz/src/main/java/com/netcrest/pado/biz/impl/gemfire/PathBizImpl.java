@@ -44,12 +44,14 @@ import com.gemstone.gemfire.internal.cache.PartitionedRegion;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.biz.IPathBiz.PathType;
+import com.netcrest.pado.data.Entry;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.IncompatibleTypeException;
 import com.netcrest.pado.exception.NestedPathExistsException;
 import com.netcrest.pado.exception.PadoServerException;
+import com.netcrest.pado.gemfire.GemfireEntryImpl;
 import com.netcrest.pado.gemfire.GemfirePadoServerManager;
 import com.netcrest.pado.gemfire.info.GemfireRegionInfo;
 import com.netcrest.pado.gemfire.util.RegionUtil;
@@ -68,8 +70,8 @@ public class PathBizImpl
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@BizMethod
-	public boolean createPath(String gridId, String gridPath, String refId, boolean isTemporal,
-			boolean isLuceneDynamic, boolean recursive)
+	public boolean createPath(String gridId, String gridPath, String refId, boolean isTemporal, boolean isLuceneDynamic,
+			boolean recursive)
 	{
 
 		String fullPath = GridUtil.getFullPath(gridPath);
@@ -118,8 +120,8 @@ public class PathBizImpl
 		region = rf.createSubregion(parentRegion, regionName);
 		if (region != null) {
 			if (PadoServerManager.getPadoServerManager().isMaster()) {
-				PadoServerManager.getPadoServerManager().updateAppInfo(
-						PadoServerManager.getPadoServerManager().createGridInfo());
+				PadoServerManager.getPadoServerManager()
+						.updateAppInfo(PadoServerManager.getPadoServerManager().createGridInfo());
 			}
 			return true;
 		} else {
@@ -198,8 +200,8 @@ public class PathBizImpl
 					diskStoreName, colocatedWithFullPath, redundantCopies, totalBucketCount);
 			if (tm != null) {
 				if (PadoServerManager.getPadoServerManager().isMaster()) {
-					PadoServerManager.getPadoServerManager().updateAppInfo(
-							PadoServerManager.getPadoServerManager().createGridInfo());
+					PadoServerManager.getPadoServerManager()
+							.updateAppInfo(PadoServerManager.getPadoServerManager().createGridInfo());
 				}
 			}
 			return tm != null;
@@ -311,8 +313,8 @@ public class PathBizImpl
 		region = rf.createSubregion(parentRegion, regionName);
 		if (region != null) {
 			if (PadoServerManager.getPadoServerManager().isMaster()) {
-				PadoServerManager.getPadoServerManager().updateAppInfo(
-						PadoServerManager.getPadoServerManager().createGridInfo());
+				PadoServerManager.getPadoServerManager()
+						.updateAppInfo(PadoServerManager.getPadoServerManager().createGridInfo());
 			}
 			return true;
 		} else {
@@ -374,8 +376,8 @@ public class PathBizImpl
 		}
 		RegionUtil.removeRegionLocal(region, recursive);
 		if (PadoServerManager.getPadoServerManager().isMaster()) {
-			PadoServerManager.getPadoServerManager().updateAppInfo(
-					PadoServerManager.getPadoServerManager().createGridInfo());
+			PadoServerManager.getPadoServerManager()
+					.updateAppInfo(PadoServerManager.getPadoServerManager().createGridInfo());
 		}
 	}
 
@@ -445,8 +447,8 @@ public class PathBizImpl
 			RegionFactory factory = CacheFactory.getAnyInstance().createRegionFactory(sourceRegion.getAttributes());
 			targetRegion = factory.createSubregion(targetParentRegion, regionName);
 			if (targetRegion != null) {
-				PadoServerManager.getPadoServerManager().updateAppInfo(
-						PadoServerManager.getPadoServerManager().createGridInfo());
+				PadoServerManager.getPadoServerManager()
+						.updateAppInfo(PadoServerManager.getPadoServerManager().createGridInfo());
 			}
 		} else {
 			// Make sure the targetRegion is compatible with the sourceRegion
@@ -654,6 +656,24 @@ public class PathBizImpl
 		return region != null;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@BizMethod
+	public Entry getRandomEntry(String gridId, String gridPath)
+	{
+		Cache cache = CacheFactory.getAnyInstance();
+		String fullPath = GridUtil.getFullPath(gridPath);
+		Region region = cache.getRegion(fullPath);
+		if (region == null) {
+			return null;
+		}
+		Entry entry = null;
+		Set<Map.Entry> set = region.entrySet();
+		for (Map.Entry e : set) {
+			entry = new GemfireEntryImpl(e.getKey(), e.getValue());
+		}
+		return entry;
+	}
+
 	@SuppressWarnings("rawtypes")
 	@BizMethod
 	public JsonLite rebalance(String gridId, Set<String> includeGridPathSet, Set<String> excludeGridPathSet,
@@ -677,7 +697,8 @@ public class PathBizImpl
 			if (isSimulate) {
 				results = op.getResults();
 			} else {
-				// Timeout if it's taking too long. Rebalancing will still complete.
+				// Timeout if it's taking too long. Rebalancing will still
+				// complete.
 				results = op.getResults(timeout, TimeUnit.MILLISECONDS);
 			}
 			return toJsonLite(results);

@@ -22,7 +22,6 @@ import java.util.Map;
 
 import com.netcrest.pado.index.exception.GridQueryResultSetExpiredException;
 import com.netcrest.pado.internal.impl.GridService;
-import com.netcrest.pado.internal.impl.PadoClientManager;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.server.PadoServerManager;
 
@@ -32,7 +31,7 @@ import com.netcrest.pado.server.PadoServerManager;
  * receive.
  * 
  */
-public abstract class GridQuery implements Serializable
+public class GridQuery implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
@@ -647,6 +646,34 @@ public abstract class GridQuery implements Serializable
 	public void setThrowExceptionOnExpire(boolean throwExceptionOnExpire)
 	{
 		this.throwExceptionOnExpire = throwExceptionOnExpire;
+	}
+	
+	/**
+	 * Returns the value of the "validAtTime" parameter. -1 if undefined.
+	 */
+	public long getValidAtTime()
+	{
+		return getTemporalTime("validAtTime");
+	}
+	
+	/**
+	 * Returns the value of the "asOfTime" parameter. -1 if undefined.
+	 */
+	public long getAsOfTime()
+	{
+		return getTemporalTime("asOfTime");
+	}
+	
+	private long getTemporalTime(String timeStr)
+	{
+		long temporalTime;
+		String validAtTimeStr = (String)getParam(timeStr);
+		if (validAtTimeStr == null) {
+			temporalTime = -1;
+		} else {
+			temporalTime = Long.parseLong(validAtTimeStr);
+		}
+		return temporalTime;
 	}
 
 }

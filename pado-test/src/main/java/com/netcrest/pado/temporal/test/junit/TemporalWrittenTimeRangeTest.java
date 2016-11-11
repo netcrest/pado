@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -37,8 +38,6 @@ import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.TemporalEntry;
 import com.netcrest.pado.temporal.test.data.Portfolio;
 import com.netcrest.pado.temporal.test.gemfire.PortfolioKey;
-
-import junit.framework.Assert;
 
 /**
  * TemporalWrittenTimeRangeTest requires "mygrid". Note that this test runs

@@ -23,6 +23,7 @@ import com.netcrest.pado.annotation.BizClass;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.annotation.OnServer;
 import com.netcrest.pado.annotation.WithGridCollector;
+import com.netcrest.pado.data.Entry;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.IncompatibleTypeException;
 import com.netcrest.pado.exception.NestedPathExistsException;
@@ -271,6 +272,20 @@ public interface IPathBiz extends IBiz
 	@BizMethod
 	@OnServer
 	public boolean exists(String gridId, String gridPath);
+	
+	/**
+	 * Returns an entry randomly selected from the specified grid path.
+	  * @param gridId
+	 *            Grid ID
+	 * @param gridPath
+	 *            Grid path
+	 * @return null if the path is undefined or empty.
+	 */
+	@SuppressWarnings("rawtypes")
+	@BizMethod
+	@OnServer(broadcast = true)
+	@WithGridCollector(gridCollectorClass="com.netcrest.pado.biz.collector.SingleObjectCollector")
+	public Entry getRandomEntry(String gridId, String gridPath);
 
 	/**
 	 * Rebalances the specified grid paths. Non-partitioned paths are ignored.

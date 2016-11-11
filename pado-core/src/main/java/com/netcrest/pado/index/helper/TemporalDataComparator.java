@@ -20,7 +20,6 @@ import java.util.Map;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyType;
 import com.netcrest.pado.temporal.ITemporalData;
-import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalData;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public final class TemporalDataComparator extends DynamicComparator
@@ -36,22 +35,20 @@ public final class TemporalDataComparator extends DynamicComparator
 		this.fieldName = fieldName;
 		this.sortAsc = sortAsc;
 		if (data != null) {
-			if (data instanceof GemfireTemporalData) {
-				Object value = ((GemfireTemporalData)data).getValue();
-				if (value instanceof KeyMap) {
-					KeyType keyType = ((KeyMap)value).getKeyType();
-					if (keyType != null) {
-						keyType = keyType.getKeyType(fieldName);
-					} 
-					if (keyType != null) {
-						returnType = keyType.getType();
-					}
+			Object value = data.getValue();
+			if (value instanceof KeyMap) {
+				KeyType keyType = ((KeyMap) value).getKeyType();
+				if (keyType != null) {
+					keyType = keyType.getKeyType(fieldName);
 				}
-				if (returnType == null && value instanceof Map) {
-					value = ((Map)value).get(fieldName);
-					if (value != null) {
-						returnType = value.getClass();
-					}
+				if (keyType != null) {
+					returnType = keyType.getType();
+				}
+			}
+			if (returnType == null && value instanceof Map) {
+				value = ((Map) value).get(fieldName);
+				if (value != null) {
+					returnType = value.getClass();
 				}
 			}
 		}

@@ -14,7 +14,7 @@
 	<groupId>com.netcrest.pado</groupId>
 	<artifactId>pado-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.4.0-B4</version>
+	<version>0.4.1-B1</version>
 	<name>pado-parent</name>
 	<description>Pado</description>
 

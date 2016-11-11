@@ -30,6 +30,7 @@ import com.netcrest.pado.IVirtualPath;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.temporal.ITemporalBizLink;
+import com.netcrest.pado.util.GridUtil;
 
 /**
  * VirtualPath is a logical grid path that augments physical grid paths for
@@ -101,8 +102,8 @@ public class VirtualPath<T> extends VirtualCompiledUnit implements IVirtualPath<
 	}
 
 	/**
-	 * Constructs a new VirtualPath instance with the spcified virtual path
-	 * definitions (vpd) and the specified thread pool size.
+	 * Constructs a new VirtualPath instance with the specified virtual path
+	 * definition (vpd) and the specified thread pool size.
 	 * 
 	 * @param vpd
 	 *            Virtual Path Definition
@@ -307,6 +308,28 @@ public class VirtualPath<T> extends VirtualCompiledUnit implements IVirtualPath<
 		}
 		return results;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getGridPath()
+	{
+		if (vpd == null) {
+			return "";
+		} else {
+			return (String)vpd.get("VirtualPath");
+		}
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getFullPath()
+	{
+		return GridUtil.getFullPath(getGridPath());
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -346,5 +369,19 @@ public class VirtualPath<T> extends VirtualCompiledUnit implements IVirtualPath<
 			return resultList;
 		}
 
+	}
+
+	@Override
+	public String getPathName()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<T> execute(long validAtTime, long asOfTime, String... args)
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

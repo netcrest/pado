@@ -15,6 +15,9 @@
  */
 package com.netcrest.pado.test.junit.pql;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.junit.BeforeClass;
@@ -25,6 +28,7 @@ import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.pql.CompiledUnit;
 import com.netcrest.pado.pql.PadoQueryParser;
 import com.netcrest.pado.pql.TokenizedQuery;
+import com.netcrest.pado.pql.VirtualCompiledUnit2;
 import com.netcrest.pado.temporal.test.TemporalLoader;
 import com.netcrest.pado.temporal.test.data.Portfolio;
 
@@ -265,7 +269,7 @@ public class PadoParserTest
 		System.out.println();
 	}
 
-	@Test
+//	@Test
 	public void testLuceneQuery()
 	{
 		// Lucene
@@ -278,4 +282,55 @@ public class PadoParserTest
 		System.out.println("----");
 		printCompiledUnit(cu, jl);
 	}
+	
+	
+	private void printVirtualCompiledUnit(VirtualCompiledUnit2 vcu)
+	{
+		System.out.println("VirtualCompiledUnit");
+		System.out.println("-------------------");
+		System.out.println("     EntityGridPath=" + vcu.getEntityGridPath());
+		System.out.println("        VirtualPath=" + vcu.getVirtualPath());
+		System.out.println("  CompiledEntityPql=" + vcu.getCompiledEntityPql());
+		VirtualCompiledUnit2.Argument args[] = vcu.getArguments();
+		int i = 0;
+		for (VirtualCompiledUnit2.Argument arg : args) {
+			System.out.println("[" + ++i + "]");
+			System.out.println("            ArgName=" + arg.getArgName());
+			System.out.println("              Depth=" + arg.getDepth());
+			System.out.println("              Query=" + arg.getQuery());
+			System.out.println("             Cu.Pql=" + arg.getCu().getPql());
+			String[] paths = arg.getCu().getPaths();
+			if (paths == null) {
+				System.out.println("               Path=null");
+			} else {
+				int j = 0;
+				for (String path : paths) {
+					System.out.println("            Path[" + j++ + "]=" + path);
+				}
+			}
+			System.out.println("   Cu.CompiledQuery=" + arg.getCu().getCompiledQuery());
+			Object[] attributes = arg.getCu().getAttributes();
+			int j = 0;
+			for (Object attr : attributes) {
+				System.out.println("   Cu.Attributes[" + j++ + "]=" + attr);
+			}
+		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testVirtualCompiledUnit() throws FileNotFoundException, IOException
+	{
+		File file = new File("db/vp/nw.vp_order.json");
+		JsonLite jl = new JsonLite(file);
+		VirtualCompiledUnit2 vcu = new VirtualCompiledUnit2(jl);
+		System.out.println("PadoParserTest.testVirtualCompiledUnit()");
+		System.out.println("----------------------------------------");
+		System.out.println(jl.toString(4, false, false));
+		printVirtualCompiledUnit(vcu);
+//		String entityPql = vcu.getEntityPql("VICTE"/*CustomerID*/, "10251"/*OrderID*/, "1"/*ShipVia*/);
+		String entityPql = vcu.getEntityPql("VICTE"/*CustomerID*/);
+		System.out.println("          EntityPql=" + entityPql);
+	}
+	
 }

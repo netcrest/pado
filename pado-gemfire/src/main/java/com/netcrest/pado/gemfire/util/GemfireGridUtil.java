@@ -15,11 +15,17 @@
  */
 package com.netcrest.pado.gemfire.util;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
+
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.cache.client.Pool;
 import com.gemstone.gemfire.cache.client.PoolFactory;
 import com.gemstone.gemfire.cache.client.PoolManager;
+import com.gemstone.gemfire.distributed.DistributedMember;
 import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.util.GridUtil;
 
@@ -104,5 +110,46 @@ public class GemfireGridUtil extends GridUtil
 			return null;
 		}
 		return CacheFactory.getAnyInstance().getRegion(fullPath);
+	}
+	
+	/**
+	 * Returns a random member name out of all distributed members.
+	 */
+	public static DistributedMember getRandomDistributedMember()
+	{
+		Set<DistributedMember> set = CacheFactory.getAnyInstance().getDistributedSystem().getAllOtherMembers();
+		int i = new Random().nextInt(set.size() + 1);
+		if (i < set.size()) {
+			return set.toArray(new DistributedMember[set.size()])[i];
+		} else {
+			return CacheFactory.getAnyInstance().getDistributedSystem().getDistributedMember();
+		}	
+	}
+	
+	/**
+	 * Returns the distributed member of this server.
+	 */
+	public static DistributedMember getDistributedMember()
+	{
+		return CacheFactory.getAnyInstance().getDistributedSystem().getDistributedMember(); 
+	}
+	
+	/**
+	 * Returns all member IDs including this server's ID. 
+	 */
+	public static Object[] getDistributedMemberIds()
+	{
+		Set<DistributedMember> set = CacheFactory.getAnyInstance().getDistributedSystem().getAllOtherMembers();
+		ArrayList<Object> memberIdList = new ArrayList<Object>(set.size());
+		Iterator<DistributedMember> iterator = set.iterator();
+		int i = 0;
+		while (iterator.hasNext()) {
+			DistributedMember member = iterator.next();
+			if (member.getId().matches(".*locator.*") == false) {
+				memberIdList.add(member.getId());
+			}
+		}
+		memberIdList.add(getDistributedMember().getId());
+		return memberIdList.toArray(new Object[memberIdList.size()]);
 	}
 }

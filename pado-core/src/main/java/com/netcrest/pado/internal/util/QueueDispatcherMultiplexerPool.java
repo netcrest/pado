@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class QueueDispatcherMultiplexerPool
 {
-	private static QueueDispatcherMultiplexerPool multiplexerPool;
+	private static QueueDispatcherMultiplexerPool multiplexerPool = initialize(Runtime.getRuntime().availableProcessors() * 2);
 
 	private int maxThreadCount = (int) (Runtime.getRuntime().availableProcessors() * 2);
 	private Map<Object, QueueDispatcherMultiplexer> multiplexerMap = new HashMap<Object, QueueDispatcherMultiplexer>(20);
@@ -56,7 +56,7 @@ public class QueueDispatcherMultiplexerPool
 	 *            Max number of QueueDispatcherMultiplexer objects.
 	 * @return QueueDispatcherMultiplexerPool instance.
 	 */
-	public static QueueDispatcherMultiplexerPool initialize(int maxThreadCount)
+	private static QueueDispatcherMultiplexerPool initialize(int maxThreadCount)
 	{
 		if (multiplexerPool == null) {
 			multiplexerPool = new QueueDispatcherMultiplexerPool(maxThreadCount);

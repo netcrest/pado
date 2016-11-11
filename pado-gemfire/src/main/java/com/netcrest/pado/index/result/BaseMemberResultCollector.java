@@ -281,7 +281,7 @@ public class BaseMemberResultCollector implements IMemberResultCollector
 				if (i >= returnSize)
 					break;
 			}
-		} else if (!query.isOrdered() || isComparable == false) { //no orderBy
+		} else if (!query.isOrdered() || query.getSortField() == null || query.getSortField().length() == 0 || isComparable == false) { //no orderBy
 			int i = 0;
 			for (Map.Entry<Integer, List> mapEntry : memberResultItemList.entrySet()) {
 				if (!mapEntry.getValue().isEmpty()) {

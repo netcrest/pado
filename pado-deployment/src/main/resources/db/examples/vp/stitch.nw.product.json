@@ -1,0 +1,6 @@
+{
+   "QueryDescription": "",
+   "VirtualPath": "stitch/nw/product",
+   "Query": "select * from nw/products p \njoin nw/products p ON p?${ProductInfo} \njoin nw/suppliers s on s.SupplierID:p.SupplierID \njoin nw/categories cat ON cat.CategoryID:p.CategoryID",
+   "InputDescription": "ProductInfo: Any string values in nw/products, i.e., product name, product ID, supplier ID, etc."
+}

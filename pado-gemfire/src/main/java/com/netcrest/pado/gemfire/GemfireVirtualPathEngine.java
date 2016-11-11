@@ -16,17 +16,17 @@
 package com.netcrest.pado.gemfire;
 
 import com.gemstone.gemfire.cache.Region;
+import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.data.KeyMap;
+import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.server.VirtualPathEngine;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class GemfireVirtualPathEngine extends VirtualPathEngine
-{
+{	
 	@Override
-	public void addVirtualPathDefinition(KeyMap vpd)
+	public void addVirtualPathDefinition(ICatalog catalog, KeyMap vpd)
 	{
-		super.addVirtualPathDefinition(vpd);
-		Region<String, KeyMap> vpRegion = GemfirePadoServerManager.getPadoServerManager().getVirtualPathRegion();
 		if (vpd == null) {
 			return;
 		}
@@ -34,14 +34,20 @@ public class GemfireVirtualPathEngine extends VirtualPathEngine
 		if (virtualPath == null) {
 			return;
 		}
-		vpRegion.put(virtualPath, vpd);
+		super.addVirtualPathDefinition(catalog, vpd);
+		
+		if (PadoUtil.isPureClient() == false) {
+			Region<String, KeyMap> vpRegion = GemfirePadoServerManager.getPadoServerManager().getVirtualPathRegion();
+			vpRegion.put(virtualPath, vpd);
+		}
 	}
 
 	@Override
 	public void removeVirtualPathDefinition(String virtualPath)
 	{
+		super.removeVirtualPathDefinition(virtualPath);
 		Region<String, KeyMap> vpRegion = GemfirePadoServerManager.getPadoServerManager().getVirtualPathRegion();
-		vpRegion.remove(virtualPath);
+		vpRegion.remove(virtualPath);	
 	}
 
 	@Override

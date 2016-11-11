@@ -15,9 +15,9 @@
  */
 package com.netcrest.pado.biz.impl.gemfire;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -226,7 +226,7 @@ public class TemporalAdminBizImplLocal<K, V> implements ITemporalAdminBiz<K, V>,
 	private TemporalDataList<K, V> deserialize(TemporalDataList<K, V> dataList)
 	{
 		if (dataList != null) {
-			ArrayList<TemporalEntry<K, V>> list = dataList.getTemporalList();
+			List<TemporalEntry<K, V>> list = dataList.getTemporalList();
 			ITemporalData prevData = null;
 			for (TemporalEntry<K, V> entry : list) {
 				V value = entry.getValue();
@@ -309,7 +309,23 @@ public class TemporalAdminBizImplLocal<K, V> implements ITemporalAdminBiz<K, V>,
 	@Override
 	public void clearTemporalList(K identityKey)
 	{
+		if (identityKey == null) {
+			return;
+		}
+		biz.getBizContext().reset();
+		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
 		biz.clearTemporalList(identityKey);
+	}
+	
+	@Override
+	public ITemporalData<K> removePermanently(ITemporalKey<K> temporalKey)
+	{
+		if (temporalKey == null || temporalKey.getIdentityKey() == null) {
+			return null;
+		}
+		biz.getBizContext().reset();
+		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(temporalKey.getIdentityKey()));
+		return biz.removePermanently(temporalKey);
 	}
 	
 	/**

@@ -39,6 +39,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -305,6 +308,10 @@ public class CsvFileLoader implements IFileLoader
 		Object[] pkClassSetters = getFieldMethodList(schemaInfo.getKeyClass(), schemaInfo.getPkColumnNames(), "set", 1);
 		Object[] valueClassGetters = getFieldMethodList(schemaInfo.getValueClass(), schemaInfo.getValueColumnNames(),
 				"get", 0);
+		Object[] specialValueClassSetters = getFieldMethodList(schemaInfo.getValueClass(), schemaInfo.getSpeicalColumnNames(),
+				"set", 1);
+		Object[] specialValueClassGetters = getFieldMethodList(schemaInfo.getValueClass(), schemaInfo.getSpeicalColumnNames(),
+				"get", 0);
 		boolean isKeyColumns = schemaInfo.isKeyColumns();
 		int keyStartIndex = schemaInfo.getKeyStartIndex();
 		int valueStartIndex = schemaInfo.getValueStartIndex();
@@ -388,6 +395,16 @@ public class CsvFileLoader implements IFileLoader
 		settings.setMaxColumns(schemaInfo.getMaxColumns());
 		CsvParser parser = new CsvParser(settings);
 		parser.beginParsing(textReader);
+		
+//		CSVFormat.RFC4180.withRecordSeparator(schemaInfo.getDelimiter());
+//		CSVFormat.RFC4180.withDelimiter(schemaInfo.getDelimiter());
+//		CSVFormat.RFC4180.withQuote(schemaInfo.getQuoteEscape());
+//		
+//		Iterable<CSVRecord> parser = CSVFormat.RFC4180.parse(textReader);
+//		for (CSVRecord csvRecord : parser) {
+//			csvRecord.
+//		}
+//		
 
 		int lineNumber = 0;
 		int count = 0;
@@ -420,9 +437,11 @@ public class CsvFileLoader implements IFileLoader
 						dataObject = createKeyMap(schemaInfo.getKeyType(), schemaInfo.getValueClass(),
 								schemaInfo.getValueColumnNames(), schemaInfo.getValueColumnTypes(), tokens,
 								valueStartIndex);
+						dataObject = updateKeyMap((KeyMap)dataObject, schemaInfo.getSpeicalColumnNames(), schemaInfo.getSpeicalColumnTypes(), schemaInfo.getSpecialColumnValues());
 					} else {
 						dataObject = createObject(schemaInfo.getValueClass(), valueClassSetters, tokens,
 								valueStartIndex);
+						dataObject = updateObject(dataObject, specialValueClassSetters, schemaInfo.getSpecialColumnValues(), 0);
 					}
 					keyObject = null;
 					// If valueStartIndex begins from the first index then
@@ -602,6 +621,19 @@ public class CsvFileLoader implements IFileLoader
 		}
 		return keyMap;
 	}
+	
+	@SuppressWarnings("rawtypes")
+	private KeyMap updateKeyMap(KeyMap keyMap, String[] keyNames, Class<?>[] tokenTypes,
+			String[] tokens) throws Exception
+	{
+		for (int i = 0; i < keyNames.length; i++) {
+			if (schemaInfo.isSkipColumn(keyNames[i]) == false) {
+				ObjectUtil.updateKeyMap(keyMap, keyNames[i], tokens[i], dateFormatter, numberFormat,
+						true, tokenTypes[i]);
+			}
+		}
+		return keyMap;
+	}
 
 	/**
 	 * Creates an object with the token values.
@@ -637,6 +669,13 @@ public class CsvFileLoader implements IFileLoader
 
 		// Non-primitives
 		Object dataObject = clazz.newInstance();
+		return updateObject(dataObject, clazzSetters, tokens, startTokenIndex);
+	}
+	
+	private Object updateObject(Object dataObject, Object[] clazzSetters, String[] tokens, int startTokenIndex)
+			throws InstantiationException, IllegalAccessException, ParseException, IllegalArgumentException,
+			InvocationTargetException
+	{
 		int tokenIndex = startTokenIndex;
 		for (int i = 0; i < clazzSetters.length; i++) {
 			Object object = clazzSetters[i];
@@ -665,6 +704,7 @@ public class CsvFileLoader implements IFileLoader
 
 		return dataObject;
 	}
+
 
 	/**
 	 * Creates an object for the specified class.
@@ -752,15 +792,36 @@ public class CsvFileLoader implements IFileLoader
 		} else if (clazz == Character.class || clazz == char.class) {
 			return new Character(strVal.charAt(0));
 		} else if (clazz == Integer.class || clazz == int.class) {
+			if (strVal.endsWith("-")) {
+				strVal = strVal.substring(0, strVal.length()-1);
+				return -new Integer(strVal);
+			}
 			return new Integer(strVal);
 		} else if (clazz == Short.class || clazz == short.class) {
+			if (strVal.endsWith("-")) {
+				strVal = strVal.substring(0, strVal.length()-1);
+				return -new Short(strVal);
+			}
 			return new Short(strVal);
 		} else if (clazz == Long.class || clazz == long.class) {
+			if (strVal.endsWith("-")) {
+				strVal = strVal.substring(0, strVal.length()-1);
+				return -new Long(strVal);
+			}
 			return new Long(strVal);
 		} else if (clazz == Float.class || clazz == float.class) {
+			if (strVal.endsWith("-")) {
+				strVal = strVal.substring(0, strVal.length()-1);
+				return -new Float(strVal);
+			}
 			return new Float(strVal);
 		} else if (clazz == Double.class || clazz == double.class) {
-			return new Double(strVal);
+			if (strVal.endsWith("-")) {
+				strVal = strVal.substring(0, strVal.length()-1);
+				return -new Double(strVal);
+			} else {
+				return new Double(strVal);
+			}
 		} else if (clazz == String.class) {
 			return new String(strVal);
 		} else if (clazz == Date.class) {

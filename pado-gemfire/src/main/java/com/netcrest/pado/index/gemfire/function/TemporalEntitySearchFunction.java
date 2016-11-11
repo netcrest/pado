@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.index.gemfire.function;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,17 +27,18 @@ import com.gemstone.gemfire.cache.execute.FunctionContext;
 import com.gemstone.gemfire.cache.partition.PartitionRegionHelper;
 import com.gemstone.gemfire.cache.query.QueryService;
 import com.gemstone.gemfire.cache.query.SelectResults;
+import com.gemstone.gemfire.cache.query.Struct;
 import com.gemstone.gemfire.cache.query.internal.DefaultQuery;
 import com.gemstone.gemfire.internal.cache.LocalDataSet;
 import com.gemstone.gemfire.internal.cache.PartitionedRegion;
 import com.netcrest.pado.index.exception.GridQueryException;
-import com.netcrest.pado.index.gemfire.function.AbstractEntitySearchFunction;
-import com.netcrest.pado.index.gemfire.function.IEntitySearchFunction;
 import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.internal.IndexMatrixUtil;
 import com.netcrest.pado.index.service.GridQuery;
-import com.netcrest.pado.server.PadoServerManager;
+import com.netcrest.pado.temporal.ITemporalData;
+import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.TemporalEntry;
+import com.netcrest.pado.temporal.TemporalInternalFactory;
 import com.netcrest.pado.temporal.TemporalManager;
 
 /**
@@ -44,11 +46,11 @@ import com.netcrest.pado.temporal.TemporalManager;
  * IndexMatrix for a Temporal style query
  * 
  */
-public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction implements Function, Declarable,
-		IEntitySearchFunction
+public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction
+		implements Function, Declarable, IEntitySearchFunction
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	public final static String Id = "TemporalEntitySearchFunction";
 
 	@Override
@@ -63,7 +65,7 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 	{
 		try {
 			TemporalManager tm = TemporalManager.getTemporalManager(criteria.getFullPath());
-			
+
 			// Determine the limit based on the number of servers
 			int limit = criteria.getServerLimit();
 
@@ -72,7 +74,7 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 			if (tm == null || tm.getTemporalListCount() == 0) {
 
 				// Do not allow search of the results region
-				if (criteria.getFullPath().equals(IndexMatrixUtil.getProperty(Constants.PROP_REGION_RESULTS))){
+				if (criteria.getFullPath().equals(IndexMatrixUtil.getProperty(Constants.PROP_REGION_RESULTS))) {
 					return null;
 				}
 				Region region = CacheFactory.getAnyInstance().getRegion(criteria.getFullPath());
@@ -80,23 +82,32 @@ public class TemporalEntitySearchFunction extends AbstractEntitySearchFunction i
 					return null;
 				}
 
-				List list;
 				String queryString = "select e.key, e.value from " + region.getFullPath() + ".entrySet e";
-				
+
 				// Apply limit if defined based on the number of servers
 				if (limit > 0) {
 					queryString = queryString + " limit " + limit;
 				}
 				QueryService qs = CacheFactory.getAnyInstance().getQueryService();
 				DefaultQuery query = (DefaultQuery) qs.newQuery(queryString);
-				SelectResults sr;
+				SelectResults<Struct> sr;
 				if (region instanceof PartitionedRegion) {
 					LocalDataSet localDS = (LocalDataSet) PartitionRegionHelper.getLocalPrimaryData(region);
 					sr = (SelectResults) localDS.executeQuery(query, null, null);
 				} else {
 					sr = (SelectResults) query.execute();
 				}
-				list = sr.asList();
+
+				List<TemporalEntry> list = new ArrayList<TemporalEntry>(sr.size());
+				TemporalInternalFactory factory = TemporalInternalFactory.getTemporalInternalFactory();
+				for (Struct struct : sr) {
+					Object[] values = struct.getFieldValues();
+					ITemporalKey tk = (ITemporalKey) values[0];
+					ITemporalData td = (ITemporalData) values[1];
+					TemporalEntry te = factory.createTemporalEntry(tk, td);
+					list.add(te);
+				}
+				// list = sr.asList();
 				return list;
 			} else {
 				List<TemporalEntry> list = tm.getLastTemporalEntryList(limit);

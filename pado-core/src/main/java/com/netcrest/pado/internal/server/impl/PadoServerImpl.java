@@ -19,6 +19,7 @@ import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.IMessageListener;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.data.KeyTypeManager;
+import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.server.PadoServerManager;
 
 public class PadoServerImpl implements IPado
@@ -90,6 +91,42 @@ public class PadoServerImpl implements IPado
 	public String getGridId()
 	{
 		return PadoServerManager.getPadoServerManager().getGridId();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public GridInfo getGridInfo(String gridId)
+	{
+		GridInfo gridInfo = null;
+		if (getGridId().equals(gridId)) {
+			return  PadoServerManager.getPadoServerManager().getGridInfo();
+		} else {
+			gridInfo = PadoServerManager.getPadoServerManager().getChildGridInfo(gridId);
+			if (gridInfo == null) {
+				gridInfo = PadoServerManager.getPadoServerManager().getParentGridInfo(gridId);
+			}
+		}
+		return gridInfo;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getServerCount(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerCount();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Object[] getServerIds(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerIds(gridId);
 	}
 
 	/**

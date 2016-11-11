@@ -31,7 +31,8 @@
 :: Set properties
 ::
 @set GEMFIRE_PROPERTIES=
-@set PADO_PROPERTIES=-Dpado.server=false -Dpado.properties=%ETC_DIR%/client/pado.properties -Dpado.command.jar.path=%BASE_DIR%/lib/pado-tools.jar
+for /f "delims=" %%a in ('dir /b %BASE_DIR%\lib\ ^| findstr "pado-tools"') do @set PADO_TOOLS_JAR=%%a
+@set PADO_PROPERTIES=-Dpado.server=false -Dpado.properties=%ETC_DIR%/client/pado.properties -Dpado.command.jar.path=%BASE_DIR%/lib/%PADO_TOOLS_JAR% %PADO_DEBUG_PROPERTIES% -Dpado.security.aes.userCertificate=%SECURITY_DIR%\user.cer -Dpado.security.keystore.path=%SECURITY_DIR%\client\client-user.keystore
 
 ::
 :: Plugins directory

@@ -27,6 +27,7 @@ import com.netcrest.pado.IGridCollector;
  * 
  * @param <T>
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class BooleanAndCollector<T extends List<Boolean>, S> implements IGridCollector<T, Boolean>
 {
 	private boolean collectionResult = true;
@@ -34,6 +35,9 @@ public class BooleanAndCollector<T extends List<Boolean>, S> implements IGridCol
 	@Override
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		if (collectionResult == false) {
 			return;
 		}

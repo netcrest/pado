@@ -114,7 +114,7 @@ public class IndexMatrixTemporalProvider extends AbstractIndexMatrixProvider
 		GridInfo gridInfo = GemfirePadoServerManager.getPadoServerManager().getGridInfoForFullPath(region.getFullPath());
 		// pool may or may not be used, i.e., if onRegion or regionService is not null.
 		Pool pool = PoolManager.find(gridInfo.getConnectionName());
-		return FunctionExecutor.execute(getRealmForGrid(gridInfo, query.getFullPath()), region, pool, regionService, filterSet, argument,
+		return FunctionExecutor.execute(getRealmForGrid(gridInfo, query), region, pool, regionService, filterSet, argument,
 				resultCollector, TemporalEntitySearchFunction.Id, null);
 	}
 }

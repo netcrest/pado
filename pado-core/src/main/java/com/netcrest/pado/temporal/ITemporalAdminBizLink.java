@@ -122,6 +122,16 @@ public interface ITemporalAdminBizLink<K, V> extends IBiz
 	void clearTemporalList(K identityKey);
 
 	/**
+	 * Permanently removes the specified temporal key and its mapped data from
+	 * the grid. Data is not recoverable after this call.
+	 * 
+	 * @param temporalKey
+	 *            Temporal key
+	 * @return Removed data or null if not found
+	 */
+	ITemporalData<K> removePermanently(ITemporalKey<K> temporalKey);
+
+	/**
 	 * Dumps the temporal list of the specified identity key in the server log
 	 * file.
 	 * 

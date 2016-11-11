@@ -20,6 +20,8 @@ import java.util.Map;
 
 import com.netcrest.pado.IBiz;
 import com.netcrest.pado.ICatalog;
+import com.netcrest.pado.exception.PadoServerException;
+import com.netcrest.pado.log.Logger;
 
 /**
  * BizThreadPool is an IBiz object pool that designates an instance of IBiz
@@ -36,6 +38,7 @@ public class BizThreadPool<T>
 	private Map<Thread, IBiz> bizMap = new HashMap<Thread, IBiz>();
 	private ICatalog catalog;
 	private Class<T> ibizClass;
+	private String ibizClassName;
 	private Object[] args;
 
 	/**
@@ -58,6 +61,13 @@ public class BizThreadPool<T>
 		this.ibizClass = ibizClass;
 		this.args = args;
 	}
+	
+	public BizThreadPool(ICatalog catalog, String ibizClassName, Object... args)
+	{
+		this.catalog = catalog;
+		this.ibizClassName = ibizClassName;
+		this.args = args;
+	}
 
 	/**
 	 * Returns an instance of IBiz class for the current thread.
@@ -67,7 +77,11 @@ public class BizThreadPool<T>
 	{
 		IBiz biz = bizMap.get(Thread.currentThread());
 		if (biz == null) {
-			biz = (IBiz) catalog.newInstance(ibizClass, args);
+			if (ibizClass != null) {
+				biz = (IBiz) catalog.newInstance(ibizClass, args);
+			} else {
+				biz = catalog.newInstance(ibizClassName, args);
+			}
 			bizMap.put(Thread.currentThread(), biz);
 		}
 		return (T) biz;

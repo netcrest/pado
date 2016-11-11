@@ -247,14 +247,25 @@ public class BizGridQueryServiceImpl implements IGridQueryService
 		}
 		count--;
 		if (count <= 0) {
-			unregisterInterestInIndexRegion(id);
-			indexMatrixCountMap.remove(id);
+			indexDestroyed(id);
 		} else {
 			indexMatrixCountMap.put((String) id, count);
 		}
 		// }
 
 	}
+	
+	/**
+	 * Returns true if the index matrix has not been created or has been closed.
+	 * 
+	 * @param id
+	 *            Index matrix id
+	 */
+	public boolean isClosed(Object id)
+	{
+		return indexMatrixCountMap.containsKey(id);
+	}
+
 
 	/**
 	 * Closes the specified index matrix id by releasing resources.

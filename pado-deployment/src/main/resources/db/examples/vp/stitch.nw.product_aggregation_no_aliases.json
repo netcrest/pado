@@ -1,0 +1,6 @@
+{
+   "QueryDescription": "Given product information, aggregate products, suppliers and categories.",
+   "VirtualPath": "stitch/nw/product_aggregation_no_aliases",
+   "Query": "select * from nw/products p \njoin nw/products p on p?${ProductInfo} \njoin nw/suppliers s on s.SupplierID:p.SupplierID\njoin nw/categories cat on cat.CategoryID:p.CategoryID",
+   "InputDescription": "ProductInfo: Any string values in nw/products, i.e., product name, product ID, supplier ID, etc."
+}

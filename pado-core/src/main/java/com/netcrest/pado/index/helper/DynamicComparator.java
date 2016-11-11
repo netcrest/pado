@@ -23,7 +23,6 @@ import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.TemporalEntry;
-import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalData;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DynamicComparator<T> implements Comparator<T>
@@ -214,14 +213,8 @@ public class DynamicComparator<T> implements Comparator<T>
 		} else if (td2 == null) {
 			return LESS_THAN;
 		}
-		Object obj1 = null;
-		Object obj2 = null;
-		if (td1 instanceof GemfireTemporalData) {
-			obj1 = ((GemfireTemporalData) td1).getValue();
-		}
-		if (td2 instanceof GemfireTemporalData) {
-			obj2 = ((GemfireTemporalData) td2).getValue();
-		}
+		Object obj1 = td1.getValue();
+		Object obj2 = td2.getValue();
 		if (obj1 == null && obj2 == null) {
 			return EQUAL;
 		} else if (obj1 == null) {

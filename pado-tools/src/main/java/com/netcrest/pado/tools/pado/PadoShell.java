@@ -1109,7 +1109,11 @@ public class PadoShell
 
 	public void exit(int status)
 	{
-		SharedCache.getSharedCache().disconnect();
+		try {
+			SharedCache.getSharedCache().disconnect();
+		} catch (Exception ex) {
+			// ignore
+		}
 		if (consoleReader != null) {
 			consoleReader.shutdown();
 		}

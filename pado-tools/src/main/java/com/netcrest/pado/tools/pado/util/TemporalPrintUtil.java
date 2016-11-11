@@ -72,7 +72,7 @@ public class TemporalPrintUtil
 		List<Object> valueArr = null;
 		for (int i = 0; i < curSize; i++) {
 			valueArr = new ArrayList<Object>();
-			ArrayList<TemporalEntry> list = tdl.getTemporalList();
+			List<TemporalEntry> list = tdl.getTemporalList();
 			TemporalEntry entry = list.get(i);
 			if (entry.getTemporalKey().getStartValidTime() == Long.MAX_VALUE) {
 				svt = "&";

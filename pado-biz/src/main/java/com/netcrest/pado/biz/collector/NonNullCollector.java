@@ -37,6 +37,9 @@ public class NonNullCollector<T extends List<Collection>, S> implements IGridCol
 	@Override
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		List list = (List) result;
 		for (Object object: list) {
 			if (object != null) {

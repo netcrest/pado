@@ -122,6 +122,13 @@ public interface ITemporalAdminBiz<K, V> extends IBiz, ITemporalAdminBizLink<K, 
 	 */
 	@BizMethod
 	@OnPath
+	ITemporalData<K> removePermanently(ITemporalKey<K> temporalKey);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@OnPath
 	void dumpServer(K identityKey);
 	
 	/**

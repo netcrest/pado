@@ -19,9 +19,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -31,7 +34,6 @@ import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.internal.cache.BucketRegion;
 import com.gemstone.gemfire.internal.cache.PartitionedRegion;
-import com.netcrest.pado.index.provider.lucene.DateTool;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.temporal.ITemporalKey;
@@ -126,16 +128,18 @@ public class GemfireTemporalList implements ITemporalList
 				return tmp.size() - 1;
 			}
 
-			// never modify in place
-			int curSize = currentList.size();
-			ArrayList<ITemporalKey> tmp = new ArrayList<ITemporalKey>(curSize + 1);
-			tmp.addAll(currentList);
+			// never modify in place - obsolete due to synchronization
+			// int curSize = currentList.size();
+			// ArrayList<ITemporalKey> tmp = new ArrayList<ITemporalKey>(curSize
+			// + 1);
+			// tmp.addAll(currentList);
+			ArrayList<ITemporalKey> tmp = keyList;
 			int index = binarySearch_addKey(tmp, tkey.getStartValidTime(), tkey.getWrittenTime());
 
 			if (index == NOT_FOUND) {
 
-				// index = tmp.size() - 1;
-				index = -1;
+				index = 0;
+				tmp.add(index, tkey);
 
 			} else {
 				ITemporalKey foundKey = tmp.get(index);
@@ -145,20 +149,26 @@ public class GemfireTemporalList implements ITemporalList
 				if (foundKey.getStartValidTime() == tkey.getStartValidTime() || foundKey == removedKey) {
 					if (foundKey.getWrittenTime() > tkey.getWrittenTime()) {
 						index--;
+						if (index < 0) {
+							foundKey = null;
+						} else {
+							foundKey = tmp.get(index);
+						}
 					}
 				}
 				// If all of the times are same then return. Duplicates can
 				// occur when class versions are changed (KeyMap) or simply user
 				// inputs keys with the same times.
-				if (foundKey.getStartValidTime() == tkey.getStartValidTime()
+				if (foundKey != null && foundKey.getStartValidTime() == tkey.getStartValidTime()
 						&& foundKey.getEndValidTime() == tkey.getEndValidTime()
 						&& foundKey.getWrittenTime() == tkey.getWrittenTime()) {
-					return index;
+					tmp.set(index, tkey);
+				} else {
+					index++;
+					tmp.add(index, tkey);
 				}
 
 			}
-			index++;
-			tmp.add(index, tkey);
 			this.lastKey = tmp.get(tmp.size() - 1);
 			this.keyList = tmp;
 
@@ -202,15 +212,16 @@ public class GemfireTemporalList implements ITemporalList
 	@Override
 	public long getEndWrittenTime(ITemporalKey tkey)
 	{
-		int index = getIndex(tkey);
+		ArrayList<ITemporalKey> currentList = keyList;
+		int index = currentList.indexOf(tkey);
 		if (index == -1) {
 			return -1;
 		}
 		index++;
-		if (index >= keyList.size()) {
+		if (index >= currentList.size()) {
 			return TemporalUtil.MAX_TIME;
 		}
-		ITemporalKey nextKey = keyList.get(index);
+		ITemporalKey nextKey = currentList.get(index);
 		return nextKey.getWrittenTime();
 	}
 
@@ -220,11 +231,11 @@ public class GemfireTemporalList implements ITemporalList
 	@Override
 	public ITemporalKey getTemporalKey(int index)
 	{
-		ArrayList<ITemporalKey> kl = keyList;
-		if (index < 0 || index >= kl.size()) {
+		ArrayList<ITemporalKey> currentList = keyList;
+		if (index < 0 || index >= currentList.size()) {
 			return null;
 		}
-		return kl.get(index);
+		return currentList.get(index);
 	}
 
 	/**
@@ -301,8 +312,8 @@ public class GemfireTemporalList implements ITemporalList
 	{
 		try {
 			long writtenTime = System.currentTimeMillis();
-			ITemporalKey newKey = temporalListFactory.createTemporalKey(tkey.getIdentityKey(),
-					tkey.getStartValidTime(), tkey.getEndValidTime(), writtenTime, username);
+			ITemporalKey newKey = temporalListFactory.createTemporalKey(tkey.getIdentityKey(), tkey.getStartValidTime(),
+					tkey.getEndValidTime(), writtenTime, username);
 			return add(newKey);
 		} catch (Exception ex) {
 			Logger.error(ex);
@@ -341,8 +352,9 @@ public class GemfireTemporalList implements ITemporalList
 			return null;
 		}
 		TemporalEntry entry = null;
-		if (keyList.size() > 0) {
-			ITemporalKey firstKey = keyList.get(0);
+		ArrayList<ITemporalKey> currentList = keyList;
+		if (currentList.size() > 0) {
+			ITemporalKey firstKey = currentList.get(0);
 			ITemporalData data = region.get(firstKey);
 			entry = TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(firstKey, data);
 		}
@@ -425,7 +437,7 @@ public class GemfireTemporalList implements ITemporalList
 		}
 		int asOfIndex;
 		if (asOfTime == -1) {
-			asOfIndex = binarySearch_validAt(this.keyList, validAtTime);
+			asOfIndex = binarySearch_validAt(currentList, validAtTime);
 			asOfTime = System.currentTimeMillis();
 		} else {
 			asOfIndex = binarySearch(currentList, validAtTime, asOfTime);
@@ -497,6 +509,10 @@ public class GemfireTemporalList implements ITemporalList
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public TemporalEntry<ITemporalKey, ITemporalData> getWrttenTimeRange(long validAtTime, long fromWrittenTime,
 			long toWrittenTime)
 	{
@@ -524,7 +540,7 @@ public class GemfireTemporalList implements ITemporalList
 		}
 		int asOfIndex;
 		if (fromWrittenTime == -1 && toWrittenTime == -1) {
-			asOfIndex = binarySearch_validAt(this.keyList, validAtTime);
+			asOfIndex = binarySearch_validAt(currentList, validAtTime);
 		} else {
 			asOfIndex = binarySearchWrittenTimeRange(currentList, validAtTime, fromWrittenTime, toWrittenTime);
 		}
@@ -537,7 +553,7 @@ public class GemfireTemporalList implements ITemporalList
 		ITemporalData base = null;
 		LinkedList<byte[]> deltaList = null;
 		for (int index = asOfIndex; index >= 0; index--) {
-			
+
 			ITemporalKey tk = currentList.get(index);
 			if (tk.getStartValidTime() <= validAtTime) {
 				if (validAtTime < tk.getEndValidTime() && fromWrittenTime <= tk.getWrittenTime()
@@ -565,39 +581,40 @@ public class GemfireTemporalList implements ITemporalList
 			}
 
 			ITemporalKey curElem = currentList.get(index);
-			
-//			// if validAtTime is less than the start valid time then
-//			// there are no valid records. break immediately.
-//			if (curElem.getStartValidTime() > validAtTime) {
-//				break;
-//			}
-//
-//			// find the first record that is valid and break
-//			if (validAtTime < curElem.getEndValidTime()) {
-//				// asOfTime must fall in between this and next record
-//				boolean found = fromWrittenTime <= curElem.getWrittenTime() && curElem.getWrittenTime() < toWrittenTime;
-//
-//				if (found) {
-//					// find the base object
-//					ITemporalData data = region.get(curElem);
-//					if (data != null) {
-//						if (data.__getTemporalValue().isDelta()) {
-//
-//							deltaList = new LinkedList<byte[]>();
-//							base = collectDeltas(currentList, index, deltaList);
-//
-//							if (base != null) {
-//								baseKey = curElem;
-//							}
-//						} else {
-//							base = data;
-//							baseKey = curElem;
-//							base.__getTemporalValue().setTemporalKey(baseKey);
-//						}
-//					}
-//					break;
-//				}
-//			}
+
+			// // if validAtTime is less than the start valid time then
+			// // there are no valid records. break immediately.
+			// if (curElem.getStartValidTime() > validAtTime) {
+			// break;
+			// }
+			//
+			// // find the first record that is valid and break
+			// if (validAtTime < curElem.getEndValidTime()) {
+			// // asOfTime must fall in between this and next record
+			// boolean found = fromWrittenTime <= curElem.getWrittenTime() &&
+			// curElem.getWrittenTime() < toWrittenTime;
+			//
+			// if (found) {
+			// // find the base object
+			// ITemporalData data = region.get(curElem);
+			// if (data != null) {
+			// if (data.__getTemporalValue().isDelta()) {
+			//
+			// deltaList = new LinkedList<byte[]>();
+			// base = collectDeltas(currentList, index, deltaList);
+			//
+			// if (base != null) {
+			// baseKey = curElem;
+			// }
+			// } else {
+			// base = data;
+			// baseKey = curElem;
+			// base.__getTemporalValue().setTemporalKey(baseKey);
+			// }
+			// }
+			// break;
+			// }
+			// }
 		}
 
 		// if base is found then construct the whole object by applying
@@ -616,6 +633,91 @@ public class GemfireTemporalList implements ITemporalList
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<TemporalEntry<ITemporalKey, ITemporalData>> getHistoryWrttenTimeRange(long validAtTime,
+			long fromWrittenTime, long toWrittenTime)
+	{
+		if (validAtTime == -1 && fromWrittenTime == -1 && toWrittenTime == -1) {
+			TemporalEntry<ITemporalKey, ITemporalData> te = getNowRelativeEntry();
+			if (te == null) {
+				return null;
+			} else {
+				return Collections.singletonList(te);
+			}
+		}
+		if (removedKey != null) {
+			return null;
+		}
+
+		if (fromWrittenTime == -1) {
+			fromWrittenTime = System.currentTimeMillis();
+		}
+		if (toWrittenTime == -1) {
+			toWrittenTime = System.currentTimeMillis();
+		}
+		ArrayList<ITemporalKey> currentList = this.keyList;
+		if (currentList == null) {
+			return null;
+		}
+
+		int lastIndex = currentList.size() - 1;
+		if (lastIndex < 0) {
+			return null;
+		}
+		int asOfIndex;
+		if (fromWrittenTime == -1 && toWrittenTime == -1) {
+			asOfIndex = binarySearch_validAt(currentList, validAtTime);
+		} else {
+			asOfIndex = binarySearchWrittenTimeRange(currentList, validAtTime, fromWrittenTime, toWrittenTime);
+		}
+		if (asOfIndex == NOT_FOUND) {
+			return null;
+		}
+
+		// Iterate the temporal list bottom-up to find all valid records
+		ITemporalKey baseKey = null;
+		ITemporalData base = null;
+		LinkedList<byte[]> deltaList = null;
+		List<TemporalEntry<ITemporalKey, ITemporalData>> list = new ArrayList<TemporalEntry<ITemporalKey, ITemporalData>>();
+		for (int index = asOfIndex; index >= 0; index--) {
+			ITemporalKey tk = currentList.get(index);
+			if (tk.getStartValidTime() <= validAtTime && validAtTime < tk.getEndValidTime()
+					&& fromWrittenTime <= tk.getWrittenTime() && tk.getWrittenTime() < toWrittenTime) {
+				ITemporalData data = region.get(tk);
+				if (data != null) {
+					if (data.__getTemporalValue().isDelta()) {
+
+						deltaList = new LinkedList<byte[]>();
+						base = collectDeltas(currentList, index, deltaList);
+
+						if (base != null) {
+							baseKey = tk;
+						}
+					} else {
+						base = data;
+						baseKey = tk;
+						base.__getTemporalValue().setTemporalKey(baseKey);
+					}
+					// Construct the whole object by applying the deltas if exist
+					try {
+						ITemporalData td = temporalListFactory.createTemporalData(base, deltaList);
+						list.add(TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(tk, td));
+					} catch (Exception ex) {
+						Logger.error(ex);
+						return null;
+					}
+				}
+			} else {
+				break;
+			}
+		}
+		
+		return list;
+	}
+
+	/**
 	 * Returns all entries that have the valid range of startValidTime <=
 	 * validAt < endValidTime. It returns null if the temporal list list
 	 * removed.
@@ -630,8 +732,9 @@ public class GemfireTemporalList implements ITemporalList
 			return null;
 		}
 		// startValidTime <= validAt < endValidTime
-		HashMap<ITemporalKey, ITemporalData> map = new HashMap<ITemporalKey, ITemporalData>(keyList.size());
-		for (ITemporalKey key : keyList) {
+		ArrayList<ITemporalKey> currentList = this.keyList;
+		HashMap<ITemporalKey, ITemporalData> map = new HashMap<ITemporalKey, ITemporalData>(currentList.size());
+		for (ITemporalKey key : currentList) {
 			if (key.getStartValidTime() <= validAt && validAt < key.getEndValidTime()) {
 				map.put(key, region.get(key));
 			}
@@ -649,8 +752,9 @@ public class GemfireTemporalList implements ITemporalList
 			return null;
 		}
 		// startValidTime <= validAt < endValidTime
+		ArrayList<ITemporalKey> currentList = this.keyList;
 		TreeSet<TemporalEntry<ITemporalKey, ITemporalData>> set = new TreeSet();
-		for (ITemporalKey key : keyList) {
+		for (ITemporalKey key : currentList) {
 			if (key.getStartValidTime() <= validAtTime && validAtTime < key.getEndValidTime()) {
 				// asOfTime <= writtenTime, if -1, includes all
 				if (asOfTime >= key.getWrittenTime()) {
@@ -673,7 +777,8 @@ public class GemfireTemporalList implements ITemporalList
 	 * @param index
 	 * @param deltaList
 	 */
-	private ITemporalData collectDeltas(ArrayList<ITemporalKey> temporalKeyList, int index, LinkedList<byte[]> deltaList)
+	private ITemporalData collectDeltas(ArrayList<ITemporalKey> temporalKeyList, int index,
+			LinkedList<byte[]> deltaList)
 	{
 		if (index < 0) {
 			return null;
@@ -703,16 +808,16 @@ public class GemfireTemporalList implements ITemporalList
 
 		// copy-on-write
 		synchronized (this) {
-			ArrayList<ITemporalKey> curretntList = this.keyList;
+			ArrayList<ITemporalKey> currentList = this.keyList;
 			ITemporalKey key;
 			long startValidTime = 0;
-			int lastIndex = curretntList.size() - 1;
+			int lastIndex = currentList.size() - 1;
 			if (lastIndex == 1) {
 				return;
 			}
 
 			// copy-on-write
-			ArrayList<ITemporalKey> tmp = new ArrayList<ITemporalKey>(this.keyList);
+			ArrayList<ITemporalKey> tmp = new ArrayList<ITemporalKey>(currentList);
 			int index;
 			for (index = lastIndex; index >= 0; index--) {
 				key = tmp.get(index);
@@ -750,16 +855,16 @@ public class GemfireTemporalList implements ITemporalList
 
 			// If the temporal list is empty then nothing to invalidate. Return
 			// immediately.
-			ArrayList<ITemporalKey> curretntList = this.keyList;
+			ArrayList<ITemporalKey> currentList = this.keyList;
 			long startValidTime = 0;
-			int lastIndex = curretntList.size() - 1;
+			int lastIndex = currentList.size() - 1;
 			if (lastIndex == 1) {
 				return null;
 			}
 
 			// Find the last record in the temporal list
 			for (int index = lastIndex; index >= 0; index--) {
-				ITemporalKey key = curretntList.get(index);
+				ITemporalKey key = currentList.get(index);
 				if (key.getStartValidTime() <= endValidTime && endValidTime <= key.getEndValidTime()
 						&& key.getWrittenTime() <= writtenTime) {
 					startValidTime = key.getStartValidTime();
@@ -803,7 +908,8 @@ public class GemfireTemporalList implements ITemporalList
 			}
 
 			// copy-on-write
-			ArrayList<ITemporalKey> tmp = new ArrayList<ITemporalKey>(this.keyList);
+			ArrayList<ITemporalKey> currentList = this.keyList;
+			ArrayList<ITemporalKey> tmp = new ArrayList<ITemporalKey>(currentList);
 
 			// Add the removed key at the end of the temporal list.
 			// Once removed, the temporal list cannot be searched by valid-at
@@ -833,6 +939,46 @@ public class GemfireTemporalList implements ITemporalList
 			region.put(tkey, TemporalClientFactory.getTemporalClientFactory().createTemporalData(tkey, null));
 		} catch (Exception ex) {
 			Logger.error(ex);
+		}
+	}
+
+	ArrayList<ITemporalKey> removePermanentlyKeyList = new ArrayList<ITemporalKey>(3);
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ITemporalData removePermanently(ITemporalKey removeKey)
+	{
+		if (removeKey == null) {
+			return null;
+		}
+
+		// TODO: The following logic is broken. A race condition
+		// will require keyList to be synchronized. This means
+		// keyList must be synchronized throughout this class causing
+		// performance degradation.
+		ITemporalData td = region.remove(removeKey);
+
+		synchronized (this) {
+			ArrayList<ITemporalKey> currentList = this.keyList;
+			Iterator<ITemporalKey> iterator = currentList.iterator();
+			ITemporalKey tk = null;
+			while (iterator.hasNext()) {
+				tk = iterator.next();
+				if (tk.equals(removeKey)) {
+					iterator.remove();
+					break;
+				}
+			}
+			if (lastKey == tk) {
+				if (currentList.size() == 0) {
+					lastKey = null;
+				} else {
+					lastKey = currentList.get(currentList.size() - 1);
+				}
+			}
+			return td;
 		}
 	}
 
@@ -1142,7 +1288,7 @@ public class GemfireTemporalList implements ITemporalList
 			else {
 
 				// startValidTime is same.
-				
+
 				// find the last index with the same startValidTime.
 				int size = list.size();
 				int startIndex = mid;
@@ -1157,35 +1303,39 @@ public class GemfireTemporalList implements ITemporalList
 				}
 				break;
 
-//				// traverse up until the first index that does not match
-//				// validAtTime, fromWrittenTime and toWrittenTime.
-//				// TODO: Validate this logic.
-//				for (i = index; i >= 0; i--) {
-//					tk = list.get(i);
-//					if (tk.getStartValidTime() <= validAtTime && validAtTime < tk.getEndValidTime() && fromWrittenTime <= tk.getWrittenTime()
-//							&& tk.getWrittenTime() < toWrittenTime) {
-//						return i;
-//					}
-//				}
+				// // traverse up until the first index that does not match
+				// // validAtTime, fromWrittenTime and toWrittenTime.
+				// // TODO: Validate this logic.
+				// for (i = index; i >= 0; i--) {
+				// tk = list.get(i);
+				// if (tk.getStartValidTime() <= validAtTime && validAtTime <
+				// tk.getEndValidTime() && fromWrittenTime <=
+				// tk.getWrittenTime()
+				// && tk.getWrittenTime() < toWrittenTime) {
+				// return i;
+				// }
+				// }
 			}
 		}
 		if (high < 0) {
 			return NOT_FOUND;
 		} else {
-//			if (tk != null) {
-//				// traverse up the list from the bottom to find the last index that
-//				// has the valid range
-//				for (int i = high; i >= mid; i--) {
-//					tk = list.get(i);
-//					if (tk.getStartValidTime() <= validAtTime && validAtTime < tk.getEndValidTime() && fromWrittenTime <= tk.getWrittenTime()
-//							&& tk.getWrittenTime() < toWrittenTime) {
-//						return i;
-//					}
-//				}
-//				if (tk.getStartValidTime() > validAtTime) {
-//					mid--;
-//				}
-//			}
+			// if (tk != null) {
+			// // traverse up the list from the bottom to find the last index
+			// that
+			// // has the valid range
+			// for (int i = high; i >= mid; i--) {
+			// tk = list.get(i);
+			// if (tk.getStartValidTime() <= validAtTime && validAtTime <
+			// tk.getEndValidTime() && fromWrittenTime <= tk.getWrittenTime()
+			// && tk.getWrittenTime() < toWrittenTime) {
+			// return i;
+			// }
+			// }
+			// if (tk.getStartValidTime() > validAtTime) {
+			// mid--;
+			// }
+			// }
 			return mid;
 		}
 	}
@@ -1272,7 +1422,8 @@ public class GemfireTemporalList implements ITemporalList
 	{
 		TemporalEntry lastDataEntry = getLastEntry();
 		ArrayList entryList = new ArrayList();
-		for (ITemporalKey tk : keyList) {
+		ArrayList<ITemporalKey> cur = this.keyList;
+		for (ITemporalKey tk : cur) {
 			ITemporalData data = region.get(tk);
 			entryList.add(TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(tk, data));
 		}

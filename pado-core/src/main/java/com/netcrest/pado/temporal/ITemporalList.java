@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.temporal;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -198,7 +199,8 @@ public interface ITemporalList<K, V>
 	 * range. It returns the last temporal entry that falls in validAtTime if
 	 * fromWrittenTime and toWrittenTime are -1. If all arguments are -1, then
 	 * it returns the now-relative entry. It returns null if the temporal list
-	 * is removed or does not exist.
+	 * is removed, does not exist, or temporal entries meeting the match time
+	 * search criteria are not found.
 	 * 
 	 * @param validAtTime
 	 *            Valid-at time in msec
@@ -209,6 +211,27 @@ public interface ITemporalList<K, V>
 	 */
 	public TemporalEntry<ITemporalKey, ITemporalData> getWrttenTimeRange(long validAtTime, long fromWrittenTime,
 			long toWrittenTime);
+
+	/**
+	 * Returns a list of temporal entries that fall in validAtTime and the
+	 * written time range. Note that this method returns one or more temporal
+	 * entries with the same identity key. It returns returns a list of that
+	 * contains the last temporal entry that falls in validAtTime if
+	 * fromWrittenTime and toWrittenTime are -1. If all arguments are -1, then
+	 * it returns the new-relative entry. It returns null if the temporal list
+	 * is removed, does not exist, or temporal entries meeting the match time
+	 * search criteria are not found.
+	 * 
+	 * @param validAtTime
+	 *            Valid-at time in msec
+	 * @param fromWrittenTime
+	 *            Start of the written time range, inclusive.
+	 * @param toWrittenTime
+	 *            End of the written time range, exclusive.
+	 * @return
+	 */
+	public List<TemporalEntry<ITemporalKey, ITemporalData>> getHistoryWrttenTimeRange(long validAtTime,
+			long fromWrittenTime, long toWrittenTime);
 
 	/**
 	 * Returns all temporal entries that have the valid range of startValidTime
@@ -232,6 +255,18 @@ public interface ITemporalList<K, V>
 	 *         been removed.
 	 */
 	public int remove(ITemporalKey<K> removeKey);
+
+	/**
+	 * Permanently removes the specified temporal key and its mapping data from
+	 * the temporal list. Unlike {@link #remove(ITemporalKey)}, this method does
+	 * not mark as remove but actually removes the entry from the temporal list
+	 * and the underlying store. Data is not recoverable after this call.
+	 * 
+	 * @param removeKey
+	 *            removeKey.
+	 * @return ITemporalData<K> Data that has been removed. null if not found.
+	 */
+	public ITemporalData<K> removePermanently(ITemporalKey<K> removeKey);
 
 	/**
 	 * Marks the temporal list as "removed". Unlike

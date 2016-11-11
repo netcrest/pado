@@ -31,6 +31,7 @@ import com.netcrest.pado.IGridCollector;
  * @param <T>
  * @param <S>
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MapOfListsCollector<T extends List<Map>, S> implements IGridCollector<T, S>
 {
 
@@ -39,12 +40,18 @@ public class MapOfListsCollector<T extends List<Map>, S> implements IGridCollect
 	@Override
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		List<Map> list = (List<Map>)result;
 		for (Map map : list) {
 			Set<Map.Entry<Object, List>> set = map.entrySet();
 			for (Map.Entry<Object, List> entry : set) {
 				Object key = entry.getKey();
 				List value = entry.getValue();
+				if (value == null) {
+					continue;
+				}
 				List list2 = resultMap.get(key);
 				if (list2 == null) {
 					list2 = new ArrayList(value);

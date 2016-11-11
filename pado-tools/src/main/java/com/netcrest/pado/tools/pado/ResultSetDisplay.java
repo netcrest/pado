@@ -52,7 +52,6 @@ public class ResultSetDisplay
 			boolean getInput = true;
 			do {
 				input = (char) reader.read();
-//				System.out.println((int)input);
 				switch (input) {
 				case 'd':
 				case ' ':

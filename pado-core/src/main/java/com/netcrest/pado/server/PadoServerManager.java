@@ -44,13 +44,10 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.netcrest.pado.IBeanInitializable;
 import com.netcrest.pado.IBiz;
 import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.IPado;
 import com.netcrest.pado.IUserPrincipal;
-import com.netcrest.pado.link.IGridBizLink;
-import com.netcrest.pado.link.IPadoBizLink;
 import com.netcrest.pado.exception.ConfigurationException;
 import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.exception.PadoLoginException;
@@ -73,6 +70,8 @@ import com.netcrest.pado.internal.server.BizManager;
 import com.netcrest.pado.internal.server.impl.CatalogServerImpl;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.internal.util.StringUtil;
+import com.netcrest.pado.link.IGridBizLink;
+import com.netcrest.pado.link.IPadoBizLink;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.temporal.TemporalManager;
 
@@ -1589,8 +1588,35 @@ public abstract class PadoServerManager
 	public abstract boolean isValidToken(Object token);
 
 	/**
-	 * Returns the total number of currently running servers.
+	 * Returns the total number of currently running servers in the specified
+	 * grid.
+	 * 
+	 * @param gridId
+	 *            Grid ID. null to return this grid's server count.
 	 */
-	public abstract int getServerCount();
+	public abstract int getServerCount(String gridId);
 
+	/**
+	 * Returns all unique server IDs in the specified grid.
+	 * 
+	 * @param gridId
+	 *            Grid ID. null to return this grid's server IDs.
+	 */
+	public abstract Object[] getServerIds(String gridId);
+	
+	/**
+	 * Returns the total number of currently running servers in this grid.
+	 */
+	public int getServerCount()
+	{
+		return getServerCount(null);
+	}
+	
+	/**
+	 * Returns all unique server IDs in this grid.
+	 */
+	public Object[] getServerIds()
+	{
+		return getServerIds(null);
+	}
 }

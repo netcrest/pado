@@ -484,7 +484,7 @@ public class PathConfig
 			} catch (Exception ex) {
 				throw new PadoException("Error parsing composite key indexes: path=" + this.gridPath, ex);
 			}
-			if (ck.getDelimiter() != null || ck.getDelimiter().length() > 0) {
+			if (ck.getDelimiter() != null && ck.getDelimiter().length() > 0) {
 				ckInfo.setCompositeKeyDelimiter(ck.getDelimiter());
 			}
 			return ckInfo;

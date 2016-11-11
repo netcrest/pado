@@ -385,9 +385,6 @@ public class ClientResults<T> implements Serializable, IScrollableResultSet<T>
 			return false;
 		}
 		boolean canScroll = true;
-		if (index < 0) {
-			index = 0;
-		}
 		if (startIndex <= index && index <= endIndex) {
 			if (index >= totalSize) {
 				viewStartIndex = viewEndIndex = totalSize;
@@ -635,6 +632,12 @@ public class ClientResults<T> implements Serializable, IScrollableResultSet<T>
 	public void close()
 	{
 		serviceImpl.close(id);
+	}
+	
+	@Override
+	public boolean isClosed()
+	{
+		return serviceImpl.isClosed(id);
 	}
 
 	public GridQuery getQuery()

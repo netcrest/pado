@@ -18,7 +18,6 @@ package com.netcrest.pado.temporal.test.junit;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -33,7 +32,6 @@ import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.temporal.AttachmentResults;
 import com.netcrest.pado.temporal.AttachmentSet;
 import com.netcrest.pado.temporal.AttachmentSetFactory;
-import com.netcrest.pado.temporal.TemporalEntry;
 import com.netcrest.pado.temporal.test.TemporalLoader;
 import com.netcrest.pado.temporal.test.data.Account;
 
@@ -50,7 +48,6 @@ public class TemporalSinglePutTest
 	private static IPado pado;
 	private static ITemporalBiz<String, KeyMap> temporalBiz;
 	private static TemporalLoader loader;
-	private static Set<TemporalEntry<String, KeyMap>> temporalEntrySet;
 
 	@BeforeClass
 	public static void loginPado() throws PadoLoginException

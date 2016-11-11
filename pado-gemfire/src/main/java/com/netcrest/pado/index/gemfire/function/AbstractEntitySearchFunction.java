@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -31,11 +32,12 @@ import com.gemstone.gemfire.cache.execute.Function;
 import com.gemstone.gemfire.cache.execute.FunctionContext;
 import com.gemstone.gemfire.cache.execute.RegionFunctionContext;
 import com.gemstone.gemfire.cache.partition.PartitionRegionHelper;
+import com.gemstone.gemfire.cache.query.Struct;
 import com.gemstone.gemfire.internal.cache.LocalDataSet;
 import com.gemstone.gemfire.internal.util.BlobHelper;
 import com.netcrest.pado.gemfire.GemfirePadoServerManager;
 import com.netcrest.pado.index.exception.GridQueryException;
-import com.netcrest.pado.index.helper.ComparatorFactory;
+import com.netcrest.pado.index.helper.BaseComparatorFactory;
 import com.netcrest.pado.index.internal.Constants;
 import com.netcrest.pado.index.internal.IndexMatrix;
 import com.netcrest.pado.index.internal.IndexMatrixUtil;
@@ -165,17 +167,77 @@ public abstract class AbstractEntitySearchFunction implements IEntitySearchFunct
 	protected void sortWithComparator(GridQuery criteria, List list) throws GridQueryException
 	{
 		if (list != null && list.size() > 0 && criteria.getSortField() != null) {
-			Comparator comparator = getComparator(criteria, list.get(0));
+			Object obj = getNonNullValueObject(criteria, list);
+			if (obj == null) {
+				return;
+			}
+			Comparator comparator = getComparator(criteria, obj);
 			if (comparator != null) {
 				if (getLogger().fineEnabled()) {
 					getLogger().fine("Sort with comparator");
 				}
 				Collections.sort(list, comparator);
 				return;
-			} else if (list.get(0) instanceof Comparable) {
+			} else if (obj instanceof Comparable) {
 				Collections.sort(list);
 			}
 		}
+	}
+
+	/**
+	 * Returns the first non-null value for criteria.getSortField() found in the
+	 * specified list. A on-null value is required in order to determine the
+	 * return type when comparing values for "order by". This method is for Map
+	 * and Struct objects that are dynamic in nature in that the their values
+	 * must be scanned in order to determine the field type.
+	 * 
+	 * @param criteria
+	 *            Grid query with sort field defined. if
+	 *            {@link GridQuery#getSortField()} returns null then this method
+	 *            returns null.
+	 * @param list
+	 *            List containing data objects to scan for non-null valued
+	 *            objects.
+	 * @return null if {@link GridQuery#getSortField()} returns null, list is
+	 *         empty, or all values in the list objects are null.
+	 */
+	protected Object getNonNullValueObject(GridQuery criteria, List list)
+	{
+		String sortField = criteria.getSortField();
+		if (sortField == null) {
+			return null;
+		}
+		Object retObj = null;
+		if (list.size() > 0) {
+			retObj = list.get(0);
+		}
+		if (retObj == null) {
+			return null;
+		}
+
+		if (retObj instanceof Map) {
+			for (Object object : list) {
+				Object fieldValue = ((Map) object).get(sortField);
+				if (fieldValue != null) {
+					retObj = object;
+					break;
+				}
+			}
+		} else if (retObj instanceof Struct) {
+			for (Object object : list) {
+				Struct struct = (Struct) retObj;
+				try {
+					Object fieldValue = struct.get(sortField);	
+					if (fieldValue != null) {
+						retObj = object;
+						break;
+					}
+				} catch (IllegalArgumentException ex) {
+					// ignore
+				}
+			}
+		}
+		return retObj;
 	}
 
 	protected void sortWithScore(GridQuery criteria, List list)
@@ -414,7 +476,7 @@ public abstract class AbstractEntitySearchFunction implements IEntitySearchFunct
 	 * 
 	 * @return
 	 */
-	protected ComparatorFactory getComparatorFactory()
+	protected BaseComparatorFactory getComparatorFactory()
 	{
 		return IndexMatrixProviderFactory.getInstance().getComparatorFactory();
 	}

@@ -140,6 +140,16 @@ public class PadoBizImpl implements IPadoBiz
 	{
 		return gemfirePadoBizImpl.getPathInfo();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@Override
+	public PathInfo getVirtualPathInfo()
+	{
+		return gemfirePadoBizImpl.getVirtualPathInfo();
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -159,5 +169,23 @@ public class PadoBizImpl implements IPadoBiz
 	public byte[] echo(byte[] payload)
 	{
 		return payload;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	public int getServerCount(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerCount(gridId);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	public Object[] getServerIds(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerIds(gridId);
 	}
 }

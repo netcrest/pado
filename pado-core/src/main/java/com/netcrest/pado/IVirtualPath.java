@@ -30,6 +30,24 @@ import java.util.List;
  */
 public interface IVirtualPath<T>
 {
+	/**
+	 * Returns the path name. If the root path, i.e., "/", it returns null. If
+	 * the grid root path, i.e., /mygrid. then it returns "" (empty string).
+	 */
+	public String getPathName();
+
+	/**
+	 * Returns the grid path. If the root path, i.e., "/", it returns null. If
+	 * the grid root path, i.e., /mygrid. then it returns "" (empty string).
+	 */
+	public String getGridPath();
+
+	/**
+	 * Returns the full path that begins with "/". If the root path, it returns
+	 * "/".
+	 */
+	public String getFullPath();
+
 	/*
 	 * Executes the specified input for the now-relative temporal data. This
 	 * call is analogous to execute(input, -1, -1).
@@ -47,19 +65,22 @@ public interface IVirtualPath<T>
 	 * @param validAtTime Valid-at time. If -1, then current time.
 	 */
 	public List<T> execute(Object input, long validAtTime);
+	
+	
+	public List<T> execute(Object input, long validAtTime, long asOfTime);
 
 	/**
 	 * Executes the specified input for the specified temporal time constraints.
 	 * 
-	 * @param input
-	 *            Input values to the virtual path definition, i.e., ${Input}.
 	 * @param validAtTime
 	 *            Valid-at time. If -1, then current time.
 	 * @param asOfTime
 	 *            As-of time. If -1, then current time.
+	 * @param args
+	 *            Input values to the virtual path definition, i.e., ${Input}.
 	 * @return Virtual path anchored data set
 	 */
-	public List<T> execute(Object input, long validAtTime, long asOfTime);
+	public List<T> execute(long validAtTime, long asOfTime, String... args);
 
 	/**
 	 * Closes this instance of VirtualPath. It is recommended that this method

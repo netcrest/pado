@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -323,6 +324,14 @@ public class LuceneSearch implements ITextSearchProvider
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			throw new RuntimeException(e1);
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					// ignore
+				}
+			}
 		}
 		return identityKeySet;
 	}
@@ -339,12 +348,22 @@ public class LuceneSearch implements ITextSearchProvider
 	 */
 	public Set<ITemporalKey> getTemporalKeySet(String fullPath, String queryString, int limit)
 	{
+		return (Set<ITemporalKey>) getTemporalKeyCollection(fullPath, queryString, limit, true);
+	}
+	
+	public List<ITemporalKey> getTemporalKeyList(String fullPath, String queryString, int limit)
+	{
+		return (List<ITemporalKey>) getTemporalKeyCollection(fullPath, queryString, limit, false);
+	}
+	
+	public Collection<ITemporalKey> getTemporalKeyCollection(String fullPath, String queryString, int limit, boolean isSet)
+	{
 		Cache cache = CacheFactory.getAnyInstance();
 		Region<String, RAMDirectory> region = cache
 				.getRegion(IndexMatrixUtil.getProperty(Constants.PROP_REGION_LUCENE));
 
 		Directory directory = region.get(fullPath);
-		Set<ITemporalKey> temporalKeySet;
+		Collection<ITemporalKey> temporalKeySet;
 		if (directory == null) {
 			File file = new File("lucene" + fullPath);
 			if (file.exists() == false) {
@@ -352,7 +371,7 @@ public class LuceneSearch implements ITextSearchProvider
 			}
 			try {
 				directory = new MMapDirectory(file);
-				temporalKeySet = getTemporalKeySet(queryString, directory, limit);
+				temporalKeySet = getTemporalKeyCollection(queryString, directory, limit, isSet);
 			} catch (IOException e) {
 				throw new IndexMatrixException("Lucene index directory error. [query=" + queryString + ", fullPath="
 						+ fullPath + "] " + e.getMessage(), e);
@@ -366,15 +385,21 @@ public class LuceneSearch implements ITextSearchProvider
 				}
 			}
 		} else {
-			temporalKeySet = getTemporalKeySet(queryString, directory, limit);
+			temporalKeySet = getTemporalKeyCollection(queryString, directory, limit, isSet);
 
 		}
 		return temporalKeySet;
 	}
-
-	protected Set<ITemporalKey> getTemporalKeySet(String queryString, Directory dir, int limit)
+	
+	protected Collection<ITemporalKey> getTemporalKeyCollection(String queryString, Directory dir, int limit, boolean isSet)
 	{
-		Set<ITemporalKey> temporalKeySet = new HashSet<ITemporalKey>();
+		Collection<ITemporalKey> temporalKeyCollection;
+		if (isSet) {
+			temporalKeyCollection = new HashSet<ITemporalKey>();
+		} else {
+			temporalKeyCollection = new ArrayList<ITemporalKey>();
+		}
+		
 		DirectoryReader reader;
 		try {
 			reader = DirectoryReader.open(dir);
@@ -417,14 +442,14 @@ public class LuceneSearch implements ITextSearchProvider
 				LuceneField luceneField = new LuceneField();
 				ITemporalKey temporalKey = luceneField.getTemporalKey(doc);
 				if (temporalKey != null) {
-					temporalKeySet.add(temporalKey);
+					temporalKeyCollection.add(temporalKey);
 				}
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			throw new RuntimeException(e1);
 		}
-		return temporalKeySet;
+		return temporalKeyCollection;
 	}
 
 	public String getTimeQuery(long validAtTime, long asOfTime, String queryString)

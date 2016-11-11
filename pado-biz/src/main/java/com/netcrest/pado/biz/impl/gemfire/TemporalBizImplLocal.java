@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -78,6 +79,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 
 	private IGridMapBizLink<ITemporalKey<K>, ITemporalData<K>> gridMapBiz;
 	private boolean isReference = false;
+	private String virtualEntityPath;
 	private int depth = -1;
 
 	private boolean isPutExceptionEnabled;
@@ -160,6 +162,18 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	}
 
 	@Override
+	public void __setVirtualEntityPath(String virtualEntityPath)
+	{
+		this.virtualEntityPath = virtualEntityPath;
+	}
+
+	@Override
+	public String __getVirtualEntityPath()
+	{
+		return virtualEntityPath;
+	}
+
+	@Override
 	public void setDepth(int depth)
 	{
 		this.depth = depth;
@@ -220,7 +234,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.get(identityKey));
 	}
 
@@ -229,7 +243,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.get(identityKey, validAtTime));
 	}
 
@@ -238,7 +252,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.get(identityKey, validAtTime, asOfTime));
 	}
 
@@ -255,7 +269,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.getEntry(identityKey));
 	}
 
@@ -264,7 +278,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.getEntry(identityKey, validAtTime));
 	}
 
@@ -273,7 +287,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.getEntry(identityKey, validAtTime, asOfTime));
 	}
 
@@ -292,7 +306,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	public Map<ITemporalKey<K>, ITemporalData<K>> getEntries(long validAtTime)
 	{
 		biz.getBizContext().reset();
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.getEntries(validAtTime));
 	}
 
@@ -300,7 +314,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	public Map<ITemporalKey<K>, ITemporalData<K>> getEntries(long validAtTime, long asOfTime)
 	{
 		biz.getBizContext().reset();
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserialize(biz.getEntries(validAtTime, asOfTime));
 	}
 
@@ -314,31 +328,43 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			gridPath = gridPaths[0];
 		}
 		boolean isVirtualPath = pado.isVirtualPath(gridPath);
+
 		String gridIds[];
 		String queryString;
+		// if (isVirtualPath) {
+		// gridIds = new String[] {
+		// this.biz.getBizContext().getGridService().getDefaultGridId() };
+		// queryString = pqlParser.getPql();
+		// } else {
+		gridIds = pqlParser.getGridIds();
+		Object serverId = 0;
 		if (isVirtualPath) {
-			gridIds = new String[] { this.biz.getBizContext().getGridService().getDefaultGridId() };
-			queryString = pqlParser.getPql();
-		} else {
-			gridIds = pqlParser.getGridIds();
-			queryString = pqlParser.getParsedQuery();
+			// TODO: Only one grid supported
+			for (String gridId : gridIds) {
+				Object serverIds[] = pado.getServerIds(gridId);
+				int index = new Random().nextInt(pado.getServerCount(gridId));
+				serverId = serverIds[index];
+				break;
+			}
 		}
+		queryString = pqlParser.getParsedQuery();
+		// }
 
 		AttachmentSet as = new AttachmentSetFactory().createAttachmentSet();
 		as.setQueryStatement(queryString);
 		as.setGridPath(gridPath);
 		biz.getBizContext().getGridContextClient().setGridIds(gridIds);
 		AttachmentSet<K>[] attSets = new AttachmentSet[] { as };
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth, serverId);
 
 		Map<String, List<V>> map;
-		if (isVirtualPath) {
-			// Invoke on a single server
-			biz.getBizContext().getGridContextClient().setGridIds(gridIds);
-			map = biz.__getAttachmentsOnServer(validAtTime, asOfTime);
-		} else {
-			map = biz.__getAttachmentsBroadcast(validAtTime, asOfTime);
-		}
+		// if (isVirtualPath) {
+		// // Invoke on a single server
+		// biz.getBizContext().getGridContextClient().setGridIds(gridIds);
+		// map = biz.__getAttachmentsOnServer(validAtTime, asOfTime);
+		// } else {
+		map = biz.__getAttachmentsBroadcast(validAtTime, asOfTime);
+		// }
 		if (map == null) {
 			return null;
 		}
@@ -375,7 +401,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		as.setGridPath(gridPath);
 		biz.getBizContext().getGridContextClient().setGridIds(gridIds);
 		AttachmentSet<K>[] attSets = new AttachmentSet[] { as };
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth,
+				virtualEntityPath);
 
 		// <String, List<V>>
 		Map<String, List<TemporalEntry<K, V>>> map = biz.__getAttachmentsEntriesBroadcast(validAtTime, asOfTime);
@@ -404,18 +431,16 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		return getEntryResultSet(validAtTime, asOfTime, orderBy, orderAcending, batchSize, forceRebuildIndex, -1);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(long validAtTime,
 			long asOfTime, String orderBy, boolean orderAcending, int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		if (biz.getBizContext().getGridService().isPureClient() == false) {
-			throw new PadoException(
-					"Unsupported method. This method is supported for pure clients only.");
+			throw new PadoException("Unsupported method. This method is supported for pure clients only.");
 		} else if (Pado.getPado(biz.getBizContext().getGridService().getToken()) == null) {
-			throw new PadoException(
-					"Access denied. Invalid session token: " + " [token="
-							+ biz.getBizContext().getGridService().getToken() + "]");
+			throw new PadoException("Access denied. Invalid session token: " + " [token="
+					+ biz.getBizContext().getGridService().getToken() + "]");
 		}
 		String gridPath = getGridPath();
 		String gridIds[] = this.biz.getBizContext().getGridService().getGridIds(gridPath);
@@ -428,12 +453,15 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		if (gridId == null) {
 			return null;
 		}
-		
+		if (orderBy != null) {
+			orderBy = orderBy.trim();
+		}
+
 		GridQuery criteria = GridQueryFactory.createGridQuery();
 		criteria.setId("pql://" + gridPath + "&validAt=" + validAtTime + "&asOf=" + asOfTime + " limit " + limit);
 		criteria.setAscending(orderAcending);
 		criteria.setFetchSize(100);
-		criteria.setOrdered(orderBy != null);
+		criteria.setOrdered(orderBy != null && orderBy.length() > 0);
 		criteria.setSortField(orderBy);
 		boolean sortKey = orderBy == null || orderBy.equals("WrittenTime") || orderBy.equals("EndWrittenTime")
 				|| orderBy.equals("StartValidTime") || orderBy.equals("EndValidTime") || orderBy.equals("Username")
@@ -450,24 +478,26 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		criteria.setParameter("asOfTime", asOfTime);
 		criteria.setParameter("isReference", isReference);
 		criteria.setParameter("depth", depth);
-		
-		IGridQueryService qs = GridQueryService.getGridQueryService();	
+
+		IGridQueryService qs = GridQueryService.getGridQueryService();
 		IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> rs = ((IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) qs
 				.query(criteria));
 		return rs;
-		
+
 		// TODO: Replace the above with the following
-//		BizGridQueryServiceImpl qs = (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();	
-//		IIndexMatrixBiz imBiz = pado.getCatalog().newInstance(IIndexMatrixBiz.class);
-//		return qs.query(imBiz, criteria);
+		// BizGridQueryServiceImpl qs =
+		// (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();
+		// IIndexMatrixBiz imBiz =
+		// pado.getCatalog().newInstance(IIndexMatrixBiz.class);
+		// return qs.query(imBiz, criteria);
 	}
 
 	@Override
 	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(
 			String queryStatement, String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex)
 	{
-		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSet(queryStatement,
-				-1, -1, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, ResultSetType.TEMPORAL_ENTRY);
+		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSet(queryStatement, -1,
+				-1, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, ResultSetType.TEMPORAL_ENTRY);
 	}
 
 	@Override
@@ -479,7 +509,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1,
 				ResultSetType.TEMPORAL_ENTRY);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryResultSet(
 			String queryStatement, long validAtTime, long asOfTime, String orderBy, boolean orderAscending,
@@ -489,25 +519,25 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 				validAtTime, asOfTime, orderBy, orderAscending, batchSize, forceRebuildIndex, limit,
 				ResultSetType.TEMPORAL_ENTRY);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
 			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex)
 	{
-		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSetWrittenTimeRange(queryStatement,
-				validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, 
-				ResultSetType.TEMPORAL_ENTRY);
+		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSetWrittenTimeRange(
+				queryStatement, validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize,
+				forceRebuildIndex, -1, ResultSetType.TEMPORAL_ENTRY);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryWrittenTimeRangeResultSet(
 			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
 	{
-		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSetWrittenTimeRange(queryStatement,
-				validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, limit,
-				ResultSetType.TEMPORAL_ENTRY);
+		return (IScrollableResultSet<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>>) getResultSetWrittenTimeRange(
+				queryStatement, validAtTime, fromWrittenTime, toWrittenTime, orderBy, orderAscending, batchSize,
+				forceRebuildIndex, limit, ResultSetType.TEMPORAL_ENTRY);
 	}
 
 	@Override
@@ -525,7 +555,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		return (IScrollableResultSet<V>) getResultSet(queryStatement, validAtTime, asOfTime, orderBy, orderAscending,
 				batchSize, forceRebuildIndex, -1, ResultSetType.VALUE);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<V> getValueResultSet(String queryStatement, long validAtTime, long asOfTime,
 			String orderBy, boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit)
@@ -533,7 +563,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		return (IScrollableResultSet<V>) getResultSet(queryStatement, validAtTime, asOfTime, orderBy, orderAscending,
 				batchSize, forceRebuildIndex, limit, ResultSetType.VALUE);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
 			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
@@ -542,7 +572,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		return (IScrollableResultSet<V>) getResultSetWrittenTimeRange(queryStatement, validAtTime, fromWrittenTime,
 				toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, -1, ResultSetType.VALUE);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<V> getValueWrittenTimeRangeResultSet(String queryStatement, long validAtTime,
 			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
@@ -552,66 +582,88 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 				toWrittenTime, orderBy, orderAscending, batchSize, forceRebuildIndex, limit, ResultSetType.VALUE);
 	}
 
+	@Override
+	public List<TemporalEntry<ITemporalKey<K>, ITemporalData<K>>> getEntryHistoryWrittenTimeRangeList(
+			String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime)
+	{
+		biz.getBizContext().reset();
+		return biz.getEntryHistoryWrittenTimeRangeList(queryStatement, validAtTime, fromWrittenTime, toWrittenTime);
+	}
+
+	@Override
+	public List<V> getValueHistoryWrittenTimeRangeList(String queryStatement, long validAtTime, long fromWrittenTime,
+			long toWrittenTime)
+	{
+		biz.getBizContext().reset();
+		return biz.getValueHistoryWrittenTimeRangeList(queryStatement, validAtTime, fromWrittenTime, toWrittenTime);
+	}
+
 	private IScrollableResultSet getResultSet(String queryStatement, long validAtTime, long asOfTime, String orderBy,
 			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit, ResultSetType type)
 	{
 		if (queryStatement == null) {
 			new NullPointerException("queryStatement is null");
 		}
-		GridQuery criteria = getGridQuery(queryStatement, validAtTime, orderBy, orderAscending, batchSize, forceRebuildIndex, type);
+		GridQuery criteria = getGridQuery(queryStatement, validAtTime, orderBy, orderAscending, batchSize,
+				forceRebuildIndex, type);
 		criteria.setParameter("asOfTime", asOfTime);
 		criteria.setId(criteria.getId() + "&asOf=" + asOfTime + " limit " + limit);
 		criteria.setLimit(limit);
 		IGridQueryService qs = GridQueryService.getGridQueryService();
 		IScrollableResultSet rs = qs.query(criteria);
 		return rs;
-		
+
 		// TODO: Replace the above with the following
-//		BizGridQueryServiceImpl qs = (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();
-//		IIndexMatrixBiz imBiz = pado.getCatalog().newInstance(IIndexMatrixBiz.class);
-//		return qs.query(imBiz, criteria);
+		// BizGridQueryServiceImpl qs =
+		// (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();
+		// IIndexMatrixBiz imBiz =
+		// pado.getCatalog().newInstance(IIndexMatrixBiz.class);
+		// return qs.query(imBiz, criteria);
 	}
-	
-	private IScrollableResultSet getResultSetWrittenTimeRange(String queryStatement, long validAtTime, long fromWrittenTime, long toWrittenTime, String orderBy,
-			boolean orderAscending, int batchSize, boolean forceRebuildIndex, int limit, ResultSetType type)
+
+	private IScrollableResultSet getResultSetWrittenTimeRange(String queryStatement, long validAtTime,
+			long fromWrittenTime, long toWrittenTime, String orderBy, boolean orderAscending, int batchSize,
+			boolean forceRebuildIndex, int limit, ResultSetType type)
 	{
 		if (queryStatement == null) {
 			new NullPointerException("queryStatement is null");
 		}
-		GridQuery criteria = getGridQuery(queryStatement, validAtTime, orderBy, orderAscending, batchSize, forceRebuildIndex, type);
+		GridQuery criteria = getGridQuery(queryStatement, validAtTime, orderBy, orderAscending, batchSize,
+				forceRebuildIndex, type);
 		criteria.setParameter("isWrittenTimeRange", true);
 		criteria.setParameter("fromWrittenTime", fromWrittenTime);
 		criteria.setParameter("toWrittenTime", toWrittenTime);
-		criteria.setId(criteria.getId() + "&fromWrittenTime=" + fromWrittenTime + "&toWrittenTime=" + toWrittenTime + " limit " + limit);
+		criteria.setId(criteria.getId() + "&fromWrittenTime=" + fromWrittenTime + "&toWrittenTime=" + toWrittenTime
+				+ " limit " + limit);
 		criteria.setLimit(limit);
 		IGridQueryService qs = GridQueryService.getGridQueryService();
 		IScrollableResultSet rs = qs.query(criteria);
 		return rs;
-		
+
 		// TODO: Replace the above with the following
-//		BizGridQueryServiceImpl qs = (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();
-//		IIndexMatrixBiz imBiz = pado.getCatalog().newInstance(IIndexMatrixBiz.class);
-//		return qs.query(imBiz, criteria);
+		// BizGridQueryServiceImpl qs =
+		// (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();
+		// IIndexMatrixBiz imBiz =
+		// pado.getCatalog().newInstance(IIndexMatrixBiz.class);
+		// return qs.query(imBiz, criteria);
 	}
-	
-	private GridQuery getGridQuery(String queryStatement, long validAtTime, String orderBy,
-			boolean orderAscending, int batchSize, boolean forceRebuildIndex, ResultSetType type)
+
+	private GridQuery getGridQuery(String queryStatement, long validAtTime, String orderBy, boolean orderAscending,
+			int batchSize, boolean forceRebuildIndex, ResultSetType type)
 	{
 		if (queryStatement == null) {
 			return null;
 		}
 		if (biz.getBizContext().getGridService().isPureClient() == false) {
-			throw new PadoException(
-					"Unsupported method. This method is supported for pure clients only.");
+			throw new PadoException("Unsupported method. This method is supported for pure clients only.");
 		} else if (Pado.getPado(biz.getBizContext().getGridService().getToken()) == null) {
-			throw new PadoException(
-					"Access denied. Invalid session token: " + " [token="
-							+ biz.getBizContext().getGridService().getToken() + "]");
+			throw new PadoException("Access denied. Invalid session token: " + " [token="
+					+ biz.getBizContext().getGridService().getToken() + "]");
 		}
 		String gridPath = getGridPath();
 		queryStatement = queryStatement.trim();
 		OrderByQueryString orderByQueryString = PqlParser.getOrderBy(queryStatement);
-		
+
 		String gridIds[];
 		String queryString;
 		String fullPath = null;
@@ -630,28 +682,27 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			gridIds = getBizContext().getGridService().getGridIds();
 			criteria.setId("pql://" + queryString + "&validAt=" + validAtTime);
 		} else {
-		
-			PqlParser pqlParser = new PqlParser(this.biz.getBizContext().getGridService(), orderByQueryString.queryString,
-					gridPath);
+
+			PqlParser pqlParser = new PqlParser(this.biz.getBizContext().getGridService(),
+					orderByQueryString.queryString, gridPath);
 			String gridPaths[] = pqlParser.getPaths();
 			if (gridPaths != null && gridPaths.length > 0) {
 				gridPath = gridPaths[0];
 			}
 			boolean isVirtualPath = pado.isVirtualPath(gridPath);
-			
-			if (isVirtualPath) {
-				gridIds = new String[] { this.biz.getBizContext().getGridService().getDefaultGridId() };
-			} else {
-				gridIds = pqlParser.getGridIds();
-			}
+
+			// if (isVirtualPath) {
+			// gridIds = new String[] {
+			// this.biz.getBizContext().getGridService().getDefaultGridId() };
+			// } else {
+			gridIds = pqlParser.getGridIds();
+			// }
 			queryString = pqlParser.getPql();
 			fullPath = pqlParser.getFullPath();
 			gridIds = pqlParser.getGridIds();
 			criteria.setId("pql://" + pqlParser.getFullPql() + "&validAt=" + validAtTime);
 		}
 
-		
-		
 		if (orderByQueryString.isAscending == false) {
 			criteria.setAscending(false);
 		} else {
@@ -663,8 +714,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		} else {
 			criteria.setSortField(orderByQueryString.orderBy);
 		}
-		
-		criteria.setOrdered(criteria.getSortField() != null);
+
+		criteria.setOrdered(criteria.getSortField() != null && criteria.getSortField().length() > 0);
 		criteria.setForceRebuildIndex(forceRebuildIndex);
 		criteria.setGridIds(gridIds);
 		criteria.setGridService(this.biz.getBizContext().getGridService());
@@ -675,7 +726,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		criteria.setParameter("isReference", isReference);
 		criteria.setParameter("depth", depth);
 		criteria.setParameter("type", type);
-		//ProcessTopN at last
+		// ProcessTopN at last
 		PqlParser.processTopN(queryString, criteria);
 		return criteria;
 	}
@@ -762,7 +813,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserializeTemporalEntrySet(biz.getAllEntrySet(identityKey));
 	}
 
@@ -771,7 +822,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserializeTemporalEntrySet(biz.getAllEntrySet(identityKey, validAtTime));
 	}
 
@@ -780,7 +831,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.getBizContext().reset();
 		biz.getBizContext().getGridContextClient().setRoutingKeys(Collections.singleton(identityKey));
-		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth);
+		biz.getBizContext().getGridContextClient().setAdditionalArguments(isReference, depth, virtualEntityPath);
 		return deserializeTemporalEntrySet(biz.getAllEntrySet(identityKey, validAtTime, asOfTime));
 	}
 
@@ -790,18 +841,16 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		return getLastTemporalEntries(orderBy, orderAcending, batchSize, forceRebuildIndex, -1);
 	}
-	
+
 	@Override
 	public IScrollableResultSet<TemporalEntry<K, V>> getLastTemporalEntries(String orderBy, boolean orderAcending,
 			int batchSize, boolean forceRebuildIndex, int limit)
 	{
 		if (biz.getBizContext().getGridService().isPureClient() == false) {
-			throw new PadoException(
-					"Unsupported method. This method is supported for pure clients only.");
+			throw new PadoException("Unsupported method. This method is supported for pure clients only.");
 		} else if (Pado.getPado(biz.getBizContext().getGridService().getToken()) == null) {
-			throw new PadoException(
-					"Access denied. Invalid session token: " + " [token="
-							+ biz.getBizContext().getGridService().getToken() + "]");
+			throw new PadoException("Access denied. Invalid session token: " + " [token="
+					+ biz.getBizContext().getGridService().getToken() + "]");
 		}
 		String gridPath = getGridPath();
 		String gridIds[] = this.biz.getBizContext().getGridService().getGridIds(gridPath);
@@ -815,12 +864,15 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			return null;
 		}
 		String fullPath = this.biz.getBizContext().getGridService().getFullPath(gridId, gridPath);
-		
+		if (orderBy != null) {
+			orderBy = orderBy.trim();
+		}
+
 		GridQuery criteria = GridQueryFactory.createGridQuery();
 		criteria.setId("pql://" + gridId + fullPath + " limit " + limit);
 		criteria.setAscending(orderAcending);
 		criteria.setFetchSize(batchSize);
-		criteria.setOrdered(true);
+		criteria.setOrdered(orderBy != null && orderBy.length() > 0);
 		criteria.setProviderKey(Constants.TEMPORAL_PROVIDER_KEY);
 		criteria.setQueryString(".*");
 		criteria.setGridIds(gridId);
@@ -829,15 +881,17 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		criteria.setSortField(orderBy);
 		criteria.setForceRebuildIndex(forceRebuildIndex);
 		criteria.setLimit(limit);
-		
-		IGridQueryService qs = GridQueryService.getGridQueryService();	
+
+		IGridQueryService qs = GridQueryService.getGridQueryService();
 		IScrollableResultSet<TemporalEntry<K, V>> rs = (IScrollableResultSet) qs.query(criteria);
 		return rs;
-		
+
 		// TODO: Replace the above with the following
-//		BizGridQueryServiceImpl qs = (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();	
-//		IIndexMatrixBiz imBiz = pado.getCatalog().newInstance(IIndexMatrixBiz.class);
-//		return qs.query(imBiz, criteria);
+		// BizGridQueryServiceImpl qs =
+		// (BizGridQueryServiceImpl)BizGridQueryService.getGridQueryService();
+		// IIndexMatrixBiz imBiz =
+		// pado.getCatalog().newInstance(IIndexMatrixBiz.class);
+		// return qs.query(imBiz, criteria);
 	}
 
 	@Override
@@ -876,8 +930,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		if (writtenTime < 0) {
 			writtenTime = System.currentTimeMillis();
 		}
-		ITemporalKey<K> tkey = new GemfireTemporalKey<K>(identityKey, startValidTime, endValidTime, writtenTime, biz
-				.getBizContext().getUserContext().getUsername());
+		ITemporalKey<K> tkey = new GemfireTemporalKey<K>(identityKey, startValidTime, endValidTime, writtenTime,
+				biz.getBizContext().getUserContext().getUsername());
 		ITemporalData<K> data;
 		ITemporalValue<K> tvalue;
 		if (value instanceof ITemporalData) {
@@ -925,8 +979,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		ITemporalKey<K> tkey;
 		try {
-			tkey = clientFactory.createTemporalKey(identityKey, startValidTime, endValidTime, writtenTime, biz
-					.getBizContext().getUserContext().getUsername());
+			tkey = clientFactory.createTemporalKey(identityKey, startValidTime, endValidTime, writtenTime,
+					biz.getBizContext().getUserContext().getUsername());
 			ITemporalData<K> data;
 			ITemporalValue<K> tvalue;
 			if (value instanceof ITemporalData) {
@@ -969,7 +1023,7 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 	{
 		biz.remove(identityKey);
 	}
-	
+
 	@Override
 	public boolean isRemoved(K identityKey)
 	{
@@ -1098,7 +1152,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 				// Broadcast. One request.
 				Collection<AttachmentSet<K>> col = attachmentMap.values();
 				AttachmentSet<K>[] attSets = col.toArray(new AttachmentSet[col.size()]);
-				biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth);
+				biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth,
+						virtualEntityPath);
 
 				Map<String, List<V>> map = biz.__getAttachmentsBroadcast(validAtTime, asOfTime);
 				deserializeAttachmentValueListMap(map);
@@ -1109,8 +1164,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 					String name = entry.getKey();
 					AttachmentSet<K> attachmentSet = entry.getValue();
 					biz.getBizContext().getGridContextClient().setRoutingKeys(attachmentSet.getAttachments());
-					biz.getBizContext().getGridContextClient()
-							.setAdditionalArguments(attachmentSet.getFilter(), isReference, depth);
+					biz.getBizContext().getGridContextClient().setAdditionalArguments(attachmentSet.getFilter(),
+							isReference, depth, virtualEntityPath);
 					biz.getBizContext().getGridContextClient().setGridPath(attachmentSet.getGridPath());
 					List<V> list = biz.__getAttachments(validAtTime, asOfTime);
 					deserialize(list);
@@ -1234,11 +1289,12 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 				biz.getBizContext().getGridContextClient().setGridIds(gridIdSet.toArray(new String[gridIdSet.size()]));
 				Collection<AttachmentSet<K>> col = attachmentMap.values();
 				AttachmentSet<K>[] attSets = col.toArray(new AttachmentSet[col.size()]);
-				biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth);
+				biz.getBizContext().getGridContextClient().setAdditionalArguments(attSets, isReference, depth,
+						virtualEntityPath);
 
 				// <String, List<V>>
-				Map<String, List<TemporalEntry<K, V>>> map = biz
-						.__getAttachmentsEntriesBroadcast(validAtTime, asOfTime);
+				Map<String, List<TemporalEntry<K, V>>> map = biz.__getAttachmentsEntriesBroadcast(validAtTime,
+						asOfTime);
 				deserializeAttachementMap(map);
 				results.setAttachmentValues(map);
 
@@ -1247,15 +1303,15 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 					String name = entry.getKey();
 					AttachmentSet<K> attachmentSet = entry.getValue();
 					biz.getBizContext().getGridContextClient().setRoutingKeys(attachmentSet.getAttachments());
-					biz.getBizContext().getGridContextClient()
-							.setAdditionalArguments(attachmentSet.getFilter(), isReference, depth);
+					biz.getBizContext().getGridContextClient().setAdditionalArguments(attachmentSet.getFilter(),
+							isReference, depth, virtualEntityPath);
 					biz.getBizContext().getGridContextClient().setGridPath(attachmentSet.getGridPath());
 					Map<ITemporalKey<K>, ITemporalData<K>> map = biz.__getAttachmentsEntries(validAtTime, asOfTime);
 					map = deserialize(map);
 					List list = new ArrayList(map.size());
 					for (Map.Entry<ITemporalKey<K>, ITemporalData<K>> entry2 : map.entrySet()) {
-						TemporalEntry te = TemporalInternalFactory.getTemporalInternalFactory().createTemporalEntry(
-								entry2.getKey(), entry2.getValue());
+						TemporalEntry te = TemporalInternalFactory.getTemporalInternalFactory()
+								.createTemporalEntry(entry2.getKey(), entry2.getValue());
 						list.add(te);
 					}
 					valueMap.put(name, list);
@@ -1356,8 +1412,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 			}
 			biz.getBizContext().reset();
 			biz.getBizContext().getGridContextClient().setRoutingKeys(attachmentSet.getAttachments());
-			biz.getBizContext().getGridContextClient()
-					.setAdditionalArguments(attachmentSet.getFilter(), isReference, depth);
+			biz.getBizContext().getGridContextClient().setAdditionalArguments(attachmentSet.getFilter(), isReference,
+					depth, virtualEntityPath);
 			biz.getBizContext().getGridContextClient().setGridPath(attachmentSet.getGridPath());
 			attachmentValues[i] = biz.__getAttachments(validAtTime, asOfTime);
 			deserialize(attachmentValues[i]);
@@ -1432,8 +1488,8 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 				continue;
 			}
 			biz.getBizContext().getGridContextClient().setRoutingKeys(attachmentSet.getAttachments());
-			biz.getBizContext().getGridContextClient()
-					.setAdditionalArguments(attachmentSet.getFilter(), isReference, depth);
+			biz.getBizContext().getGridContextClient().setAdditionalArguments(attachmentSet.getFilter(), isReference,
+					depth, virtualEntityPath);
 			biz.getBizContext().getGridContextClient().setGridPath(attachmentSet.getGridPath());
 			map[i] = biz.__getAttachmentsEntries(validAtTime, asOfTime);
 			deserialize(map[i]);
@@ -1513,5 +1569,26 @@ public class TemporalBizImplLocal<K, V> implements ITemporalBiz<K, V>, IBizLocal
 		}
 
 		return sets;
+	}
+
+	@Override
+	public int size()
+	{
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int size(long validAtTime, long asOfTime)
+	{
+		biz.getBizContext().reset();
+		return biz.size(validAtTime, asOfTime);
+	}
+
+	@Override
+	public int getTemporalListCount()
+	{
+		biz.getBizContext().reset();
+		return biz.getTemporalListCount();
 	}
 }

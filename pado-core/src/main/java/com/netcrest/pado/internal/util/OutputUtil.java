@@ -458,15 +458,17 @@ public class OutputUtil
 				String indexStr = "";
 				if (compositeKeyInfo != null) {
 					int[] routingKeyIndexes = compositeKeyInfo.getRoutingKeyIndexes();
-					for (int i = 0; i < routingKeyIndexes.length; i++) {
-						if (i == 0) {
-							indexStr = routingKeyIndexes[i] + "";
-						} else {
-							indexStr += "," + routingKeyIndexes[i];
+					if (routingKeyIndexes != null) {
+						for (int i = 0; i < routingKeyIndexes.length; i++) {
+							if (i == 0) {
+								indexStr = routingKeyIndexes[i] + "";
+							} else {
+								indexStr += "," + routingKeyIndexes[i];
+							}
 						}
-					}
-					if (indexStr.length() > 0) {
-						writer.println(SchemaInfo.PROP_ROUTING_KEY_INDEXES + "=" + indexStr);
+						if (indexStr.length() > 0) {
+							writer.println(SchemaInfo.PROP_ROUTING_KEY_INDEXES + "=" + indexStr);
+						}
 					}
 					String compositeKeyDelimiter = compositeKeyInfo.getCompositeKeyDelimiter();
 					if (compositeKeyDelimiter != null) {
@@ -549,10 +551,12 @@ public class OutputUtil
 				Collections.sort(keyList);
 				for (Object key : keyList) {
 					Object val = mapObj.get(key);
-					writer.print(key.toString() + ", ");
 					if (val == null) {
-						writer.println("Object");
+						writer.println("# " + key.toString() + " - undefined type due to null value. Set to String.");
+						writer.print(key.toString() + ", ");
+						writer.println("java.lang.String");
 					} else {
+						writer.print(key.toString() + ", ");
 						writer.println(val.getClass().getName());
 					}
 				}

@@ -100,6 +100,8 @@ abstract class VirtualCompiledUnit
 	 */
 	protected CompiledUnit allCUs[];
 
+	protected KeyMap vpd;
+	
 	private KeyType returnKeyType;
 	protected KeyType inputKeyType;
 	private Class inputClass;
@@ -163,6 +165,7 @@ abstract class VirtualCompiledUnit
 	 */
 	public VirtualCompiledUnit(KeyMap vpd)
 	{
+		this.vpd = vpd;
 		compile(vpd);
 	}
 

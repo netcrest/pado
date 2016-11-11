@@ -1,0 +1,19 @@
+{
+   "QueryDescription": "Given OrderID, return order detail objects with product objects",
+   "VirtualPath": "entity/nw/order",
+   "Query": "",
+   "InputDescription": "OrderID: Order ID",
+   "IsPersist": false,
+   "UpdateIntervalInSec": 60,
+   "IsUpdate": false,
+   "IsEntity": true,
+   "EntityGridPath": "nw/orders",
+   "EntityRelationships": [
+                {
+                   "Arg": "OrderDetailList",
+                   "IsOne": false,
+                   "Depth": 2,
+                   "Query": "entity/nw/order_detail?OrderID:${OrderID}"
+                }
+             ]
+} 

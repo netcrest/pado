@@ -400,6 +400,20 @@ public abstract class TemporalManager
 	}
 
 	/**
+	 * Returns the total count of entries that satisfy the specified valid-at
+	 * and as-of times.
+	 * 
+	 * @param validAtTime
+	 *            The time at which the value is valid.
+	 * @param asOfTime
+	 *            The as-of time compared against the written times.
+	 */
+	public int getTemporalListCount(long validAtTime, long asOfTime)
+	{
+		return temporalManager.getTemporalListCount(validAtTime, asOfTime);
+	}
+	
+	/**
 	 * Enables/disables Lucene indexing for all temporal paths. Note that
 	 * enabling disabled paths requires rebuilding of Lucene indexes from
 	 * scratch in order to synchronize with dynamic indexes.
@@ -463,6 +477,17 @@ public abstract class TemporalManager
 	public boolean isLuceneEnabled()
 	{
 		return isLuceneEnabled;
+	}
+	
+	/**
+	 * Permanently removes the specified temporal key and its mapped data from the
+	 * grid. Data is not recoverable after this call.
+	 * 
+	 * @param temporalKey Temporal key
+	 */
+	public ITemporalData removePermanently(ITemporalKey temporalKey)
+	{
+		return temporalManager.removePermanently(temporalKey);
 	}
 
 	/**

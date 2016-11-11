@@ -65,6 +65,14 @@ public class JsonLiteStringWriter<V>
 		}
 		try {
 			boolean commanate = false;
+			if (jl.valueMap == null) {
+				writer.write('{');
+				if (indentFactor > 0) {
+					writer.write('\n');
+				}
+				writer.write('}');
+				return writer;
+			}
 			final int length = jl.valueMap.size();
 			String[] keys = jl.valueMap.keySet().toArray(new String[length]);
 			writer.write('{');

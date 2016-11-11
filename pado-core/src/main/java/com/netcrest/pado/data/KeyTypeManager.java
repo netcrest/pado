@@ -40,6 +40,7 @@ import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.info.KeyTypeInfo;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.pql.PadoQueryParser;
+import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.server.VirtualPathEngine;
 
 /**
@@ -203,20 +204,21 @@ public class KeyTypeManager
 		List<String> classNameList = new ArrayList<String>();
 		for (Map<Integer, KeyType> map : col) {
 			String className = null;
-//			int version = -1;
+			// int version = -1;
 			for (KeyType keyType : map.values()) {
 				KeyType mainKeyType = getMainKeyType(keyType);
 				if (mainKeyType != null) {
 					className = mainKeyType.getClass().getName();
 					break;
 				}
-//				if (keyType.getVersion() >= version) {
-//					className = keyType.getClass().getName();
-//					if (keyType.getClass().getName().matches(".*_v\\d+$") == false) {
-//						break;
-//					}
-//					version = keyType.getVersion();
-//				}
+				// if (keyType.getVersion() >= version) {
+				// className = keyType.getClass().getName();
+				// if (keyType.getClass().getName().matches(".*_v\\d+$") ==
+				// false) {
+				// break;
+				// }
+				// version = keyType.getVersion();
+				// }
 			}
 			if (className != null) {
 				classNameList.add(className);
@@ -529,7 +531,8 @@ public class KeyTypeManager
 	 *            index.
 	 * @return Returns the translated key type of the toKeyType version.
 	 *         <ul>
-	 *         <li>Returns fromKeyType if fromKeyType and toKeyType are same.</li>
+	 *         <li>Returns fromKeyType if fromKeyType and toKeyType are same.
+	 *         </li>
 	 *         <li>Returns null if any of the specified key types is null.</li>
 	 *         <li>Returns fromKeyType if toKeyType is of a different type,
 	 *         i.e., fromKeyType.getId() != toKeyType.getId().</li>
@@ -809,7 +812,8 @@ public class KeyTypeManager
 	 *       "Depth": 3
 	 *    }
 	 * }
-	 * </pre>
+	 *            </pre>
+	 * 
 	 * @param isPersist
 	 *            True to persist to the DB, false to register in memory only.
 	 * @throws IOException
@@ -892,8 +896,8 @@ public class KeyTypeManager
 
 			// Set references found for this KeyType version.
 			// This sets references to each versioned KeyType class.
-			keyType.setReferences(referenceKeyTypeListForVersion.toArray(new KeyType[referenceKeyTypeListForVersion
-					.size()]));
+			keyType.setReferences(
+					referenceKeyTypeListForVersion.toArray(new KeyType[referenceKeyTypeListForVersion.size()]));
 		}
 
 		queryMap.put((UUID) latestKeyType.getId(), map);
@@ -1002,26 +1006,27 @@ public class KeyTypeManager
 	 * 
 	 * @param dbDir
 	 *            DB directory.
-	 * @param virtualPathDefinition
+	 * @param vpd
 	 *            Virtual path definition
+	 * @param isPersist
+	 *            true to store the specified vpd in the specified DB directdory.
 	 * @throws IOException
 	 *             Thrown if a DB error occurs.
 	 */
-	public static void registerVirtualPath(String dbDir, KeyMap virtualPathDefinition, boolean isPersist)
-			throws IOException
+	public static void registerVirtualPath(String dbDir, KeyMap vpd, boolean isPersist) throws IOException
 	{
-		if (virtualPathDefinition == null) {
+		if (vpd == null) {
 			return;
 		}
-		String virtualPath = (String) virtualPathDefinition.get("VirtualPath");
+		String virtualPath = (String) vpd.get("VirtualPath");
 		if (virtualPath == null) {
 			return;
 		}
 
-		virtualPathDefinitionMap.put(virtualPath, virtualPathDefinition);
+		virtualPathDefinitionMap.put(virtualPath, vpd);
 
 		if (isPersist) {
-			String str = virtualPathDefinition.toString(3, false, false);
+			String str = vpd.toString(3, false, false);
 			File vpDir = new File(dbDir, "vp");
 			String vpName = virtualPath.replaceAll("\\/", ".");
 			File file = new File(vpDir, vpName + ".json");
@@ -1036,7 +1041,8 @@ public class KeyTypeManager
 			}
 		}
 
-		VirtualPathEngine.getVirtualPathEngine().addVirtualPathDefinition(virtualPathDefinition);
+		VirtualPathEngine.getVirtualPathEngine()
+				.addVirtualPathDefinition(PadoServerManager.getPadoServerManager().getCatalog(), vpd);
 		Logger.config("VirtualPathDefinition registered: " + virtualPath);
 	}
 
@@ -1170,6 +1176,8 @@ public class KeyTypeManager
 					}
 				}
 			}
+
+			Logger.config("KeyTypes in the database reset: " + dbDir + ". All KeyTypes reloaded and registered.");
 		}
 
 		// Reset the CUs so that the new query references can be compiled.
@@ -1203,6 +1211,8 @@ public class KeyTypeManager
 				Logger.error("Error reading file: " + file.getAbsolutePath(), e);
 			}
 		}
+		Logger.config("Virtual path definitions in the database reset: " + dbDir
+				+ ". All definitions reloaded and registered.");
 	}
 
 	public static void dumpDb()

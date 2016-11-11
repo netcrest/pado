@@ -1,0 +1,6 @@
+{
+   "QueryDescription": "Given customer information, aggregate all customer relevant data including orders, order details, products, suppliers and categories. Return the results in aggregated object graphs, i.e. \"uses' entity relationships.",
+   "VirtualPath": "stitch/nw/customer_aggregation",
+   "Query": "select * from nw/customers c\njoin nw/customers c ON c?${CustomerInfo}\njoin nw/orders o TO MANY OrderList ON  o.CustomerID:c.CustomerID\njoin nw/shippers ship TO ONE Shipper ON ship.ShipperID:o.ShipVia\njoin nw/order_details od TO MANY OrderDetailList ON od.OrderID:o.OrderID\njoin nw/products p TO ONE Product ON p.ProductID:od.ProductID\njoin nw/suppliers s TO ONE Supplier ON s.SupplierID:p.SupplierID\njoin nw/categories cat TO ONE Category ON cat.CategoryID:p.CategoryID\nNEST BY AGGREGATION",
+   "InputDescription": "CustomerInfo: Any string values in nw/customers, i.e., customer ID, customer name, etc."
+}

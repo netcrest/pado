@@ -23,54 +23,134 @@ import javax.annotation.Resource;
 
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
+import com.netcrest.pado.biz.IVirtualPathBiz;
 import com.netcrest.pado.data.KeyMap;
 import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.util.PadoUtil;
+import com.netcrest.pado.pql.VirtualCompiledUnit2;
+import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.server.VirtualPathEngine;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes" })
 public class VirtualPathBizImpl
 {
 	@Resource
 	IBizContextServer bizContext;
 
 	@BizMethod
+	public List __execute(String virtualPath, int depth, long validAtTime, long asOfTime, String... args)
+	{
+		VirtualPathEngine vpe = VirtualPathEngine.getVirtualPathEngine();
+		VirtualCompiledUnit2 vcu = vpe.getVirtualCompiledUnit(virtualPath);
+		if (vcu != null && vcu.isEntity()) {
+			List results = vpe.executeEntity(virtualPath, validAtTime, asOfTime, args);
+			if (results != null && depth != 0) {
+				if (results.size() > 0) {
+					if (results.get(0) instanceof KeyMap) {
+						if (depth > IVirtualPathBiz.MAX_DEPTH) {
+							depth = IVirtualPathBiz.MAX_DEPTH;
+						} else if (depth < -1) {
+							depth = -1;
+						}
+						VirtualPathEntityFinder finder = new VirtualPathEntityFinder();
+						for (Object obj : results) {
+							KeyMap keyMap = (KeyMap) obj;
+							// Following returns the same keyMap.
+							finder.getReferences(PadoServerManager.getPadoServerManager().getCatalog(), virtualPath,
+									keyMap, depth, validAtTime, asOfTime, null);
+						}
+					}
+
+				}
+			}
+			return results;
+		} else {
+			return vpe.execute(virtualPath, validAtTime, asOfTime, args);
+		}
+	}
+
+	@BizMethod
+	public List __executeEntity(String virtualPath, int depth, long validAtTime, long asOfTime, String... args)
+	{
+		VirtualPathEngine vpe = VirtualPathEngine.getVirtualPathEngine();
+		List results = vpe.executeEntity(virtualPath, validAtTime, asOfTime, args);
+		if (results != null && depth != 0) {
+			if (results.size() > 0) {
+				if (results.get(0) instanceof KeyMap) {
+					if (depth > IVirtualPathBiz.MAX_DEPTH) {
+						depth = IVirtualPathBiz.MAX_DEPTH;
+					} else if (depth < -1) {
+						depth = -1;
+					}
+					VirtualPathEntityFinder finder = new VirtualPathEntityFinder();
+					for (Object obj : results) {
+						KeyMap keyMap = (KeyMap) obj;
+						// Following returns the same keyMap.
+						finder.getReferences(PadoServerManager.getPadoServerManager().getCatalog(), virtualPath, keyMap,
+								depth, validAtTime, asOfTime, null);
+					}
+				}
+			}
+		}
+		return results;
+	}
+
+	@BizMethod
+	public List __executeVirtualPathDefinition(KeyMap vpd, int depth, long validAtTime, long asOfTime, String... args)
+	{
+		VirtualPathEngine vpe = VirtualPathEngine.getVirtualPathEngine();
+		List results = vpe.executeVirtualPathDefinition(vpd, validAtTime, asOfTime, args);
+		if (results != null && depth != 0) {
+			if (results.size() > 0) {
+				if (results.get(0) instanceof KeyMap) {
+					if (depth > IVirtualPathBiz.MAX_DEPTH) {
+						depth = IVirtualPathBiz.MAX_DEPTH;
+					} else if (depth < -1) {
+						depth = -1;
+					}
+					VirtualPathEntityFinder finder = new VirtualPathEntityFinder();
+					for (Object obj : results) {
+						KeyMap keyMap = (KeyMap) obj;
+						// Following returns the same keyMap.
+						finder.getReferences(PadoServerManager.getPadoServerManager().getCatalog(), vpd, keyMap,
+								depth, validAtTime, asOfTime, null);
+					}
+				}
+			}
+		}
+		return results;
+	}
+
+	@BizMethod
 	public KeyMap getVirtualPathDefinition(String virtualPath)
 	{
 		return KeyTypeManager.getVirtualPathDefinition(virtualPath);
 	}
-	
+
 	@BizMethod
 	public void addVirtualPathDefinition(KeyMap virtualPathDefinition) throws IOException
 	{
 		String dbDir = PadoUtil.getProperty(Constants.PROP_DB_DIR);
 		KeyTypeManager.registerVirtualPath(dbDir, virtualPathDefinition, true);
 	}
-	
+
 	@BizMethod
 	public void removeVirtualPathDefinition(String virtualPath)
 	{
 		String dbDir = PadoUtil.getProperty(Constants.PROP_DB_DIR);
 		KeyTypeManager.removeVirtualPath(dbDir, virtualPath);
 	}
-	
+
 	@BizMethod
 	public String[] getAllVirtualPaths()
 	{
 		return KeyTypeManager.getAllVirtualPaths();
 	}
-	
+
 	@BizMethod
 	public Map<String, KeyMap> getAllVirtualPathDefinitions()
 	{
 		return KeyTypeManager.getAllVirtualPathDefinitions();
-	}
-	
-	@BizMethod
-	public List execute(String virtualPath, Object input, long validAtTime, long asOfTime)
-	{
-		VirtualPathEngine vpe = VirtualPathEngine.getVirtualPathEngine();
-		return vpe.execute(virtualPath, input, validAtTime, asOfTime);
 	}
 }

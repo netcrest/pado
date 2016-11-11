@@ -4,6 +4,13 @@
 ©2013-2016 Netcrest Technologies, LLC. All rights reserved.
 https://github.com/netcrest/pado
 
+Release: Version 0.4.1-B1
+Release Date: 06/17/2016
+
+- Added preliminary support for "entity" and "stitch" virtual paths that replace the previous virtual paths.
+
+*************************************************************************
+
 Release: Version 0.4.0-B4
 Release Date: 06/02/2016
 

@@ -27,7 +27,7 @@ popd > /dev/null 2>&1
 # its subdirectories in the class path. 
 #
 PLUGINS_JARS=
-for file in `find $BASE_DIR/plugins -name *.jar`
+for file in `find $PADO_PLUGINS_DIR -maxdepth 1 -name *.jar |sort -r`
 do
   if [ "${PLUGINS_JARS}" ]; then
     PLUGINS_JARS=${PLUGINS_JARS}:${file}

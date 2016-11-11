@@ -1,0 +1,12 @@
+{
+   "InputDescription": "ProductID: Product ID",
+   "EntityRelationships": [{
+         "Depth": 1,
+         "Arg": "Product",
+         "Query": "entity/nw/products?ProductID:${ProductID}",
+         "IsOne": true
+      }],
+   "EntityGridPath": "nw/order_details",
+   "VirtualPath": "entity/nw/order_detail",
+   "IsEntity": true
+}

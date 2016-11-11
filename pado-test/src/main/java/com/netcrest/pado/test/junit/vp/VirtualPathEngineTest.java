@@ -30,20 +30,18 @@ import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.PadoLoginException;
 import com.netcrest.pado.server.VirtualPathEngine;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class VirtualPathEngineTest
 {
-	private static IPado pado;
-
 	@BeforeClass
 	public static void loginPado() throws PadoLoginException, FileNotFoundException, IOException
 	{
-//		System.setProperty("gemfirePropertyFile", "etc/client/client.properties");
-//		Pado.connect("localhost:20000", true);
-//		pado = Pado.login("sys", "netcrest", "dpark", "dpark".toCharArray());
-		
-//		JsonLite vpd = new JsonLite(new File("db/vp/prms.vp_prms_customer_consignment_inventory.json"));
-		JsonLite vpd = new JsonLite(new File("db/vp/asset.vp_alteryx.json"));
-		VirtualPathEngine.getVirtualPathEngine().addVirtualPathDefinition(vpd);
+		System.setProperty("gemfirePropertyFile", "etc/client/client.properties");
+		Pado.connect("localhost:20000", true);
+		IPado pado = Pado.login("sys", "netcrest", "dpark", "dpark".toCharArray());
+
+		JsonLite vpd = new JsonLite(new File("db/vp/nw.vp_products.json"));
+		VirtualPathEngine.getVirtualPathEngine().addVirtualPathDefinition(pado.getCatalog(), vpd);
 	}
 
 	@AfterClass
@@ -52,19 +50,16 @@ public class VirtualPathEngineTest
 		Pado.close();
 	}
 
-
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void testVirtualPathEngine()
 	{
 		System.out.println("VirtualPathEngineTest.testVirtualPathEngine()");
 		System.out.println("---------------------------------------------");
-//		String pql = "prms/vp_prms_customer_consignment_inventory?IndUcn:2710";
-		String pql = "asset/vp_alteryx?FISCPER:2014011 AND USLCHDID:P04005";
+		String pql = "nw/vp_products?choco* Gula";
 		List<JsonLite> list = VirtualPathEngine.getVirtualPathEngine().execute(pql, -1, -1);
+		int i = 0;
 		for (JsonLite jl : list) {
-			System.out.println(jl);
+			System.out.println(++i + ". " + jl.toString(4, false, false));
 		}
-		System.out.println(list);
 	}
 }

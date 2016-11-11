@@ -23,8 +23,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
-import com.netcrest.pado.util.GridUtil;
 import com.netcrest.pado.server.PadoServerManager;
+import com.netcrest.pado.util.GridUtil;
 
 /**
  * PadoInfo provides Pado grid information.
@@ -59,6 +59,7 @@ public abstract class PadoInfo {
 	protected Map<String, GridPathInfo> gridPathInfoMap;
 	protected transient GridInfo[] gridInfos;
 	protected transient List<PathInfo> pathInfoList;
+	protected transient List<VirtualPathInfo> vpPathInfoList;
 	protected transient List<PathInfo> temporalPathInfoList;
 	protected transient List<String> temporalFullPathList;
 
@@ -172,11 +173,11 @@ public abstract class PadoInfo {
 	}
 
 	/**
-	 * Returns all PathInfo objects including parent and child grids.
+	 * Returns all physical PathInfo objects including parent and child grids.
 	 */
 	public synchronized List<PathInfo> getPathInfoList() {
 		if (pathInfoList == null) {
-			pathInfoList = new ArrayList();
+			pathInfoList = new ArrayList<PathInfo>();
 			if (gridInfo != null) {
 				pathInfoList.addAll(gridInfo.getCacheInfo().getAllPathInfoList());
 			}
@@ -190,8 +191,33 @@ public abstract class PadoInfo {
 					pathInfoList.addAll(gridInfo.getCacheInfo().getAllPathInfoList());
 				}
 			}
+//			Collections.sort(pathInfoList);
 		}
 		return pathInfoList;
+	}
+	
+	/**
+	 * Returns all virtual PathInfo objects including parent and child grids.
+	 */
+	public synchronized List<VirtualPathInfo> getVitualPathInfoList() {
+		if (vpPathInfoList == null) {
+			vpPathInfoList = new ArrayList<VirtualPathInfo>();
+			if (gridInfo != null) {
+				vpPathInfoList.addAll(gridInfo.getCacheInfo().getAllVirtualPathInfoList());
+			}
+			if (parentGridInfos != null) {
+				for (GridInfo gridInfo : parentGridInfos) {
+					vpPathInfoList.addAll(gridInfo.getCacheInfo().getAllVirtualPathInfoList());
+				}
+			}
+			if (childGridInfos != null) {
+				for (GridInfo gridInfo : childGridInfos) {
+					vpPathInfoList.addAll(gridInfo.getCacheInfo().getAllVirtualPathInfoList());
+				}
+			}
+//			Collections.sort(vpPathInfoList);
+		}
+		return vpPathInfoList;
 	}
 
 	/**
@@ -199,7 +225,7 @@ public abstract class PadoInfo {
 	 */
 	public synchronized List<PathInfo> getTemporalPathInfoList() {
 		if (temporalPathInfoList == null) {
-			temporalPathInfoList = new ArrayList();
+			temporalPathInfoList = new ArrayList<PathInfo>();
 			if (gridInfo != null) {
 				temporalPathInfoList.addAll(gridInfo.getCacheInfo().getAllTemporalPathInfoList());
 			}
@@ -222,7 +248,7 @@ public abstract class PadoInfo {
 	 */
 	public synchronized List<String> getTemporalFullPaths() {
 		if (temporalFullPathList == null) {
-			temporalFullPathList = new ArrayList();
+			temporalFullPathList = new ArrayList<String>();
 			if (gridInfo != null) {
 				temporalFullPathList.addAll(gridInfo.getCacheInfo().getAllTemporalFullPaths());
 			}
@@ -297,6 +323,16 @@ public abstract class PadoInfo {
 	public PathInfo getPathInfo(String fullPath) {
 		List<PathInfo> pathInfoList = getPathInfoList();
 		for (PathInfo pathInfo : pathInfoList) {
+			if (pathInfo.getFullPath().equals(fullPath)) {
+				return pathInfo;
+			}
+		}
+		return null;
+	}
+	
+	public VirtualPathInfo getVirtualPathInfo(String fullPath) {
+		List<VirtualPathInfo> vpList = getVitualPathInfoList();
+		for (VirtualPathInfo pathInfo : vpList) {
 			if (pathInfo.getFullPath().equals(fullPath)) {
 				return pathInfo;
 			}

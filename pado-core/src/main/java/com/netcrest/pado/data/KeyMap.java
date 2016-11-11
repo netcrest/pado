@@ -32,7 +32,8 @@ public interface KeyMap<V> extends Map<String, V>
 {
 	/**
 	 * Returns the key type ID that is universally unique. This call is
-	 * equivalent to <code>getKeyType().getId()</code>.
+	 * equivalent to <code>getKeyType().getId()</code>. It returns null if
+	 * KeyType is undefined.
 	 */
 	public Object getId();
 
@@ -45,13 +46,14 @@ public interface KeyMap<V> extends Map<String, V>
 	public int getKeyCount();
 
 	/**
-	 * Returns the key type constant used to initialize this object.
+	 * Returns the key type constant used to initialize this object. It returns
+	 * null if KeyType is undefined.
 	 */
 	public KeyType getKeyType();
 
 	/**
 	 * Returns the fully qualified class name of the key type. It returns null
-	 * if the key type is not defined.
+	 * if the key type is undefined.
 	 */
 	public String getKeyTypeName();
 
@@ -165,13 +167,13 @@ public interface KeyMap<V> extends Map<String, V>
 	 * @return null if the reference object does not exist
 	 */
 	public Object getReference(String refKeyType);
-	
+
 	/**
 	 * Returns true if reference objects exists. It returns false if references
 	 * are not defined in KeyType.
 	 */
 	public boolean hasReferences();
-	
+
 	/**
 	 * Returns indented string representation of JsonLite for display purposes.
 	 * <p>

@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.biz.impl.gemfire;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -26,13 +27,18 @@ import com.netcrest.pado.IPado;
 import com.netcrest.pado.IVirtualPath;
 import com.netcrest.pado.biz.IVirtualPathBiz;
 import com.netcrest.pado.data.KeyMap;
+import com.netcrest.pado.index.service.GridQuery;
+import com.netcrest.pado.index.service.IScrollableResultSet;
+import com.netcrest.pado.internal.pql.antlr4.LocalSrollableResultSet;
+import com.netcrest.pado.pql.VirtualCompiledUnit2;
 import com.netcrest.pado.pql.VirtualPath;
 
 public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 {
-	@Resource IVirtualPathBiz<T> biz;
+	@Resource
+	IVirtualPathBiz<T> biz;
 	private IPado pado;
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -60,6 +66,33 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 	{
 		return biz.getBizContext();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<T> __execute(String virtualPath, int depth, long validAt, long asOf, String... args)
+	{
+		return biz.__execute(virtualPath, depth, validAt, asOf, args);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<T> __executeEntity(String virtualPath, int depth, long validAt, long asOf, String... args)
+	{
+		return biz.__executeEntity(virtualPath, depth, validAt, asOf, args);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<T> __executeVirtualPathDefinition(KeyMap vpd, int depth, long validAt, long asOf, String... args)
+	{
+		return __executeVirtualPathDefinition(vpd, depth, validAt, asOf, args);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -70,7 +103,7 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 	{
 		return biz.getVirtualPathDefinition(virtualPath);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -78,7 +111,7 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 	{
 		return getVirtualPath(virtualPath, -1);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -106,6 +139,10 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 		if (virtualPathDefinition == null) {
 			return;
 		}
+		
+		// See if this throws an exception for invalid entity PQL
+		new VirtualCompiledUnit2(virtualPathDefinition);
+		
 		// TODO: validate it first
 		biz.addVirtualPathDefinition(virtualPathDefinition);
 	}
@@ -121,7 +158,7 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 		}
 		biz.removeVirtualPathDefinition(virtualPath);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -130,7 +167,7 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 	{
 		return biz.getAllVirtualPaths();
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -140,5 +177,119 @@ public class VirtualPathBizImplLocal<T> implements IVirtualPathBiz<T>, IBizLocal
 	{
 		return biz.getAllVirtualPathDefinitions();
 	}
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IScrollableResultSet<T> execute(String virtualPath, long validAt, long asOf, String... args)
+	{
+		return execute(virtualPath, 0, validAt, asOf, args);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IScrollableResultSet<T> execute(String virtualPath, int depth, long validAt, long asOf, String... args)
+	{
+		if (depth < -1) {
+			depth = -1;
+		} else if (depth > MAX_DEPTH) {
+			depth = MAX_DEPTH;
+		}
+		List<T> results = biz.__execute(virtualPath, depth, validAt, asOf, args);
+		if (results == null) {
+			return null;
+		} else {
+			GridQuery gridQuery = new GridQuery();
+			String gridIds[] = getBizContext().getGridContextClient().getGridIds();
+			gridQuery.setGridIds(gridIds);
+			if (gridIds != null && gridIds.length>0) {
+				gridQuery.setFullPath(getBizContext().getGridService().getFullPath(gridIds[0], virtualPath));
+			}
+			String queryId = virtualPath + "?";
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					if (i > 0) {
+						queryId += ",";
+					}
+					queryId += args[i];
+				}
+			}
+			gridQuery.setId(queryId);
+			return new LocalSrollableResultSet<T>(gridQuery, results);
+		}
+	}
+	
+	@Override
+	public IScrollableResultSet<T> executeEntity(String virtualPath, long validAt, long asOf, String... args)
+	{
+		return executeEntity(virtualPath, 0, validAt, asOf, args);
+	}
+	
+	@Override
+	public IScrollableResultSet<T> executeEntity(String virtualPath, int depth, long validAt, long asOf, String... args)
+	{
+		if (depth < -1) {
+			depth = -1;
+		} else if (depth > MAX_DEPTH) {
+			depth = MAX_DEPTH;
+		}
+		
+		List<T> results = biz.__executeEntity(virtualPath, depth, validAt, asOf, args);
+		if (results == null) {
+			return null;
+		} else {
+			GridQuery gridQuery = new GridQuery();
+			String gridIds[] = getBizContext().getGridContextClient().getGridIds();
+			gridQuery.setGridIds(gridIds);
+			if (gridIds != null && gridIds.length>0) {
+				gridQuery.setFullPath(getBizContext().getGridService().getFullPath(gridIds[0], virtualPath));
+			}
+			String queryId = "entity." + virtualPath + "?";
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					if (i > 0) {
+						queryId += ",";
+					}
+					queryId += args[i];
+				}
+			}
+			gridQuery.setId(queryId);
+			return new LocalSrollableResultSet<T>(gridQuery, results);
+		}
+	}
 
+	@SuppressWarnings("rawtypes")
+	@Override
+	public IScrollableResultSet<T> executeVirtualPathDefinition(KeyMap vpd, int depth, long validAt, long asOf, String... args)
+	{
+		String virtualPath = (String)vpd.get("VirtualPath");
+		if (virtualPath == null) {
+			return null;
+		}
+		List<T> results = biz.__executeVirtualPathDefinition(vpd, depth, validAt, asOf, args);
+		if (results == null) {
+			return null;
+		} else {
+			
+			GridQuery gridQuery = new GridQuery();
+			String gridIds[] = getBizContext().getGridContextClient().getGridIds();
+			gridQuery.setGridIds(gridIds);
+			if (gridIds != null && gridIds.length>0) {
+				gridQuery.setFullPath(getBizContext().getGridService().getFullPath(gridIds[0], virtualPath));
+			}
+			String queryId = "entity." + virtualPath + "?";
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					if (i > 0) {
+						queryId += ",";
+					}
+					queryId += args[i];
+				}
+			}
+			gridQuery.setId(queryId);
+			return new LocalSrollableResultSet<T>(gridQuery, results);
+		}
+	}
 }

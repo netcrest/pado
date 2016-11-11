@@ -33,6 +33,7 @@ import com.netcrest.pado.IGridCollector;
  * @param <T>
  * @param <S>
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class SortedMapOfSortedSetsCollector<T extends List<Map<Object, SortedSet>>, S> implements IGridCollector<T, S>
 {
 
@@ -40,6 +41,9 @@ public class SortedMapOfSortedSetsCollector<T extends List<Map<Object, SortedSet
 	
 	public void addResult(String gridId, T result)
 	{
+		if (result == null) {
+			return;
+		}
 		List<Map<Object, SortedSet>> list = (List<Map<Object, SortedSet>>)result;
 		for (Map<Object, SortedSet> map : list) {
 			for (Map.Entry<?, SortedSet> entry : map.entrySet()) {

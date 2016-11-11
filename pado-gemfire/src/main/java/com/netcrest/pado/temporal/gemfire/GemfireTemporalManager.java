@@ -454,6 +454,15 @@ public class GemfireTemporalManager extends TemporalManager
 	{
 		return temporalCacheListener.getTemporalListCount();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getTemporalListCount(long validAtTime, long asOfTime)
+	{
+		return temporalCacheListener.getTemporalListCount(validAtTime, asOfTime);
+	}
 
 	public TemporalStatistics getStatistics()
 	{
@@ -574,6 +583,15 @@ public class GemfireTemporalManager extends TemporalManager
 	public long getEndWrittenTime(ITemporalKey tk)
 	{
 		return temporalCacheListener.getEndWrittenTime(tk);
+	}
+	
+	public ITemporalData removePermanently(ITemporalKey temporalKey)
+	{
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			return null;
+		}
+		return temporalCacheListener.removePermanently(temporalKey, region);
 	}
 
 	/**

@@ -629,6 +629,15 @@ public class BizScrollableResultSetImpl<T> implements Serializable, IScrollableR
 			serviceImpl.close(id);
 		}
 	}
+	
+	public boolean isClosed()
+	{
+		if (serviceImpl == null) {
+			return true;
+		} else {
+			return serviceImpl.isClosed(id);
+		}
+	}
 
 	public GridQuery getQuery()
 	{

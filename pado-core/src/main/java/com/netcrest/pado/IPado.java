@@ -15,6 +15,8 @@
  */
 package com.netcrest.pado;
 
+import com.netcrest.pado.info.GridInfo;
+
 /**
  * IPado is the client API for accessing the grid that the user has successfully
  * logged in by invoking {@link Pado#login(String, String, String, char[])}.
@@ -63,6 +65,31 @@ public interface IPado
 	 * Returns the logged-on grid ID.
 	 */
 	public String getGridId();
+
+	/**
+	 * Returns a GridInfo object of the specified grid ID.
+	 * 
+	 * @param gridId
+	 *            Grid ID
+	 */
+	public GridInfo getGridInfo(String gridId);
+
+	/**
+	 * Returns the number of running servers in the specified grid.
+	 * 
+	 * @param gridId
+	 *            Grid ID
+	 */
+	public int getServerCount(String gridId);
+
+	/**
+	 * Returns all server IDs that uniquely identify the servers in the
+	 * specified grid.
+	 * 
+	 * @param gridId
+	 *            Grid ID
+	 */
+	public Object[] getServerIds(String gridId);
 
 	/**
 	 * Refreshes the IPado instance for synchronizing internals. The Pado grid
