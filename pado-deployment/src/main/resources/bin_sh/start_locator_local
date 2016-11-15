@@ -92,23 +92,23 @@ fi
 if [ "$GEMFIRE_PROPERTY_FILE" == "" ]; then
    GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
 fi
-if [ "$GEMFIRE_SECURITY_PROPERTY_FILE" == "" ]; then
-   GEMFIRE_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
+if [ "$SERVER_SECURITY_PROPERTY_FILE" == "" ]; then
+   SERVER_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
 fi
 
 #
 # Check if security is enabled
 #
 GEMFIRE_SECURITY_PROPERTY_SYSTEM=
-if [ -f $GEMFIRE_SECURITY_PROPERTY_FILE ]; then
+if [ -f $SERVER_SECURITY_PROPERTY_FILE ]; then
    if [ "$SECURITY_ENABLED" == "true" ]; then
-      GEMFIRE_SECURITY_PROPERTY_SYSTEM=--security-properties-file=$GEMFIRE_SECURITY_PROPERTY_FILE
+      GEMFIRE_SECURITY_PROPERTY_SYSTEM=--security-properties-file=$SERVER_SECURITY_PROPERTY_FILE
    fi
 else
    if [ "$SECURITY_ENABLED" == "true" ]; then
       echo ""
       echo "Security is enabled but the following security file does not exist:"
-      echo "   $GEMFIRE_SECURITY_PROPERTY_FILE"
+      echo "   $SERVER_SECURITY_PROPERTY_FILE"
       echo "start_server Aborted."
       echo ""
       exit

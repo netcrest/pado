@@ -56,7 +56,11 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateway
+#   array[5] ServerProperties
+#   array[6] ServerXml
+#   array[7] PadoProperties
+#   array[8] PadoXml
+#   array[9] IsServerStart
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 
 # Display the current configuration
@@ -80,16 +84,24 @@ if [ "$SERVER_NUM_SPECIFIED" == "true" ]; then
          SERVER_PORT=${array[2]}
          DEBUG_PORT=${array[3]}
          JMX_PORT=${array[4]}
-         IS_GATEWAY=${array[5]}
+         SERVER_PROPERTY_FILE=${array[5]}
+         SERVER_XML_FILE=${array[6]}
+         PADO_PROPERTIES_FILE=${array[7]}
+         PADO_XML_FILE=${array[8]}
+         IS_SERVER_START=${array[9]}
 
          if [ "$QUIET" == "false" ]; then
             echo "The following server will be removed:"
-            echo " Server number: $SERVER_NUM"
-            echo "Server address: $SERVER_HOST"
-            echo "   Server port: $SERVER_PORT"
-            echo "    Debug port: $DEBUG_PORT"
-            echo "      JMX port: $JMX_PORT"
-            echo "       Gateway: $IS_GATEWAY"
+            echo "            Server number: $SERVER_NUM"
+            echo "           Server address: $SERVER_HOST"
+            echo "              Server port: $SERVER_PORT"
+            echo "               Debug port: $DEBUG_PORT"
+            echo "                 JMX port: $JMX_PORT"
+            echo "        Server properties: $SERVER_PROPERTY_FILE"
+            echo "               Server XML: $SERVER_XML_FILE"
+            echo "          Pado properties: $PADO_PROPERTIES_FILE"
+            echo "                 Pado XML: $PADO_XML_FILE"
+            echo "Server start [true|false]: $IS_SERVER_START"
             INNER_LOOP=true
             while [ "$INNER_LOOP" == "true" ]; do
                read -p "Enter 'c' to continue, 'q' to quit: " INPUT
@@ -136,14 +148,24 @@ else
       SERVER_PORT=${array[2]}
       DEBUG_PORT=${array[3]}
       JMX_PORT=${array[4]}
-      IS_GATEWAY=${array[5]}
+      SERVER_PROPERTY_FILE=${array[5]}
+      SERVER_XML_FILE=${array[6]}
+      PADO_PROPERTIES_FILE=${array[7]}
+      PADO_XML_FILE=${array[8]}
+      IS_SERVER_START=${array[9]}
+
       echo "The following server will be removed:"
-      echo " Server number: $SERVER_NUM"
-      echo "Server address: $SERVER_HOST"
-      echo "   Server port: $SERVER_PORT"
-      echo "    Debug port: $DEBUG_PORT"
-      echo "      JMX port: $JMX_PORT"
-      echo "       Gateway: $IS_GATEWAY"
+      echo "            Server number: $SERVER_NUM"
+      echo "           Server address: $SERVER_HOST"
+      echo "              Server port: $SERVER_PORT"
+      echo "               Debug port: $DEBUG_PORT"
+      echo "                 JMX port: $JMX_PORT"
+      echo "        Server properties: $SERVER_PROPERTY_FILE"
+      echo "               Server XML: $SERVER_XML_FILE"
+      echo "          Pado properties: $PADO_PROPERTIES_FILE"
+      echo "                 Pado XML: $PADO_XML_FILE"
+      echo "Server start [true|false]: $IS_SERVER_START"
+
       INNER_LOOP=true
       while [ "$INNER_LOOP" == "true" ]; do
          read -p "Enter 'c' to continue, 'r' to re-enter, 'q' to quit: " INPUT

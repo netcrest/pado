@@ -51,23 +51,26 @@ GRID_NAME=$GRID
 # Default: PADO_PLUGINS_DIR=$BASE_DIR/plugins
 #PADO_PLUGINS_DIR=$BASE_DIR/plugins
 
-# Pado app directory that contains client app config files
-#PADO_APP_CONFIG_DIR=$ETC_GRID_DIR/app
-# Pado properties file path
-#PADO_PROPERTY_FILE=$ETC_GRID_DIR/pado.properties
-
-# Pado config file path
-# Default: $ETC_GRID_DIR/pado.xml
-#PADO_CONFIG_FILE=$ETC_GRID_DIR/pado_${SITE}.xml
-
 # Pado initialization script. If specified, the script
 # file is executed once the server has fully been initialized.
 # Default: Undefined
 PADO_INIT_SCRIPT=$BASE_DIR/script/wan_init.pado
 
-# Gemfire properties file path.
-#GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
+# Pado app directory that contains client app config files
+#PADO_APP_CONFIG_DIR=$ETC_GRID_DIR/app
+
+# Pado properties file path
+#PADO_PROPERTY_FILE=$ETC_GRID_DIR/pado.properties
+
+# Pado XML file path
+# Default: $ETC_GRID_DIR/pado.xml
+#PADO_XML_FILE=$ETC_GRID_DIR/pado_${SITE}.xml
+
+# Server properties file path
+#SERVER_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
+
+# Server security properties file path.
+#SERVER_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
+
 # Server configuration XML file path.
 #SERVER_XML_FILE=$ETC_GRID_DIR/server.xml
-# Server gateway configuraiton XML file path.
-#SERVER_GATEWAY_XML_FILE=$ETC_GRID_DIR/server_gateway.xml

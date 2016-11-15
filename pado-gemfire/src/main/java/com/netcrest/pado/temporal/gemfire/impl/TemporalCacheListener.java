@@ -232,25 +232,35 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 			Logger.info(region.getFullPath() + " - Temporal lists initialization started");
 			temporalListMap.clear();
 			PartitionedRegion pr = (PartitionedRegion) region;
-			Set<BucketRegion> set = pr.getDataStore().getAllLocalPrimaryBucketRegions();
-			for (BucketRegion bucketRegion : set) {
-				Set<Region.Entry<ITemporalKey, ITemporalData>> set2 = bucketRegion.entrySet();
-				for (Region.Entry<ITemporalKey, ITemporalData> entry : set2) {
-					ITemporalKey tk = entry.getKey();
-					update(tk, region);
+			if (pr.getDataStore() == null) {
+				long elapsedTime = System.currentTimeMillis() - startTime;
+				Logger.info(region.getFullPath()
+						+ " - Temporal lists not created due to no local data storage defined for this region"
+						+ ", time took (msec): " + elapsedTime);
+			} else {
+				Set<BucketRegion> set = pr.getDataStore().getAllLocalPrimaryBucketRegions();
+				for (BucketRegion bucketRegion : set) {
+					Set<Region.Entry<ITemporalKey, ITemporalData>> set2 = bucketRegion.entrySet();
+					for (Region.Entry<ITemporalKey, ITemporalData> entry : set2) {
+						ITemporalKey tk = entry.getKey();
+						update(tk, region);
+					}
 				}
-			}
-			long elapsedTime = System.currentTimeMillis() - startTime;
-			Logger.info(region.getFullPath() + " - Temporal lists initialized. Number of lists: "
-					+ temporalListMap.size() + ", time took (msec): " + elapsedTime);
-			if (buildLucene) {
-				if (luceneDynamicIndexing != null) {
-					startTime = System.currentTimeMillis();
-					luceneDynamicIndexing.close();
-					LuceneBuilder.getLuceneBuilder().buildIndexes(GridUtil.getChildPath(fullPath));
-					luceneDynamicIndexing.open();
-					elapsedTime = System.currentTimeMillis() - startTime;
-					Logger.info(region.getFullPath() + " - Lucene indexes rebuilt. Time took (msec): " + elapsedTime);
+
+				long elapsedTime = System.currentTimeMillis() - startTime;
+				Logger.info(region.getFullPath() + " - Temporal lists initialized. Number of lists: "
+						+ temporalListMap.size() + ", time took (msec): " + elapsedTime);
+
+				if (buildLucene) {
+					if (luceneDynamicIndexing != null) {
+						startTime = System.currentTimeMillis();
+						luceneDynamicIndexing.close();
+						LuceneBuilder.getLuceneBuilder().buildIndexes(GridUtil.getChildPath(fullPath));
+						luceneDynamicIndexing.open();
+						elapsedTime = System.currentTimeMillis() - startTime;
+						Logger.info(
+								region.getFullPath() + " - Lucene indexes rebuilt. Time took (msec): " + elapsedTime);
+					}
 				}
 			}
 		} finally {
@@ -1307,8 +1317,9 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		}
 		return col;
 	}
-	
-	public List<TemporalEntry<ITemporalKey, ITemporalData>> getTemporalEntryList(Collection<ITemporalKey> temporalKeyCollection)
+
+	public List<TemporalEntry<ITemporalKey, ITemporalData>> getTemporalEntryList(
+			Collection<ITemporalKey> temporalKeyCollection)
 	{
 		if (temporalKeyCollection == null) {
 			return null;
@@ -1316,9 +1327,9 @@ public class TemporalCacheListener<K, V> extends CacheListenerAdapter implements
 		return (List<TemporalEntry<ITemporalKey, ITemporalData>>) getTemporalEntryCollection(temporalKeyCollection,
 				new ArrayList<ITemporalData>(temporalKeyCollection.size()));
 	}
-	
-	private Collection<TemporalEntry<ITemporalKey, ITemporalData>> getTemporalEntryCollection(Collection<ITemporalKey> temporalKeyCollection,
-			Collection<ITemporalData> col)
+
+	private Collection<TemporalEntry<ITemporalKey, ITemporalData>> getTemporalEntryCollection(
+			Collection<ITemporalKey> temporalKeyCollection, Collection<ITemporalData> col)
 	{
 		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
 		LocalDataSet localDS = (LocalDataSet) PartitionRegionHelper.getLocalPrimaryData(region);

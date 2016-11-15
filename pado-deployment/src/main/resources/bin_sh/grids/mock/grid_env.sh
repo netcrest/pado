@@ -53,11 +53,19 @@ GRID_NAME=$GRID
 
 # Pado app directory that contains client app config files
 #PADO_APP_CONFIG_DIR=$ETC_GRID_DIR/app
+
 # Pado properties file path
 #PADO_PROPERTY_FILE=$ETC_GRID_DIR/pado.properties
-# Gemfire properties file path.
-#GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
+
+# Pado XML file path
+# Default: $ETC_GRID_DIR/pado.xml
+#PADO_XML_FILE=$ETC_GRID_DIR/pado_${SITE}.xml
+
+# Server properties file path
+#SERVER_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
+
+# Server security properties file path.
+#SERVER_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
+
 # Server configuration XML file path.
 #SERVER_XML_FILE=$ETC_GRID_DIR/server.xml
-# Server gateway configuraiton XML file path.
-#SERVER_GATEWAY_XML_FILE=$ETC_GRID_DIR/server_gateway.xml

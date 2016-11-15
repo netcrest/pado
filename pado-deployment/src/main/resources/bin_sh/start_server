@@ -22,7 +22,7 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   start_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-gateway [<xml-file-path>]] [-rebalance] [-?]"
+   echo "   start_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-rebalance] [-?]"
    echo ""
    echo "  Starts a server in the specified grid and site. This command remotely executes"
    echo "  start_server. It looks up the remote host mapped by the specified server"
@@ -48,7 +48,6 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateWay
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 line="${LineArray[$SERVER_NUM_NO_LEADING_ZERO]}"
 array=($line)

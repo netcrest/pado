@@ -46,7 +46,6 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateWay
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 line="${LineArray[$SERVER_NUM_NO_LEADING_ZERO]}"
 array=($line)

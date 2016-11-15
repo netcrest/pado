@@ -538,6 +538,11 @@ Starting wan_ssl:
      GRIDS="wan_ssl"
      SECURITY_ENABLED=true
 
+   - Run ldap/example/ssl/create_key to create server.keystore and trusted.keystore
+     ldap/example/ssl> ./create_key
+       - Hit 'Return' to use the same key store password
+       - Enter yes to "Trust this certifcate"
+
    - Edit bin_sh/setenv.sh to remove javax.net.ssl.trustStore property if it is set. This is optional.
      (See the "LDAP Configuration section for details.)
 

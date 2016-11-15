@@ -23,16 +23,13 @@
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
    echo "   ./start_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-locators]"
-   echo "                [-gateway [gateway server.xml in $ETC_DIR]]] [-pidonly] [-serial] [-?]"
+   echo "                [-pidonly] [-serial] [-?]"
    echo ""
    echo "  Starts servers in the specified site."
    echo ""
    echo "      -grid      Starts servers in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Starts servers in the specified site. Default: ${SITE_DEFAULT}"
    echo "      -locators  Restarts locators in addition to servers."
-   echo "      -gateway   Starts gateways. Default: server_gateway.xml if not specified."
-   echo "      -pidonly   Removes cache server pid file (.cacheserver.ser). This option"
-   echo "                 is required if the site is down."
    echo "      -serial    Starts servers in serial, one at a time. Default starts"
    echo "                 servers in parallel."
    echo "      -rebalance Rebalances each server"
@@ -80,7 +77,6 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateWay
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 
 for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
@@ -92,21 +88,10 @@ do
       continue;
    fi
    SERVER_HOST=${array[1]}
-   IS_GATEWAY=${array[5]}
-   if [ "$IS_GATEWAY" == "true" ]; then
-      if [ "$PARALLEL" == "true" ]; then
-         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh;
-    	      ./start_server_local -num $SERVER_NUM -grid ${GRID} -site ${SITE} -gateway $GATEWAY_XML_FILE $REBLANCE;" &
-      else 
-         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh;
-              ./start_server_local -num $SERVER_NUM -grid ${GRID} -site ${SITE} -gateway $GATEWAY_XML_FILE $REBLANCE;"
-      fi
+   if [ "$PARALLEL" == "true" ]; then
+      ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;" &
    else
-      if [ "$PARALLEL" == "true" ]; then
-         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;" &
-      else
-         ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;"
-      fi
+      ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;"
    fi
 done
 disown -a -r

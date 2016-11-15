@@ -22,7 +22,7 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   start_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-gateway [<xml-file-path>]] [-rebalance] [-?]"
+   echo "   start_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-rebalance] [-?]"
    echo ""
    echo "   Starts a server in the specified grid and site. This is a local command."
    echo "   It must be executed in the host where the server is running. To start"
@@ -41,17 +41,6 @@ fi
 
 # locators
 LOCATORS=`getGemfireLocators`
-
-#
-# server.xml and gateway.xml
-#
-if [ "$GATEWAY" == "" ]; then
-   CACHE_XML_FILE=$SERVER_XML_FILE
-elif [ "$GATEWAY_XML_FILE" == "" ]; then
-   CACHE_XML_FILE=$SERVER_GATEWAY_XML_FILE
-else
-   CACHE_XML_FILE=$ETC_GRID_DIR/$GATEWAY_XML_FILE
-fi
 
 # the parent directory of all servers 
 if [ "$RUN_DIR" == "" ]; then
@@ -123,7 +112,11 @@ export PADO_ETC_GRID_DIR=$ETC_GRID_DIR
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateWay
+#   array[5] ServerProperties
+#   array[6] ServerXml
+#   array[7] PadoProperties
+#   array[8] PadoXml
+#   array[9] IsServerStart
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 line="${LineArray[$SERVER_NUM_NO_LEADING_ZERO]}"
 array=($line)
@@ -131,6 +124,62 @@ array=($line)
 SERVER_PORT=${array[2]}
 DEBUG_PORT=${array[3]}
 JMX_PORT=${array[4]}
+
+# Set SERVER_PROPERTY_FILE
+TMP_SERVER_PROPERTY_FILE=${array[5]}
+#  "$SERVER_PROPERTY_FILE" == "false is checked for backward compatibility
+# IsGateway has been removed.
+if [ "$TMP_SERVER_PROPERTY_FILE" == "" ] || [ "$TMP_SERVER_PROPERTY_FILE" == "false" ]; then
+   if [ "$SERVER_PROPERTY_FILE" == "" ]; then
+      SERVER_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
+   fi
+else
+   SERVER_PROPERTY_FILE=$ETC_GRID_DIR/$TMP_SERVER_PROPERTY_FILE
+fi
+
+# Set SERVER_XML_FILE
+TMP_SERVER_XML_FILE=${array[6]}
+if [ "$TMP_SERVER_XML_FILE" == "" ]; then
+   if [ "$SERVER_XML_FILE" == "" ]; then
+      SERVER_XML_FILE=$ETC_GRID_DIR/server.xml
+   fi
+else
+   SERVER_XML_FILE=$ETC_GRID_DIR/$TMP_SERVER_XML_FILE
+fi
+
+# Set PADO_PROPERTY_FILE
+TMP_PADO_PROPERTY_FILE=${array[7]}
+if [ "$TMP_PADO_PROPERTY_FILE" == "" ]; then
+   if [ "$PADO_PROPERTY_FILE" == "" ]; then
+      PADO_PROPERTY_FILE=$ETC_GRID_DIR/pado.properties
+   fi
+else
+   PADO_PROPERTY_FILE=$ETC_GRID_DIR/$TMP_PADO_PROPERTY_FILE
+fi
+
+# Set PADO_XML_FILE
+TMP_PADO_XML_FILE=${array[8]}
+if [ "$TMP_PADO_XML_FILE" == "" ]; then
+   if [ "$PADO_XML_FILE" == "" ]; then
+      PADO_XML_FILE=$ETC_GRID_DIR/pado.xml
+   fi
+else
+   PADO_XML_FILE=$ETC_GRID_DIR/$TMP_PADO_XML_FILE
+fi
+
+# Set IS_SERVER_START
+IS_SERVER_START=${array[9]}
+if [ "$IS_SERVER_START" == "" ]; then
+   IS_SERVER_START=true
+fi
+
+# 
+# If IS_SERVER_START is not true then do not start this server.
+# Such servers must be started individually using the start_server command.
+#
+if [ "$IS_SERVER_START" != "true" ]; then
+   exit
+fi
 
 SERVER_NAME=${GRID}-${SITE}-${SERVER_NUM}
 LOG_FILE=${LOG_DIR}/${SERVER_ID}.log
@@ -158,28 +207,25 @@ SERVER_PROPERTIES="-disable-default-server -J-Dgfinit.cacheserver.1.port=$SERVER
 #       </disk-dirs>
 #    </disk-store>
 
-GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$CACHE_XML_FILE locators=${LOCATORS} -J-Dgemfire.distributed-system-id=${SYSTEM_ID} -J-DSITE=${SITE} -J-DDISK_STORE_DIR=${DISK_STORE_DIR} -J-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} -J-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} -J-Dgemfire.PREFER_SERIALIZED=true -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
+GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$SERVER_XML_FILE locators=${LOCATORS} -J-Dgemfire.distributed-system-id=${SYSTEM_ID} -J-DSITE=${SITE} -J-DDISK_STORE_DIR=${DISK_STORE_DIR} -J-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} -J-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} -J-Dgemfire.PREFER_SERIALIZED=true -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
 
-if [ "$GEMFIRE_PROPERTY_FILE" == "" ]; then
-   GEMFIRE_PROPERTY_FILE=$ETC_GRID_DIR/server.properties
-fi
-if [ "$GEMFIRE_SECURITY_PROPERTY_FILE" == "" ]; then
-   GEMFIRE_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
+if [ "$SERVER_SECURITY_PROPERTY_FILE" == "" ]; then
+   SERVER_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
 fi
 
 #
 # Check if security is enabled
 #
 GEMFIRE_SECURITY_PROPERTY_SYSTEM=
-if [ -f $GEMFIRE_SECURITY_PROPERTY_FILE ]; then
+if [ -f $SERVER_SECURITY_PROPERTY_FILE ]; then
    if [ "$SECURITY_ENABLED" == "true" ]; then
-      GEMFIRE_SECURITY_PROPERTY_SYSTEM=-J-DgemfireSecurityPropertyFile=$GEMFIRE_SECURITY_PROPERTY_FILE
+      GEMFIRE_SECURITY_PROPERTY_SYSTEM=-J-DgemfireSecurityPropertyFile=$SERVER_SECURITY_PROPERTY_FILE
    fi
 else
    if [ "$SECURITY_ENABLED" == "true" ]; then
       echo ""
       echo "Security is enabled but the following security file does not exist:"
-      echo "   $GEMFIRE_SECURITY_PROPERTY_FILE"
+      echo "   $SERVER_SECURITY_PROPERTY_FILE"
       echo "start_server Aborted."
       echo ""
       exit
@@ -222,7 +268,7 @@ APP_PROPERTIES=$APP_PROPERTIES
 # 
 # Pado specifics
 #
-PADO_PROPERTIES="-J-Dpado.grid.id=$GRID_ID -J-Dpado.grid.name=$GRID_NAME -J-Dpado.site.id=$SITE_ID -J-Dpado.site.name=$SITE_NAME -J-Dpado.server.num=$SERVER_NUM -J-Dpado.plugins.dir=$PADO_PLUGINS_DIR -J-Dpado.etc.dir=$ETC_DIR -J-Dpado.etc.grid.dir=$ETC_GRID_DIR -J-Dpado.db.dir=$PADO_DB_DIR -J-Dpado.properties=$PADO_PROPERTY_FILE -J-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR -J-Dpado.server=true -J-Dpado.config-file=$PADO_CONFIG_FILE -J-Dpado.log.gridInfo=false -J-Djavax.xml.accessExternalDTD=all"
+PADO_PROPERTIES="-J-Dpado.grid.id=$GRID_ID -J-Dpado.grid.name=$GRID_NAME -J-Dpado.site.id=$SITE_ID -J-Dpado.site.name=$SITE_NAME -J-Dpado.server.num=$SERVER_NUM -J-Dpado.plugins.dir=$PADO_PLUGINS_DIR -J-Dpado.etc.dir=$ETC_DIR -J-Dpado.etc.grid.dir=$ETC_GRID_DIR -J-Dpado.db.dir=$PADO_DB_DIR -J-Dpado.properties=$PADO_PROPERTY_FILE -J-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR -J-Dpado.server=true -J-Dpado.config-file=$PADO_XML_FILE -J-Dpado.log.gridInfo=false -J-Djavax.xml.accessExternalDTD=all"
 
 #
 # HEAP_MAX is set in grids/<grid-id>/site_<site-id>.sh
@@ -247,15 +293,11 @@ else
 fi
 
 echo "*****************************************************"
-if [ "$GATEWAY" == "" ]; then
-   echo "Starting $SERVER_ID on host $MY_ADDRESS..."
-else
-   echo "Starting gateway ${SERVER_ID} on host $MY_ADDRESS..."
-fi
+echo "Starting $SERVER_ID on host $MY_ADDRESS..."
 echo "*****************************************************"
 
-echo cacheserver start -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$GEMFIRE_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
-cacheserver start -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$GEMFIRE_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
+echo cacheserver start -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
+cacheserver start -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
 
 # ------------------
 # gfsh specifics
@@ -265,6 +307,6 @@ GC_PARAMETERS="--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:+Disable
 JMX_PARAMETERS="--J=-Dcom.sun.management.jmxremote.port=${JMX_PORT} --J=-Dcom.sun.management.jmxremote.ssl=false --J=-Dcom.sun.management.jmxremote.authenticate=false"
 DEBUG="--J=-Xdebug --J=\"-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}\""
 SERVER_PROPERTIES="--disable-default-server --J=-Dgfinit.cacheserver.1.port=$SERVER_PORT --J=-Dgfinit.cacheserver.1.notify-by-subscription=true --J=-Dgfinit.cacheserver.1.socket-buffer-size=131072"
-GEMFIRE_PROPERTIES="--name=$SERVER_NAME --J=-Dgemfire.log-file=${LOG_FILE} --statistic-archive-file=$STATS_FILE --cache-xml-file=$CACHE_XML_FILE --locators=${LOCATORS} --J=-Dgemfire.distributed-system-id=${SYSTEM_ID} --J=-DSITE=${SITE} --J=-DDISK_STORE_DIR=${DISK_STORE_DIR} --J=-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} --J=-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} --J=-Dgemfire.PREFER_SERIALIZED=false --J=-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
+GEMFIRE_PROPERTIES="--name=$SERVER_NAME --J=-Dgemfire.log-file=${LOG_FILE} --statistic-archive-file=$STATS_FILE --cache-xml-file=$SERVER_XML_FILE --locators=${LOCATORS} --J=-Dgemfire.distributed-system-id=${SYSTEM_ID} --J=-DSITE=${SITE} --J=-DDISK_STORE_DIR=${DISK_STORE_DIR} --J=-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} --J=-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} --J=-Dgemfire.PREFER_SERIALIZED=false --J=-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
 APP_PROPERTIES="--J=--Djavax.net.ssl.trustStore=../../ldap/example/ssl/trusted.keystore"
-PADO_PROPERTIES="--J=-Dpado.grid.id=$GRID_ID --J=-Dpado.grid.name=$GRID_NAME --J=-Dpado.site.id=$SITE_ID --J=-Dpado.site.name=$SITE_NAME --J=-Dpado.plugins.dir=$PADO_PLUGINS_DIR --J=-Dpado.etc.dir=$ETC_DIR --J=-Dpado.etc.grid.dir=$ETC_GRID_DIR --J=-Dpado.db.dir=$PADO_DB_DIR --J=-Dpado.properties=$PADO_PROPERTY_FILE --J=-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR --J=-Dpado.server=true --J=-Dpado.config-file=$PADO_CONFIG_FILE --J=-Dpado.log.gridInfo=false"
+PADO_PROPERTIES="--J=-Dpado.grid.id=$GRID_ID --J=-Dpado.grid.name=$GRID_NAME --J=-Dpado.site.id=$SITE_ID --J=-Dpado.site.name=$SITE_NAME --J=-Dpado.plugins.dir=$PADO_PLUGINS_DIR --J=-Dpado.etc.dir=$ETC_DIR --J=-Dpado.etc.grid.dir=$ETC_GRID_DIR --J=-Dpado.db.dir=$PADO_DB_DIR --J=-Dpado.properties=$PADO_PROPERTY_FILE --J=-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR --J=-Dpado.server=true --J=-Dpado.config-file=$PADO_XML_FILE --J=-Dpado.log.gridInfo=false"

@@ -46,24 +46,24 @@ fi
 
 GEMFIRE_PROPERTIES="-DgemfirePropertyFile=$GEMFIRE_PROPERTIES_FILE"
 
-GEMFIRE_SECURITY_PROPERTY_FILE="$HOME/.pado/etc/gfsecurity.properties"
-if [ ! -f $GEMFIRE_SECURITY_PROPERTY_FILE ]; then
-   GEMFIRE_SECURITY_PROPERTY_FILE=$ETC_DIR/client/gfsecurity.properties
+SERVER_SECURITY_PROPERTY_FILE="$HOME/.pado/etc/server-security.properties"
+if [ ! -f $SERVER_SECURITY_PROPERTY_FILE ]; then
+   SERVER_SECURITY_PROPERTY_FILE=$ETC_DIR/client/server-security.properties
 fi
 
 #
 # Check if security is enabled
 #
 GEMFIRE_SECURITY_PROPERTY_SYSTEM=
-if [ -f $GEMFIRE_SECURITY_PROPERTY_FILE ]; then
+if [ -f $SERVER_SECURITY_PROPERTY_FILE ]; then
    if [ "$SECURITY_ENABLED" == "true" ]; then
-      GEMFIRE_SECURITY_PROPERTY_SYSTEM=-DgemfireSecurityPropertyFile=$GEMFIRE_SECURITY_PROPERTY_FILE
+      GEMFIRE_SECURITY_PROPERTY_SYSTEM=-DgemfireSecurityPropertyFile=$SERVER_SECURITY_PROPERTY_FILE
    fi
 else
    if [ "$SECURITY_ENABLED" == "true" ]; then
       echo ""
       echo "Security is enabled but the following security file does not exist:"
-      echo "   $GEMFIRE_SECURITY_PROPERTY_FILE"
+      echo "   $SERVER_SECURITY_PROPERTY_FILE"
       echo "pado Aborted."
       echo ""
       exit

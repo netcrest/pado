@@ -44,7 +44,11 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateway
+#   array[5] ServerProperties
+#   array[6] ServerXml
+#   array[7] PadoProperties
+#   array[8] PadoXml
+#   array[9] IsServerStart
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 
 # Display the current configuration
@@ -52,9 +56,9 @@ echo ""
 echo "Server Settings"
 echo "==============="
 echo ""
-echo "Server |                    | Server| Debug | Jmx   | Is"
-echo "Number | ServerHost         | Port  | Port  | Port  | Gateway"
-echo "------ | ------------------ | ----- | ----- | ----- | -------"
+echo "Server |                    | Server| Debug | Jmx   | Server               | Server        | Pado               | Pado        | Is"
+echo "Number | ServerHost         | Port  | Port  | Port  | Properties           | Xml           | Properties         | Xml         | ServerStart"
+echo "------ | ------------------ | ----- | ----- | ----- | -------------------- | ------------- | ------------------ | ----------- | -----------"
 for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
 do
    line="${LineArray[$i]}"
@@ -67,7 +71,11 @@ do
    SERVER_PORT=${array[2]}
    DEBUG_PORT=${array[3]}
    JMX_PORT=${array[4]}
-   IS_GATEWAY=${array[5]}
-   echo "$SERVER_NUM  $SERVER_HOST	$SERVER_PORT	$DEBUG_PORT	$JMX_PORT	$IS_GATEWAY" 
+   SERVER_PROPERTY_FILE=${array[5]}
+   SERVER_XML_FILE=${array[6]}
+   PADO_PROPERTIES_FILE=${array[7]}
+   PADO_XML_FILE=${array[8]}
+   IS_SERVER_START=${array[9]}
+   echo "$SERVER_NUM  $SERVER_HOST	$SERVER_PORT	$DEBUG_PORT	$JMX_PORT	$SERVER_PROPERTY_FILE  $SERVER_XML_FILE  $PADO_PROPERTIES_FILE  $PADO_XML_FILE  $IS_SERVER_START" 
 done
 echo ""

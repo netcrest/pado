@@ -134,7 +134,6 @@ SERVER_NUM=0
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateWay
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 for (( i = 1; i <= ${LAST_SERVER_NUM}; i++ ))
 do

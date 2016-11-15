@@ -22,8 +22,7 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   ./restart_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-locators]"
-   echo "                  [-gateway [gateway server.xml in $ETC_DIR]]] [-serial] [-kill] [-persist] [-?]"
+   echo "   ./restart_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-locators] [-serial] [-kill] [-clean] [-?]"
    echo ""
    echo "  Restarts servers by first stopping or killing all servers in the"
    echo "  specified site."
@@ -31,7 +30,6 @@ if [ "$HELP" == "true" ]; then
    echo "      -grid      Restarts the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Restarts the specified site. Default: ${SITE_DEFAULT}"
    echo "      -locators  Restarts locators in addition to servers."
-   echo "      -gateway   Restarts gateways. Default: server_gateway.xml if not specified."
    echo "      -serial    Restarts servers in serial, one at a time. Default restarts"
    echo "                 servers in parallel."
    echo "      -rebalance Rebalances each server"
@@ -39,16 +37,22 @@ if [ "$HELP" == "true" ]; then
    echo "                 The kill command is faster than the stop command"
    echo "                 but at the expense of possible loss or corruption"
    echo "                 of data."
-   echo "      -persist   Removes all server persistent files if any."
+   echo "      -clean     Removes all server persistent files if any."
+   echo "      -persist   Same as -clean. Use -clean instead. Deprecated."
    echo ""
    echo "   Default: ./restart_site -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
    exit
 fi
 
+CLEAN_PERSIST=
+if [ "$CLEAN" == "true" ]; then
+   CLEAN_PERSIST="-persist"
+fi
+
 if [ "$KILL" == "true" ]; then
-   $BASE_DIR/bin_sh/kill_site $*;$BASE_DIR/bin_sh/clean_site $*;sleep 3;$BASE_DIR/bin_sh/start_site $*
+   $BASE_DIR/bin_sh/kill_site $*;$BASE_DIR/bin_sh/clean_site $CLEAN_PERSIST $*;sleep 3;$BASE_DIR/bin_sh/start_site $*
 else
-   $BASE_DIR/bin_sh/stop_site $*;$BASE_DIR/bin_sh/clean_site -pid $*;$BASE_DIR/bin_sh/start_site $*
+   $BASE_DIR/bin_sh/stop_site $*;$BASE_DIR/bin_sh/clean_site $CLEAN_PERSIST -pid $*;$BASE_DIR/bin_sh/start_site $*
 fi
 

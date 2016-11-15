@@ -66,7 +66,11 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateway
+#   array[5] ServerProperties
+#   array[6] ServerXml
+#   array[7] PadoProperties
+#   array[8] PadoXml
+#   array[9] IsServerStart
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 
 # Display the current configuration
@@ -83,7 +87,26 @@ if [ "$SERVER_SPECIFIED" == "true" ]; then
    SERVER_PORT=${array[2]}   
    DEBUG_PORT=${array[3]}   
    JMX_PORT=${array[4]}   
-   IS_GATEWAY=${array[5]}   
+   SERVER_PROPERTY_FILE=${array[5]}
+   if [ "$SERVER_PROPERTY_FILE" == "" ]; then
+      SERVER_PROPERTY_FILE=server.properties
+   fi
+   SERVER_XML_FILE=${array[6]}
+   if [ "$SERVER_XML_FILE" == "" ]; then
+      SERVER_XML_FILE=server.xml
+   fi
+   PADO_PROPERTIES_FILE=${array[7]}
+   if [ "$PADO_PROPERTIES_FILE" == "" ]; then
+      PADO_PROPERTIES_FILE=pado.properties
+   fi
+   PADO_XML_FILE=${array[8]}
+   if [ "$PADO_XML_FILE" == "" ]; then
+      PADO_XML_FILE=pado.xml
+   fi
+   IS_SERVER_START=${array[9]}
+   if [ "$IS_SERVER_START" == "" ]; then
+      IS_SERVER_START=true
+   fi
 
    echo "You have entered the following:"
    echo "   New server number: $SERVER_NUM"
@@ -91,9 +114,8 @@ if [ "$SERVER_SPECIFIED" == "true" ]; then
    echo "     New server port: $SERVER_PORT"
    echo "      New debug port: $DEBUG_PORT"
    echo "        New JMX port: $JMX_PORT"
-   echo "Gateway [true|false]: $IS_GATEWAY"
 
-   if [ "$SERVER_HOST" == "" ] || [ "$SERVER_HOST" == "" ]  || [ "$SERVER_PORT" == "" ] || [ "$DEBUG_PORT" == "" ] || [ "$JMX_PORT" == "" ] || [ "$IS_GATEWAY" == "" ]; then
+   if [ "$SERVER_HOST" == "" ] || [ "$SERVER_HOST" == "" ]  || [ "$SERVER_PORT" == "" ] || [ "$DEBUG_PORT" == "" ] || [ "$JMX_PORT" == "" ]; then
       echo "Error: You must specify all values. Aborted."
       echo ""; exit
    elif [[ "$(isNumber $SERVER_NUM)" == "false" ]]; then
@@ -128,7 +150,26 @@ else
    SERVER_PORT=${array[2]}
    DEBUG_PORT=${array[3]}
    JMX_PORT=${array[4]}
-   IS_GATEWAY=${array[5]}
+   SERVER_PROPERTY_FILE=${array[5]}
+   if [ "$SERVER_PROPERTY_FILE" == "" ]; then
+      SERVER_PROPERTY_FILE=server.properties
+   fi
+   SERVER_XML_FILE=${array[6]}
+   if [ "$SERVER_XML_FILE" == "" ]; then
+      SERVER_XML_FILE=server.xml
+   fi
+   PADO_PROPERTIES_FILE=${array[7]}
+   if [ "$PADO_PROPERTIES_FILE" == "" ]; then
+      PADO_PROPERTIES_FILE=pado.properties
+   fi
+   PADO_XML_FILE=${array[8]}
+   if [ "$PADO_XML_FILE" == "" ]; then
+      PADO_XML_FILE=pado.xml
+   fi
+   IS_SERVER_START=${array[9]}
+   if [ "$IS_SERVER_START" == "" ]; then
+      IS_SERVER_START=true
+   fi
 
    SERVER_NUM=$NEXT_AVAILABLE_SERVER_NUM
    REDO=true
@@ -163,20 +204,48 @@ else
       if [ "$INPUT" != "" ]; then
          JMX_PORT=$INPUT
       fi 
-      read -p "Gateway [true|false] [$IS_GATEWAY]: " INPUT
+      read -p "Server Properties [$SERVER_PROPERTY_FILE]: " INPUT
       # trim string
       INPUT=`echo "$INPUT" | xargs`
       if [ "$INPUT" != "" ]; then
-         IS_GATEWAY=$INPUT
+         SERVER_PROPERTY_FILE=$INPUT
+      fi 
+      read -p "Server XML [$SERVER_XML_FILE]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         SERVER_XML_FILE=$INPUT
+      fi 
+      read -p "Pado Properties [$PADO_PROPERTIES_FILE]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         PADO_PROPERTIES_FILE=$INPUT
+      fi 
+      read -p "Pado XML [$PADO_XML_FILE]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         PADO_XML_FILE=$INPUT
+      fi 
+      read -p "Server Start [true|false] [$IS_SERVER_START]: " INPUT
+      # trim string
+      INPUT=`echo "$INPUT" | xargs`
+      if [ "$INPUT" != "" ]; then
+         IS_SERVER_START=$INPUT
       fi 
       echo ""
       echo "You have entered the following:"
-      echo "   New server number: $SERVER_NUM"
-      echo "  New server address: $SERVER_HOST"
-      echo "     New server port: $SERVER_PORT"
-      echo "      New debug port: $DEBUG_PORT"
-      echo "        New JMX port: $JMX_PORT"
-      echo "Gateway [true|false]: $IS_GATEWAY"
+      echo "        New server number: $SERVER_NUM"
+      echo "       New server address: $SERVER_HOST"
+      echo "          New server port: $SERVER_PORT"
+      echo "           New debug port: $DEBUG_PORT"
+      echo "             New JMX port: $JMX_PORT"
+      echo "    New Server properties: $SERVER_PROPERTY_FILE"
+      echo "           New Server XML: $SERVER_XML_FILE"
+      echo "      New Pado properties: $PADO_PROPERTIES_FILE"
+      echo "             New Pado XML: $PADO_XML_FILE"
+      echo "Server start [true|false]: $IS_SERVER_START"
 
       INNER_LOOP=true
       if [[ "$(isNumber $SERVER_NUM)" == "false" ]]; then
@@ -199,10 +268,6 @@ else
          echo "JMX port must be a number."
          JMX_PORT=
          INNER_LOOP=false
-      elif [ "$IS_GATEWAY" != "true" ] && [ "$IS_GATEWAY" != "false" ]; then
-         echo "Gateway must be true or false."
-         IS_GATEWAY=
-         INNER_LOOP=false
       fi
 
       while [ "$INNER_LOOP" == "true" ]; do
@@ -217,7 +282,7 @@ else
 fi
 
 # Append a new server entry in server_<site>.sh
-echo "$SERVER_NUM $SERVER_HOST $SERVER_PORT $DEBUG_PORT $JMX_PORT $IS_GATEWAY" >> $GRIDS_DIR/$GRID/server_${SITE}.sh
+echo "$SERVER_NUM $SERVER_HOST $SERVER_PORT $DEBUG_PORT $JMX_PORT $SERVER_PROPERTY_FILE $SERVER_XML_FILE $PADO_PROPERTIES_FILE $PADO_XML_FILE $IS_SERVER_START" >> $GRIDS_DIR/$GRID/server_${SITE}.sh
 SERVER_HOSTS=`getServerHosts`
 for i in $SERVER_HOSTS
 do

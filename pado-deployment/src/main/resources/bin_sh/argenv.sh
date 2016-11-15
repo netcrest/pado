@@ -291,11 +291,6 @@ if [ "$SERVER_XML_FILE" == "" ]; then
   SERVER_XML_FILE=$ETC_GRID_DIR/server.xml
 fi
 
-# Set SERVER_GATEWAY_XML_FILE if not defined
-if [ "$SERVER_GATEWAY_XML_FILE" == "" ]; then
-   SERVER_GATEWAY_XML_FILE=$ETC_GRID_DIR/server_gateway.xml
-fi
-
 # Set the site options to display in the command usage.
 SITE_DEFAULT=
 SITES_OPT=

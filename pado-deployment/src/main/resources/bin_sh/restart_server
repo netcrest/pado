@@ -22,7 +22,7 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   restart_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-gateway [<xml-file-path>]] [-rebalance] [-kill] [-?]"
+   echo "   restart_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-rebalance] [-kill] [-?]"
    echo ""
    echo "  Restarts a server by first stopping or killing the running server in the"
    echo "  specified grid and site."
@@ -52,7 +52,6 @@ fi
 #   array[2] ServerPort
 #   array[3] DebugPort
 #   array[4] JmxPort
-#   array[5] IsGateWay
 setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
 line="${LineArray[$SERVER_NUM_NO_LEADING_ZERO]}"
 array=($line)
