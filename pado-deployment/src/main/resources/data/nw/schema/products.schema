@@ -53,7 +53,7 @@ KeyClass=String
 ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 
 # KeyTypeClass defines the schema class for JsonLite. 
-#KeyTypeClass=
+KeyTypeClass=com.netcrest.pado.demo.nw.data.ProductKey
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
@@ -195,10 +195,10 @@ StartRow=2
 # ------------------------------------------------------------------------------
 ProductID, String, Primary
 ProductName
-SupplierID
-CategoryID
-QuantityPerUnit
-UnitPrice
+SupplierId
+CategoryId
+QuantityPerUnit, double
+UnitPrice, double
 UnitsInStock
 UnitsOnOrder
 ReorderLevel

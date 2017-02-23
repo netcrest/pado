@@ -55,6 +55,9 @@ for %%i in (%LOCATOR_HOSTS%) do (
 
 @set GEMFIRE_PROPERTIES=-DgemfirePropertyFile=%ETC_DIR%/client/client.properties -Dgemfire.log-file=%LOG_DIR%/%0.log
 @set PADO_PROPERTIES=-Dpado.home.dir=%PADO_HOME% -Dpado.locators=%LOCATORS% -Dpado.server=false -Dpado.properties=%ETC_DIR%\client\pado.properties -Dpado.csv.properties=%ETC_DIR%\client\csv.properties
-pushd %PADO_HOME%
+
+@pushd %BASE_DIR%
 "%GF_JAVA%" -Xms512m -Xmx512m -Djava.awt.headless=true %GEMFIRE_PROPERTIES% %SECURITY_PROPERTIES% %PADO_PROPERTIES% com.netcrest.pado.tools.CsvFileImporter %*
-popd
+@popd
+
+:stop

@@ -18,5 +18,5 @@
 
 # This script generates DTD code for pado.dtd using JAXB. 
 # Include the JAXB bin in PATH before running this script.
-PATH=/Users/dpark/Work/Java/jaxb-ri-2.2.6/bin:$PATH
-xjc.sh -d ../src/core/ -p com.netcrest.pado.internal.config.dtd.generated -dtd pado1_0.dtd 
+PATH=/home/dpark/Work/products/jaxb-ri-2.2.6/bin:$PATH
+xjc.sh -d  ../../../../../pado-core/src/main/java -p com.netcrest.pado.internal.config.dtd.generated -dtd pado1_0.dtd 

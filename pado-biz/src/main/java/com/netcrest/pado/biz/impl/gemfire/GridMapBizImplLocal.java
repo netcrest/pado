@@ -31,6 +31,7 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Resource;
 
+import com.gemstone.gemfire.cache.InterestResultPolicy;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.cache.client.Pool;
 import com.gemstone.gemfire.cache.client.PoolManager;
@@ -955,7 +956,7 @@ public class GridMapBizImplLocal<K, V> implements IGridMapBiz<K, V>, IBizLocal
 		}
 		for (int i = 0; i < gridIds.length; i++) {
 			Region<K, V> region = gridService.getRegion(gridIds[i], gridPath);
-			region.registerInterestRegex(filter.toString());
+			region.registerInterestRegex(filter.toString(), InterestResultPolicy.NONE);
 		}
 	}
 

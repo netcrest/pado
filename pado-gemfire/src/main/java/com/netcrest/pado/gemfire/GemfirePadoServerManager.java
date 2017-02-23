@@ -943,11 +943,16 @@ public class GemfirePadoServerManager extends PadoServerManager
 			String gridId = entry.getKey();
 			if (gridBizMap.containsKey(gridId) == false) {
 				Pool pool = PoolManager.find(entry.getValue());
-				BizManager<IGridBizLink> bizManager = getSystemBizManager(IGridBizLink.class);
-				IGridBizLink gridBiz = ((GemfireBizManager<IGridBizLink>) bizManager).newClientProxy(pool, true);
-				gridBizMap.put(gridId, gridBiz);
-				gridService.putPool(gridId, pool);
-				Logger.config("Registered gridId=" + gridId + ", poolName=" + pool.getName());
+				BizManager<IGridBizLink> bizManager = getSystemBizManager("com.netcrest.pado.biz.server.IGridBiz");
+				// if bizManager is null then the grid initialization may still be in progress.
+				if (bizManager == null) {
+					throw new PadoException("IGridBizLink not available. Server initialization may be still in progress.");
+				} else {
+					IGridBizLink gridBiz = ((GemfireBizManager<IGridBizLink>) bizManager).newClientProxy(pool, true);
+					gridBizMap.put(gridId, gridBiz);
+					gridService.putPool(gridId, pool);
+					Logger.config("Registered gridId=" + gridId + ", poolName=" + pool.getName());
+				}
 			}
 		}
 	}

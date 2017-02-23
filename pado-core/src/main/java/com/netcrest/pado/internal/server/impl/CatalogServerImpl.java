@@ -104,6 +104,7 @@ public class CatalogServerImpl implements ICatalog
 				IBizLocal bizLocal = (IBizLocal)bizManager.getTargetClass().getClassLoader().loadClass(localImplClassName).newInstance();
 				return (T)newInstance(bizManager, bizLocal, bizLocalArguments);
 			} catch (Exception e) {
+				Logger.info(localImplClassName, e);
 				return (T)bizManager.newClientProxy();
 			}
 		}

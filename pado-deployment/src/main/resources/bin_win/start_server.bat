@@ -118,12 +118,12 @@ if "%RUN_DIR%" == "" (
 ::    DISK_STORE_DIR - Disk store directory path
 ::
 :: Example:
-::    <cache-server port="${SERVER_PORT}"
-::                  bind-address="${SERVER_BIND_ADDRESS}"
-::                  hostname-for-clients="${CLIENT_BIND_ADDRESS}" />
+::    <cache-server port="%SERVER_PORT%"
+::                  bind-address="%SERVER_BIND_ADDRESS%"
+::                  hostname-for-clients="%CLIENT_BIND_ADDRESS%" />
 ::    <disk-store name="disk-store">
 ::       <disk-dirs>
-::           <disk-dir>${DISK_STORE_DIR}</disk-dir>
+::           <disk-dir>%DISK_STORE_DIR%</disk-dir>
 ::       </disk-dirs>
 ::    </disk-store>
 
@@ -177,8 +177,9 @@ if "%SITE_NAME%" == "" (
 ::
 @set APP_PROPERTIES=%APP_PROPERTIES%
 
-@set PADO_PROPERTIES=-J-Dpado.grid.id=%GRID_ID% -J-Dpado.grid.name=%GRID_NAME% -J-Dpado.site.id=%SITE_ID% -J-Dpado.site.name=%SITE_NAME% -J-Dpado.home.dir=%PADO_HOME% -J-Dpado.plugins.dir=%PADO_PLUGINS_DIR% -J-Dpado.etc.dir=%ETC_DIR% -J-Dpado.etc.grid.dir=%ETC_GRID_DIR% -J-Dpado.padoPropertyFile=%PADO_PROPERTY_FILE% -J-Dpado.appConfigDir=%PADO_APP_CONFIG_DIR% -J-Dpado.security.encryption.enabled=true
+@set PADO_PROPERTIES=-J-Dpado.grid.id=%GRID_ID% -J-Dpado.grid.name=%GRID_NAME% -J-Dpado.site.id=%SITE_ID% -J-Dpado.site.name=%SITE_NAME% -J-Dpado.home.dir=%PADO_HOME% -J-Dpado.plugins.dir=%PADO_PLUGINS_DIR% -J-Dpado.etc.dir=%ETC_DIR% -J-Dpado.etc.grid.dir=%ETC_GRID_DIR% -J-Dpado.padoPropertyFile=%PADO_PROPERTY_FILE% -J-Dpado.appConfigDir=%PADO_APP_CONFIG_DIR% -J-Dpado.security.encryption.enabled=true -J-Djavax.xml.accessExternalDTD=all
 
+:: @set PADO_PROPERTIES=-J-Dpado.grid.id=%GRID_ID% -J-Dpado.grid.name=%GRID_NAME% -J-Dpado.site.id=%SITE_ID% -J-Dpado.site.name=%SITE_NAME% -J-Dpado.server.num=%SERVER_NUM% -J-Dpado.plugins.dir=%PADO_PLUGINS_DIR% -J-Dpado.etc.dir=%ETC_DIR% -J-Dpado.etc.grid.dir=%ETC_GRID_DIR% -J-Dpado.db.dir=%PADO_DB_DIR% -J-Dpado.properties=%PADO_PROPERTY_FILE% -J-Dpado.appConfigDir=%PADO_APP_CONFIG_DIR% -J-Dpado.server=true -J-Dpado.config-file=%PADO_XML_FILE% -J-Dpado.log.gridInfo=false -J-Djavax.xml.accessExternalDTD=all
 @set HEAPSIZE=-J-Xms%HEAP_MAX% -J-Xmx%HEAP_MAX%
 
 :: @set GC_PARAMETERS=-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:+DisableExplicitGC -J-XX:NewSize=256m -J-XX:CMSInitiatingOccupancyFraction=50

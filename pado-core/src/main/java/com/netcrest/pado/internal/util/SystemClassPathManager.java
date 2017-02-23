@@ -90,10 +90,10 @@ public class SystemClassPathManager
 	 *            true to initialize IBiz classes, false to defer
 	 *            initialization.
 	 */
-	public static void addJarsInDir(String dirPath, boolean isInitBiz)
+	public static HotDeploymentBizClasses addJarsInDir(String dirPath, boolean isInitBiz)
 	{
 		if (dirPath == null) {
-			return;
+			return null;
 		}
 
 		File classDirFile = new File(dirPath);
@@ -174,7 +174,7 @@ public class SystemClassPathManager
 		registerKeyType(allFiles);
 
 		// Register IBiz classes
-		registerBizClasses(allFiles, isInitBiz);
+		HotDeploymentBizClasses hotDeployment = registerBizClasses(allFiles, isInitBiz);
 
 		// for gc
 		datedFiles.clear();
@@ -183,6 +183,8 @@ public class SystemClassPathManager
 		undatedFiles = null;
 		jarList.clear();
 		jarList = null;
+		
+		return hotDeployment;
 	}
 
 	public static void registerKeyType(List<File> files)
@@ -221,17 +223,18 @@ public class SystemClassPathManager
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void registerBizClasses(List<File> files, boolean isInitBiz)
+	public static HotDeploymentBizClasses registerBizClasses(List<File> files, boolean isInitBiz)
 	{
 		if (files == null || files.size() == 0) {
-			return;
+			return null;
 		}
 		URL urls[] = new URL[files.size()];
+		HotDeploymentBizClasses hotDeployment = null;
 		try {
 			for (int i = 0; i < urls.length; i++) {
 				urls[i] = files.get(i).toURI().toURL();
 			}
-			HotDeploymentBizClasses hotDeployment = new HotDeploymentBizClasses(urls, "com io net org mypado");
+			hotDeployment = new HotDeploymentBizClasses(urls, "com io net org mypado");
 
 			if (hotDeployment.isBizFound()) {
 				StringBuffer buffer1 = new StringBuffer(2000);
@@ -282,5 +285,6 @@ public class SystemClassPathManager
 		} catch (ClassNotFoundException ex) {
 			ex.printStackTrace();
 		}
+		return hotDeployment;
 	}
 }

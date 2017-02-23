@@ -250,7 +250,7 @@ that invokes it. For example, for dqueue, it must implement DQueueListener.
 <!-- Startup bean that gets invoked during server startup. A startup bean
 is invoked after the Pado server has completely been initialized.
 -->
-<!ELEMENT startup (bean?, description?)>
+<!ELEMENT startup (bean*, description?)>
 
 <!-- bean defines a POJO class with the default no-arg constructor that may
 implement interface(s) that are required by the configuring Pado component.

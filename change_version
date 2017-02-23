@@ -1,0 +1,56 @@
+#!/bin/bash
+
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   change_version <from-version> <to-version> [-?]"
+   echo ""
+   echo "   Changes the project version in all pom.xml files. It prompts for confirmation"
+   echo "   before changing the version."
+   echo ""
+   echo "      <from-version> From-version"
+   echo "      <to-version>   To-version"
+   echo ""
+   echo "   Examples:"
+   echo "      ./change_version 0.4.0-SNAPSHOT 0.4.0-B2"
+   echo ""
+fi
+
+FROM_VERSION=$1
+TO_VERSION=$2
+
+if [ "$FROM_VERSION" == "" ]; then
+   echo "from-version and to-version must be specified."
+   echo ""; exit
+fi
+if [ "$TO_VERSION" == "" ]; then
+   echo "to-version must be specified."
+   echo ""; exit
+fi
+
+#sed -i '.bak' -e 's/0.4.1-SNAPSHOT/0.4.0-SNAPSHOT/g' `find . -name pom.xml`
+
+echo "from-version ($FROM_VERSION) found in the following pom.xml files:"
+grep $FROM_VERSION `find . -name pom.xml`
+
+# Prompt to confirm
+echo ""
+echo "The above files will be changed to $TO_VERSION. Do you want to continue?"
+read -p "Enter 'c' to continue, or others to quit: " INPUT
+if [ "$INPUT" != "c" ]; then
+   echo "Aborted."; echo ""; exit
+fi
+ALL_POM_FILES=
+TMP=`find . -name pom.xml`
+for i in $TMP; do
+   ALL_POM_FILES="$ALL_POM_FILES $i"
+done
+echo "Run the following command to change the version."
+echo "The original file is backed up with the extension '.bak'."
+echo ""
+echo "sed -i '.bak' -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES"
+#sed -i '.bak' -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES
+
+echo ""
+echo "Version changed from $FROM_VERSION to $TO_VERSION:"
+grep $TO_VERSION `find . -name pom.xml`
+echo ""

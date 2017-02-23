@@ -53,7 +53,7 @@ KeyClass=String
 ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 
 # KeyTypeClass defines the schema class for JsonLite. 
-#KeyTypeClass=
+KeyTypeClass=com.netcrest.pado.demo.nw.data.OrderKey
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
@@ -63,7 +63,7 @@ ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 Delimiter=,
 FileLoaderClass=com.netcrest.pado.biz.file.CsvFileLoader
 BatchSize=5000
-DateFormat=yyyyMMdd
+DateFormat=yyyy-MM-dd HH:mm:ss.SSS
 
 # If IsSplit is true then the data file is split into multiple smaller files
 # and assigned to threads to load them in parallel. The number of threads
@@ -103,9 +103,9 @@ IsTemporal=true
 # and the end of time is 2099-12-31'T'23:59:59.999Z. These
 # times are used to represent eternal and forever temporal objects.
 TemporalType=eternal
-TemporalStartTime=19700101
-TemporalEndTime=20991231
-TemporalWrittenTime=19700101
+TemporalStartTime=1970-01-01 00:00:00.000
+TemporalEndTime=2099-12-31 23:59:59.999
+TemporalWrittenTime=1970-01-01 00:00:00.000
 
 # Username is optional. If specified then it overrides the Pado login user name.
 #Username=
@@ -193,12 +193,12 @@ StartRow=5
 #    +Source, String, Mars
 #    +Type, int, 100
 # ------------------------------------------------------------------------------
-OrderID, String, Primary
-CustomerID
-EmployeeID
-OrderDate
-RequiredDate
-ShippedDate
+OrderId, String, Primary
+CustomerId
+EmployeeId
+OrderDate, Date
+RequiredDate, Date
+ShippedDate, Date
 ShipVia
 Freight
 ShipName

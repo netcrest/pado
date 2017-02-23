@@ -58,7 +58,7 @@ public class Deployment
 	 * occurs, the above bullet takes place.</li>
 	 * </ul>
 	 */
-	public void save(String[] jarNames, byte[][] jarContents, Date timestamp) throws DeploymentFailedException
+	public HotDeploymentBizClasses save(String[] jarNames, byte[][] jarContents, Date timestamp) throws DeploymentFailedException
 	{
 		String codeMessage = null;
 
@@ -72,6 +72,8 @@ public class Deployment
 		String hotClassDir = home + "/plugins";
 		File hotClassDirFile = new File(hotClassDir);
 		boolean deadlockOccurred = false;
+		
+		HotDeploymentBizClasses hotDeployment = null;
 		try {
 			tmpClassDirFile.mkdirs();
 			hotClassDirFile.mkdirs();
@@ -132,7 +134,7 @@ public class Deployment
 					fos.close();
 				}
 			}
-			HotDeploymentBizClasses hotDeployment = new HotDeploymentBizClasses(datedUrls, "com io net org mypado");
+			hotDeployment = new HotDeploymentBizClasses(datedUrls, "com io net org mypado");
 
 //			if (hotDeployment.isKeyTypeSuffixFound() && hotDeployment.isBizFound()) {
 //
@@ -203,8 +205,6 @@ public class Deployment
 				Logger.info("Hot delployed the following files: " + buffer.toString());
 			}
 
-			hotDeployment = null;
-
 		} catch (Exception ex) {
 			
 			StringBuffer buffer = new StringBuffer(100);
@@ -225,6 +225,7 @@ public class Deployment
 			
 		}
 		
+		return hotDeployment;
 	}
 	
 	public void save_old(String[] jarNames, byte[][] jarContents, Date timestamp) throws DeploymentFailedException
@@ -397,6 +398,7 @@ public class Deployment
 					buffer.delete(0, buffer.length());
 					String bizNames[] = hotDeployment.getBizNames();
 					InvertedClassLoader classLoader = new InvertedClassLoader(datedUrls);
+					hotDeployment.setClassLoader(classLoader);
 					PadoServerManager sm = PadoServerManager.getPadoServerManager();
 
 					for (String bizName : bizNames) {

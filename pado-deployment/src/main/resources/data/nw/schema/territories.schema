@@ -53,7 +53,7 @@ KeyClass=String
 ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 
 # KeyTypeClass defines the schema class for JsonLite. 
-#KeyTypeClass=
+KeyTypeClass=com.netcrest.pado.demo.nw.data.TerritoryKey
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
@@ -194,7 +194,7 @@ StartRow=2
 #    +Source, String, Mars
 #    +Type, int, 100
 # ------------------------------------------------------------------------------
-TerritoryID, String, Primary
+TerritoryId, String, Primary
 TerritoryDescription
-RegionID
+RegionId
 

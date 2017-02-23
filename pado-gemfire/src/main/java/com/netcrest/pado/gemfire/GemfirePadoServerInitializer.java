@@ -29,6 +29,7 @@ import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.exception.ConfigurationException;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.impl.PadoClientManager;
+import com.netcrest.pado.internal.util.HotDeploymentBizClasses;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.internal.util.QueueDispatcherMultiplexerPool;
 import com.netcrest.pado.internal.util.SystemClassPathManager;
@@ -49,7 +50,7 @@ public class GemfirePadoServerInitializer implements Declarable
 
 		// Initialize plug-in jars. This must be done before GemFire regions
 		// are loaded with persistent data in order to register data classes.
-		initPlugins();
+		final HotDeploymentBizClasses hotDeployment =initPlugins();
 
 		// Delay initialization of GemFire region and Pado internals if
 		// specified. Do the initialization in a separate thread to
@@ -59,7 +60,7 @@ public class GemfirePadoServerInitializer implements Declarable
 		timer.schedule(new TimerTask() {
 			public void run()
 			{
-				launchInit(props);
+				launchInit(props, hotDeployment);
 			}
 		}, initDelay);
 	}
@@ -128,7 +129,7 @@ public class GemfirePadoServerInitializer implements Declarable
 	 * 
 	 * @param props
 	 */
-	private void launchInit(Properties props)
+	private void launchInit(Properties props, HotDeploymentBizClasses hotDeployment)
 	{
 		try {
 			// Initialize cache servers with cache server settings obtained from
@@ -162,6 +163,10 @@ public class GemfirePadoServerInitializer implements Declarable
 			// Invoke user-supplied startup initialization bean. This must
 			// be invoked last.
 			PadoServerManager.getPadoServerManager().__initStartup();
+			
+			// Fire hot-deployment event to all deployment listeners.
+			// Deployment listeners are typically registered by startup plugins.
+			PadoServerManager.getPadoServerManager().fireDeploymentEvent(hotDeployment);
 
 			Logger.config("Pado initialized.");
 		} catch (Exception ex) {
@@ -201,7 +206,7 @@ public class GemfirePadoServerInitializer implements Declarable
 		}
 	}
 
-	private void initPlugins()
+	private HotDeploymentBizClasses initPlugins()
 	{
 		// Include all plug-ins in the class path
 		String pluginDir = PadoUtil.getProperty(Constants.PROP_PLUGINS_DIR);
@@ -221,7 +226,7 @@ public class GemfirePadoServerInitializer implements Declarable
 		}
 		// Defer initialization of IBiz classes till the persistent regions
 		// have been fully loaded (isInitBiz=false)
-		SystemClassPathManager.addJarsInDir(pluginDir, false /* isInitBiz */);
+		return SystemClassPathManager.addJarsInDir(pluginDir, false /* isInitBiz */);
 	}
 
 	private void initDb()

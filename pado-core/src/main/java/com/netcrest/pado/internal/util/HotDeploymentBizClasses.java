@@ -39,7 +39,8 @@ public class HotDeploymentBizClasses {
 	private boolean isKeyTypeSuffixFound = false;
 	private URL [] jarFiles;
 	private String [] packageRoots;
-//	private final LogWriter logger = CacheFactory.getAnyInstance().getLogger();
+	private Reflections r;
+	private ClassLoader classLoader;
 	
 	/**
 	 * Constructor
@@ -69,7 +70,7 @@ public class HotDeploymentBizClasses {
 		}
 		
 		ConfigurationBuilder cb = new ConfigurationBuilder().filterInputsBy(filterBuilder).setUrls(java.util.Arrays.asList(jarFiles));
-		Reflections r = new Reflections(cb);
+		r = new Reflections(cb);
 		
 		// KeyType
 		Set<String> keyTypeNamesSet = r.getStore().getSubTypesOf("com.netcrest.pado.data.KeyType");
@@ -141,6 +142,31 @@ public class HotDeploymentBizClasses {
 	 */
 	public String [] getPackageRoots() {
 		return packageRoots;
+	}
+	
+	/**
+	 * Returns reflections
+	 */
+	public Reflections getReflections()
+	{
+		return r;
+	}
+	
+	/**
+	 * Sets the class loader that loaded the hot-deployed classes
+	 * @param classLoader Class loader
+	 */
+	public void setClassLoader(ClassLoader classLoader)
+	{
+		this.classLoader = classLoader;
+	}
+	
+	/**
+	 * Returns the class loader that hot-deployed classes.
+	 */
+	public ClassLoader getClassLoader()
+	{
+		return classLoader;
 	}
 
 	public static void main(String [] args) {

@@ -60,6 +60,7 @@ import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.factory.InfoFactory;
 import com.netcrest.pado.internal.impl.GridRoutingTable;
+import com.netcrest.pado.internal.util.HotDeploymentBizClasses;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
@@ -365,7 +366,8 @@ public class SysBizImpl implements ISysBiz
 	@Override
 	public void deployJars(String[] jarNames, byte[][] jarContents, Date timestamp) throws DeploymentFailedException
 	{
-		new Deployment().save(jarNames, jarContents, timestamp);
+		HotDeploymentBizClasses hotDeployment = new Deployment().save(jarNames, jarContents, timestamp);
+		PadoServerManager.getPadoServerManager().fireDeploymentEvent(hotDeployment);
 	}
 
 	@BizMethod

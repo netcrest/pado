@@ -68,6 +68,7 @@ import com.netcrest.pado.internal.impl.GridRoutingTable;
 import com.netcrest.pado.internal.l.PadoDisclaimer;
 import com.netcrest.pado.internal.server.BizManager;
 import com.netcrest.pado.internal.server.impl.CatalogServerImpl;
+import com.netcrest.pado.internal.util.HotDeploymentBizClasses;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.internal.util.StringUtil;
 import com.netcrest.pado.link.IGridBizLink;
@@ -114,8 +115,7 @@ import com.netcrest.pado.temporal.TemporalManager;
  * @author dpark
  * 
  */
-public abstract class PadoServerManager
-{
+public abstract class PadoServerManager {
 	/**
 	 * PadoServerManager singleton instance
 	 */
@@ -270,11 +270,12 @@ public abstract class PadoServerManager
 	 */
 	protected Map<Object, IUserPrincipal> userPrincipalMap = new HashMap<Object, IUserPrincipal>();
 
+	private List<DeploymentListener> deploymentListenerList = new ArrayList<DeploymentListener>(1);
+
 	/**
 	 * Constructs a new singleton PadoServerManager object.
 	 */
-	protected PadoServerManager()
-	{
+	protected PadoServerManager() {
 	}
 
 	/**
@@ -284,8 +285,7 @@ public abstract class PadoServerManager
 	 * @throws ConfigurationException
 	 *             Thrown if a configuration error occurs
 	 */
-	protected void init(Properties props) throws ConfigurationException
-	{
+	protected void init(Properties props) throws ConfigurationException {
 		String configFilePath = System.getProperty("pado.config-file");
 		if (configFilePath == null) {
 			configFilePath = props.getProperty("config-file",
@@ -322,8 +322,7 @@ public abstract class PadoServerManager
 		}
 	}
 
-	private void buildGridPaths()
-	{
+	private void buildGridPaths() {
 		com.netcrest.pado.internal.config.dtd.generated.PathList pathList = padoConfig.getPathList();
 		if (pathList != null) {
 			PathListConfig pathListConfig = new PathListConfig(pathList);
@@ -334,8 +333,7 @@ public abstract class PadoServerManager
 		}
 	}
 
-	private GridPathInfo createGridPathInfo(PathConfig pathConfig, String parentPath)
-	{
+	private GridPathInfo createGridPathInfo(PathConfig pathConfig, String parentPath) {
 		String gridPath;
 		if (parentPath == null || parentPath.length() == 0) {
 			gridPath = pathConfig.getName();
@@ -369,8 +367,7 @@ public abstract class PadoServerManager
 	 *             Thrown if any of the grid IDs defined for grid paths is not
 	 *             in the allowed grid lists.
 	 */
-	protected void validateGridPaths() throws ConfigurationException
-	{
+	protected void validateGridPaths() throws ConfigurationException {
 		com.netcrest.pado.internal.config.dtd.generated.AppList appList = padoConfig.getAppList();
 		if (appList != null) {
 			List<com.netcrest.pado.internal.config.dtd.generated.App> apps = appList.getApp();
@@ -406,8 +403,7 @@ public abstract class PadoServerManager
 		}
 	}
 
-	public com.netcrest.pado.internal.config.dtd.generated.Pado getPadoConfig()
-	{
+	public com.netcrest.pado.internal.config.dtd.generated.Pado getPadoConfig() {
 		return padoConfig;
 	}
 
@@ -415,13 +411,11 @@ public abstract class PadoServerManager
 	 * Returns the grid path info map that contains &lt;grid-path,
 	 * GridPathInfo&gt; pairs.
 	 */
-	public Map<String, GridPathInfo> getGridPathInfoMap()
-	{
+	public Map<String, GridPathInfo> getGridPathInfoMap() {
 		return gridPathInfoMap;
 	}
 
-	private void validateXml(File xmlFile) throws PadoException
-	{
+	private void validateXml(File xmlFile) throws PadoException {
 		// First validate it
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		factory.setValidating(true);
@@ -430,21 +424,18 @@ public abstract class PadoServerManager
 			saxParser = factory.newSAXParser();
 			DefaultHandler handler = new DefaultHandler() {
 				@Override
-				public void warning(SAXParseException e) throws SAXException
-				{
+				public void warning(SAXParseException e) throws SAXException {
 					Logger.warning(createLogMessage("Waring:", e));
 				}
 
 				@Override
-				public void error(SAXParseException e) throws SAXException
-				{
+				public void error(SAXParseException e) throws SAXException {
 					Logger.error(createLogMessage("Error:", e));
 					throw e;
 				}
 
 				@Override
-				public void fatalError(SAXParseException e) throws SAXException
-				{
+				public void fatalError(SAXParseException e) throws SAXException {
 					Logger.severe(createLogMessage("Fatal Error:", e));
 					throw e;
 				}
@@ -460,8 +451,7 @@ public abstract class PadoServerManager
 		}
 	}
 
-	private String createLogMessage(String header, SAXParseException e)
-	{
+	private String createLogMessage(String header, SAXParseException e) {
 		StringBuffer buffer = new StringBuffer(100);
 		buffer.append(header);
 		buffer.append("\n");
@@ -476,8 +466,7 @@ public abstract class PadoServerManager
 	/**
 	 * Returns IGridBizLink that provides grid-to-grid services.
 	 */
-	public IGridBizLink getGridBiz()
-	{
+	public IGridBizLink getGridBiz() {
 		return gridBiz;
 	}
 
@@ -486,8 +475,7 @@ public abstract class PadoServerManager
 	 * 
 	 * @param gridId
 	 */
-	public boolean containsGrid(String gridId)
-	{
+	public boolean containsGrid(String gridId) {
 		if (this.gridId.equals(gridId)) {
 			return true;
 		} else if (childGridBizMap.containsKey(gridId)) {
@@ -503,8 +491,7 @@ public abstract class PadoServerManager
 	 * @param gridPathInfoSet
 	 *            Grid path info set
 	 */
-	public void updateGridPaths(Set<GridPathInfo> gridPathInfoSet)
-	{
+	public void updateGridPaths(Set<GridPathInfo> gridPathInfoSet) {
 		if (gridPathInfoSet == null) {
 			return;
 		}
@@ -529,8 +516,7 @@ public abstract class PadoServerManager
 	 * @param gridPath
 	 *            Grid path
 	 */
-	private boolean isValidGridPath(String gridPath)
-	{
+	private boolean isValidGridPath(String gridPath) {
 		return gridPath.matches("^[a-zA-Z0-9_/]*$");
 	}
 
@@ -538,8 +524,7 @@ public abstract class PadoServerManager
 	 * Publishes GridInfo to all parents and updates all child grid AppInfo
 	 * objects.
 	 */
-	private void initAppGridIds()
-	{
+	private void initAppGridIds() {
 		// Publish GridInfo to all parent grids
 		publishGridInfoToParentGrids();
 
@@ -562,8 +547,7 @@ public abstract class PadoServerManager
 	 *         initialize the singleton instance.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static PadoServerManager initializePadoManager(final Properties properties)
-	{
+	public static PadoServerManager initializePadoManager(final Properties properties) {
 		if (padoServerManager == null) {
 			String disclaimer = PadoDisclaimer.getDisclaimer();
 
@@ -597,8 +581,7 @@ public abstract class PadoServerManager
 	 * invoked by applications. It is for internal use only. Invoking this
 	 * method has no effect for applications.
 	 */
-	public void startPadoManager()
-	{
+	public void startPadoManager() {
 		synchronized (this) {
 			if (padoServerManagerStarted == false) {
 				// Initialize this grid.
@@ -611,8 +594,7 @@ public abstract class PadoServerManager
 				// Long.parseLong(padoConfig.getGemfire().getInitDelay());
 				Timer timer = new Timer("Pado-PadoServerManager Login Initializer", true);
 				timer.schedule(new TimerTask() {
-					public void run()
-					{
+					public void run() {
 						// initiLogin() logs in to the parent grid. It
 						// indefinitely
 						// tries to log in to the parent grid until successful.
@@ -629,8 +611,7 @@ public abstract class PadoServerManager
 	/**
 	 * Initializes the mechanics for communicating with all participating grids.
 	 */
-	protected final static void initLogin()
-	{
+	protected final static void initLogin() {
 		try {
 			LoginInfo loginInfo = padoServerManager.loginToParent();
 			padoServerManager.initParents();
@@ -644,8 +625,7 @@ public abstract class PadoServerManager
 
 			// Periodically login to parent until successful
 			Thread thread = new Thread(new Runnable() {
-				public void run()
-				{
+				public void run() {
 					LoginInfo loginInfo = null;
 					int count = 0;
 					while (loginInfo == null) {
@@ -660,9 +640,19 @@ public abstract class PadoServerManager
 							Logger.config("Login to parent pado successful");
 						} catch (Exception ex) {
 							if (count % 10 == 0) {
-								Logger.warning(
-										"Login to parent pado failed. Login will occur periodically until successful. "
-												+ ex.getMessage());
+								String parentGridIds[] = padoServerManager.getParentGridIds();
+								String parentGridIdsStr = "[";
+								for (String gridId : parentGridIds) {
+									if (parentGridIdsStr.length() == 0) {
+										parentGridIdsStr = gridId;
+									} else {
+										parentGridIdsStr += "," + gridId;
+									}
+								}
+								parentGridIdsStr += "]";
+								Logger.warning("Login to parent pado " + parentGridIdsStr
+										+ " failed. Login will occur periodically until successful. "
+										+ ex.getMessage());
 								count = 0;
 							}
 						}
@@ -678,8 +668,7 @@ public abstract class PadoServerManager
 	/**
 	 * Returns the instance of PadoServerManager.
 	 */
-	public static PadoServerManager getPadoServerManager()
-	{
+	public static PadoServerManager getPadoServerManager() {
 		return padoServerManager;
 	}
 
@@ -688,8 +677,7 @@ public abstract class PadoServerManager
 	 * list if one or more parent grids are down. Failed parent grids are logged
 	 * with the error log level.
 	 */
-	public GridInfo[] getParentGridInfos()
-	{
+	public GridInfo[] getParentGridInfos() {
 		ArrayList<GridInfo> list = new ArrayList<GridInfo>(parentGridBizMap.size() + 1);
 		for (Map.Entry<String, IGridBizLink> entry : parentGridBizMap.entrySet()) {
 			try {
@@ -708,8 +696,7 @@ public abstract class PadoServerManager
 	 * if one or more child grids are down. Failed child grids are logged with
 	 * the error log level.
 	 */
-	public GridInfo[] getChildGridInfos(String appId)
-	{
+	public GridInfo[] getChildGridInfos(String appId) {
 		AppInfo appInfo = getAppInfo(appId);
 		if (appInfo == null) {
 			return null;
@@ -744,16 +731,14 @@ public abstract class PadoServerManager
 	 * @param gridPath
 	 *            Grid path.
 	 */
-	protected GridPathInfo getGridPathInfo(String gridPath)
-	{
+	protected GridPathInfo getGridPathInfo(String gridPath) {
 		return gridPathInfoMap.get(gridPath);
 	}
 
 	/**
 	 * Publishes GridInfo to all of the parent grids.
 	 */
-	public void publishGridInfoToParentGrids()
-	{
+	public void publishGridInfoToParentGrids() {
 		GridInfo gridInfo = getGridInfo();
 		for (IGridBizLink parentGridBiz : parentGridBizMap.values()) {
 			try {
@@ -770,8 +755,7 @@ public abstract class PadoServerManager
 	 * 
 	 * @see #createGridInfo()
 	 */
-	public GridInfo getGridInfo()
-	{
+	public GridInfo getGridInfo() {
 		if (gridInfo == null) {
 			gridInfo = createGridInfo();
 		}
@@ -786,8 +770,7 @@ public abstract class PadoServerManager
 	 *            {@link #systemMap} or {@link #appMap}
 	 */
 	@SuppressWarnings("rawtypes")
-	private Set<BizInfo> getAllBizInfos(Map<String, BizManager> bixManagerMap)
-	{
+	private Set<BizInfo> getAllBizInfos(Map<String, BizManager> bixManagerMap) {
 		Collection<BizManager> col = bixManagerMap.values();
 		HashSet<BizInfo> set = new HashSet<BizInfo>(20);
 		for (BizManager manager : col) {
@@ -808,8 +791,7 @@ public abstract class PadoServerManager
 	 * @return Returns null if BizManger is not found.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected BizManager getBizManager(Map<String, BizManager> bizManagerMap, Class<?> bizClass)
-	{
+	protected BizManager getBizManager(Map<String, BizManager> bizManagerMap, Class<?> bizClass) {
 		BizManager<IBiz> svcMgr = bizManagerMap.get(bizClass.getName());
 		if (svcMgr == null) {
 			if (BizUtil.isFuture(bizClass)) {
@@ -835,8 +817,7 @@ public abstract class PadoServerManager
 	 * @return Returns null if BizManger is not found.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private BizManager getBizManager(Map<String, BizManager> bizManagerMap, String bizClassName)
-	{
+	private BizManager getBizManager(Map<String, BizManager> bizManagerMap, String bizClassName) {
 		BizManager<IBiz> bizManager = bizManagerMap.get(bizClassName);
 		if (bizManager == null) {
 			// TODO: isFuture() assumes all Future class names end with
@@ -869,8 +850,7 @@ public abstract class PadoServerManager
 	 *            System-level biz manager
 	 */
 	@SuppressWarnings("rawtypes")
-	public void removeSystemBizManager(BizManager bizManager)
-	{
+	public void removeSystemBizManager(BizManager bizManager) {
 		systemMap.remove(bizManager.getTargetClass().getName());
 	}
 
@@ -881,8 +861,7 @@ public abstract class PadoServerManager
 	 *            Biz manager
 	 */
 	@SuppressWarnings("rawtypes")
-	public void addSystemBizMananger(BizManager bizManager)
-	{
+	public void addSystemBizMananger(BizManager bizManager) {
 		if (bizManager != null) {
 			systemMap.put(bizManager.getTargetClass().getName(), bizManager);
 		}
@@ -896,8 +875,7 @@ public abstract class PadoServerManager
 	 * @return Returns null if BizManger is not found.
 	 */
 	@SuppressWarnings("rawtypes")
-	public BizManager getSystemBizManager(Class<?> bizClass)
-	{
+	public BizManager getSystemBizManager(Class<?> bizClass) {
 		return getBizManager(systemMap, bizClass);
 	}
 
@@ -909,8 +887,7 @@ public abstract class PadoServerManager
 	 * @return Returns null if BizManger is not found.
 	 */
 	@SuppressWarnings("rawtypes")
-	public BizManager getSystemBizManager(String ibizClassName)
-	{
+	public BizManager getSystemBizManager(String ibizClassName) {
 		return getBizManager(systemMap, ibizClassName);
 	}
 
@@ -921,8 +898,7 @@ public abstract class PadoServerManager
 	 * @param bizClassName
 	 *            IBiz class name
 	 */
-	public void removeSystemBizManager(String bizClassName)
-	{
+	public void removeSystemBizManager(String bizClassName) {
 		systemMap.remove(bizClassName);
 	}
 
@@ -930,8 +906,7 @@ public abstract class PadoServerManager
 	 * Returns true if the BizManager object for the specified app-level IBiz
 	 * class name is found.
 	 */
-	public boolean containsAppBizManager(String className)
-	{
+	public boolean containsAppBizManager(String className) {
 		return appMap.containsKey(className);
 	}
 
@@ -940,8 +915,7 @@ public abstract class PadoServerManager
 	 * represent the current snapshot of all app-level IBiz classes managed by
 	 * this grid.
 	 */
-	public String[] getAllAppBizClassNames()
-	{
+	public String[] getAllAppBizClassNames() {
 		return appMap.keySet().toArray(new String[appMap.keySet().size()]);
 	}
 
@@ -950,8 +924,7 @@ public abstract class PadoServerManager
 	 * current snapshot of all app-level IBiz classes managed by this grid.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Class<?>[] getAllAppBizClasses()
-	{
+	public Class<?>[] getAllAppBizClasses() {
 		Collection<BizManager> col = appMap.values();
 		Class<?>[] classes = new Class<?>[col.size()];
 		int i = 0;
@@ -965,8 +938,7 @@ public abstract class PadoServerManager
 	 * Clears all BizManager objects from this grid.
 	 */
 	@SuppressWarnings("rawtypes")
-	public void clearBizManagers()
-	{
+	public void clearBizManagers() {
 		Collection<BizManager> col = systemMap.values();
 		for (BizManager bizManager : col) {
 			bizManager.close();
@@ -983,8 +955,7 @@ public abstract class PadoServerManager
 	/**
 	 * Returns all the system-level BizInfo objects.
 	 */
-	public Set<BizInfo> getAllSysBizInfos()
-	{
+	public Set<BizInfo> getAllSysBizInfos() {
 		return getAllBizInfos(systemMap);
 	}
 
@@ -996,8 +967,7 @@ public abstract class PadoServerManager
 	 *            Biz manager
 	 */
 	@SuppressWarnings("rawtypes")
-	public void addAppBizManager(BizManager bizManager)
-	{
+	public void addAppBizManager(BizManager bizManager) {
 		if (bizManager != null) {
 			appMap.put(bizManager.getTargetClass().getName(), bizManager);
 		}
@@ -1011,8 +981,7 @@ public abstract class PadoServerManager
 	 * @return Returns null if not found.
 	 */
 	@SuppressWarnings("rawtypes")
-	public BizManager getAppBizManager(Class<?> bizClass)
-	{
+	public BizManager getAppBizManager(Class<?> bizClass) {
 		return getBizManager(appMap, bizClass);
 	}
 
@@ -1024,8 +993,7 @@ public abstract class PadoServerManager
 	 * @return Returns null if not found.
 	 */
 	@SuppressWarnings("rawtypes")
-	public BizManager getAppBizManager(String bizClassName)
-	{
+	public BizManager getAppBizManager(String bizClassName) {
 		return getBizManager(appMap, bizClassName);
 	}
 
@@ -1035,8 +1003,7 @@ public abstract class PadoServerManager
 	 * @param bizManager
 	 */
 	@SuppressWarnings("rawtypes")
-	public void removeAppBizManager(BizManager bizManager)
-	{
+	public void removeAppBizManager(BizManager bizManager) {
 		appMap.remove(bizManager.getTargetClass().getName());
 	}
 
@@ -1047,8 +1014,7 @@ public abstract class PadoServerManager
 	 * @param bizClassName
 	 *            IBiz class name
 	 */
-	public void removeAppBizManager(String bizClassName)
-	{
+	public void removeAppBizManager(String bizClassName) {
 		appMap.remove(bizClassName);
 	}
 
@@ -1059,8 +1025,7 @@ public abstract class PadoServerManager
 	 *         since there is always at least one application class defined.
 	 */
 	@SuppressWarnings("rawtypes")
-	public ClassLoader getAppBizClassLoader()
-	{
+	public ClassLoader getAppBizClassLoader() {
 		Set<Map.Entry<String, BizManager>> set = appMap.entrySet();
 		for (Map.Entry<String, BizManager> entry : set) {
 			return entry.getValue().getTargetClass().getClassLoader();
@@ -1073,8 +1038,7 @@ public abstract class PadoServerManager
 	 * the server-side catalog has been created.
 	 */
 	@SuppressWarnings("rawtypes")
-	public void __initAppBizClasses()
-	{
+	public void __initAppBizClasses() {
 		Set<Map.Entry<String, BizManager>> set = appMap.entrySet();
 		for (Map.Entry<String, BizManager> entry : set) {
 			BizManager bizManager = entry.getValue();
@@ -1086,23 +1050,24 @@ public abstract class PadoServerManager
 	 * Invokes the initialization bean if configured in pado.xml. Also,
 	 * initializes properties defined in pado.properties.
 	 */
-	public void __initStartup()
-	{
+	public void __initStartup() {
 		com.netcrest.pado.internal.config.dtd.generated.Startup startup = padoConfig.getStartup();
 		if (startup != null) {
-			com.netcrest.pado.internal.config.dtd.generated.Bean bean = startup.getBean();
-			if (bean != null) {
-				try {
-					Object obj = ConfigUtil.createBean(null, bean);
-					if (obj != null) {
-						Logger.config("Bean registered: " + obj.getClass().getName());
+			List<com.netcrest.pado.internal.config.dtd.generated.Bean> beanList = startup.getBean();
+			if (beanList != null) {
+				for (com.netcrest.pado.internal.config.dtd.generated.Bean bean : beanList) {
+					try {
+						Object obj = ConfigUtil.createBean(null, bean);
+						if (obj != null) {
+							Logger.config("Bean registered: " + obj.getClass().getName());
+						}
+					} catch (ClassNotFoundException ex) {
+						Logger.severe("Startup bean class not found.", ex);
+					} catch (InstantiationException ex) {
+						Logger.severe("Startup bean instantiation failed.", ex);
+					} catch (IllegalAccessException ex) {
+						Logger.severe("Startup bean illegal access", ex);
 					}
-				} catch (ClassNotFoundException ex) {
-					Logger.severe("Startup bean class not found.", ex);
-				} catch (InstantiationException ex) {
-					Logger.severe("Startup bean instantiation failed.", ex);
-				} catch (IllegalAccessException ex) {
-					Logger.severe("Startup bean illegal access", ex);
 				}
 			}
 		}
@@ -1130,64 +1095,56 @@ public abstract class PadoServerManager
 	/**
 	 * Returns all app-level BizInfo objects that this grid manages.
 	 */
-	public Set<BizInfo> getAllAppBizInfos()
-	{
+	public Set<BizInfo> getAllAppBizInfos() {
 		return getAllBizInfos(appMap);
 	}
 
 	/**
 	 * Returns the grid ID of this server.
 	 */
-	public String getGridId()
-	{
+	public String getGridId() {
 		return gridId;
 	}
 
 	/**
 	 * Returns the site ID of this server.
 	 */
-	public String getSiteId()
-	{
+	public String getSiteId() {
 		return siteId;
 	}
 
 	/**
 	 * Returns the server ID of this server.
 	 */
-	public String getServerId()
-	{
+	public String getServerId() {
 		return serverId;
 	}
 
 	/**
 	 * Returns server number with leading zeroes.
 	 */
-	public String getServerNum()
-	{
+	public String getServerNum() {
 		return serverNum;
 	}
 
 	/**
 	 * Returns the server name that is human legible and unique.
 	 */
-	public String getServerName()
-	{
+	public String getServerName() {
 		return serverName;
 	}
 
 	/**
 	 * Returns the location ID of this server.
 	 */
-	public String getLocation()
-	{
+	public String getLocation() {
 		return location;
 	}
 
 	/**
 	 * Returns the locators of the site this server belongs to.
 	 */
-	public String getLocators()
-	{
+	public String getLocators() {
 		return locators;
 	}
 
@@ -1200,8 +1157,7 @@ public abstract class PadoServerManager
 	 * @param gridId
 	 *            Grid ID
 	 */
-	public void putDefaultGridId(String appId, String gridId)
-	{
+	public void putDefaultGridId(String appId, String gridId) {
 		defaultGridMap.put(appId, gridId);
 	}
 
@@ -1211,8 +1167,7 @@ public abstract class PadoServerManager
 	 * @param appId
 	 *            App ID
 	 */
-	public void removeDefaultGridId(String appId)
-	{
+	public void removeDefaultGridId(String appId) {
 		defaultGridMap.remove(appId);
 	}
 
@@ -1222,8 +1177,7 @@ public abstract class PadoServerManager
 	 * @param appId
 	 *            App ID
 	 */
-	public String getDefaultGridId(String appId)
-	{
+	public String getDefaultGridId(String appId) {
 		return defaultGridMap.get(appId);
 	}
 
@@ -1231,8 +1185,7 @@ public abstract class PadoServerManager
 	 * Returns the IDs of the connected parent grids. It returns an empty array
 	 * if there are no connected parent grids.
 	 */
-	public String[] getParentGridIds()
-	{
+	public String[] getParentGridIds() {
 		return parentGridBizMap.keySet().toArray(new String[parentGridBizMap.size()]);
 	}
 
@@ -1240,16 +1193,14 @@ public abstract class PadoServerManager
 	 * Returns the IDs of the connected child grids. It returns an empty array
 	 * if there are no connected child grids.
 	 */
-	public String[] getChildGridIds()
-	{
+	public String[] getChildGridIds() {
 		return childGridBizMap.keySet().toArray(new String[childGridBizMap.size()]);
 	}
 
 	/**
 	 * Returns the server-side catalog of IBiz classes.
 	 */
-	public ICatalog getCatalog()
-	{
+	public ICatalog getCatalog() {
 		return catalog;
 	}
 
@@ -1257,8 +1208,7 @@ public abstract class PadoServerManager
 	 * Returns the server-side IPado instance. Unlike a client IPado
 	 * implementation, the returned instance is not fully functional.
 	 */
-	public IPado getPado()
-	{
+	public IPado getPado() {
 		if (catalog == null) {
 			return null;
 		}
@@ -1271,8 +1221,7 @@ public abstract class PadoServerManager
 	 * @param rootPath
 	 *            Root path that begins with "/".
 	 */
-	public String getGridIdForRootPath(String rootPath)
-	{
+	public String getGridIdForRootPath(String rootPath) {
 		return gridIdMap.get(rootPath);
 	}
 
@@ -1285,25 +1234,61 @@ public abstract class PadoServerManager
 	 *            Full path that begins with "/".
 	 * @see #getGridIdForFullPath(String)
 	 */
-	public boolean isPadoPath(String fullPath)
-	{
+	public boolean isPadoPath(String fullPath) {
 		return getGridIdForFullPath(fullPath) != null;
 	}
 
 	/**
 	 * Returns true if this grid is a parent.
 	 */
-	public boolean isParent()
-	{
+	public boolean isParent() {
 		return isParent;
 	}
 
 	/**
 	 * Returns true if encryption is enabled.
 	 */
-	public boolean isEncryptionEnabled()
-	{
+	public boolean isEncryptionEnabled() {
 		return isEncryptionEnabled;
+	}
+
+	/**
+	 * Adds a deployment listener.
+	 *
+	 * @param listener
+	 *            Deployment listener
+	 */
+	public void addDeploymentListener(DeploymentListener listener) {
+		synchronized (deploymentListenerList) {
+			if (deploymentListenerList.contains(listener) == false) {
+				deploymentListenerList.add(listener);
+			}
+		}
+	}
+
+	/**
+	 * Removes a deployment listener.
+	 *
+	 * @param listener
+	 *            Deployment listener
+	 */
+	public void removeDeploymentListener(DeploymentListener listener) {
+		synchronized (deploymentListenerList) {
+			deploymentListenerList.remove(listener);
+		}
+	}
+	
+	/**
+	 * Dispatches the specified deployment object to all deployment listeners.
+	 * @param deployment Hot deployment object
+	 */
+	public void fireDeploymentEvent(HotDeploymentBizClasses deployment)
+	{
+		synchronized (deploymentListenerList) {
+			for (DeploymentListener deploymentListener : deploymentListenerList) {
+				deploymentListener.jarDeployed(deployment);
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------------
@@ -1544,7 +1529,7 @@ public abstract class PadoServerManager
 	public abstract boolean isMaster();
 
 	/**
-	 * Adds the master failover listener.
+	 * Adds a master failover listener.
 	 *
 	 * @param listener
 	 *            the listener
@@ -1552,7 +1537,7 @@ public abstract class PadoServerManager
 	public abstract void addMasterFailoverListener(MasterFailoverListener listener);
 
 	/**
-	 * Removes the master failover listener.
+	 * Removes a master failover listener.
 	 *
 	 * @param listener
 	 *            the listener
@@ -1603,20 +1588,18 @@ public abstract class PadoServerManager
 	 *            Grid ID. null to return this grid's server IDs.
 	 */
 	public abstract Object[] getServerIds(String gridId);
-	
+
 	/**
 	 * Returns the total number of currently running servers in this grid.
 	 */
-	public int getServerCount()
-	{
+	public int getServerCount() {
 		return getServerCount(null);
 	}
-	
+
 	/**
 	 * Returns all unique server IDs in this grid.
 	 */
-	public Object[] getServerIds()
-	{
+	public Object[] getServerIds() {
 		return getServerIds(null);
 	}
 }

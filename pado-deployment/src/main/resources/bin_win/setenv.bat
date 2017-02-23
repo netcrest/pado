@@ -125,7 +125,7 @@ if  "%ANT_HOME%" == "" (
 ::
 :: PADO_HOME
 ::
-@set PADO_HOME=%BASE_DIR%
+@set PADO_HOME=%BASE_DIR:\=/%
 
 @set "PATH=%BASE_DIR%\bin_win;%BASE_DIR%\lib;%PATH%"
 
