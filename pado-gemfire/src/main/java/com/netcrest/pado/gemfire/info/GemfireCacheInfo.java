@@ -31,7 +31,6 @@ import com.gemstone.gemfire.cache.server.CacheServer;
 import com.gemstone.gemfire.cache.util.GatewayHub;
 import com.netcrest.pado.info.CacheInfo;
 import com.netcrest.pado.info.PathInfo;
-import com.netcrest.pado.info.VirtualPathInfo;
 import com.netcrest.pado.internal.factory.InfoFactory;
 import com.netcrest.pado.pql.VirtualPath2;
 

@@ -103,7 +103,7 @@ public class GemfireGridInfo extends GridInfo implements DataSerializable
 		List<ServerInfo> serverInfoList = serverInfoMap.get(regionPath);
 		if (serverInfoList == null) {
 			if (cacheInfoList != null) {
-				serverInfoList = new ArrayList(cacheInfoList.size() + 1);
+				serverInfoList = new ArrayList<ServerInfo>(cacheInfoList.size() + 1);
 				for (CacheInfo cacheInfo : cacheInfoList) {
 					for (CacheServerInfo cacheServerInfo : cacheInfo.getCacheServerInfoList()) {
 						ServerInfo serverInfo = new GemfireServerInfo(this, (GemfireCacheInfo) cacheInfo,

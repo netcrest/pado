@@ -15,6 +15,8 @@
  */
 package com.netcrest.pado.link;
 
+import java.util.List;
+
 import com.netcrest.pado.IBiz;
 import com.netcrest.pado.annotation.BizClass;
 import com.netcrest.pado.annotation.BizMethod;
@@ -26,16 +28,18 @@ import com.netcrest.pado.info.ConfigInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PathInfo;
+import com.netcrest.pado.info.ServerInfo;
 
 /**
- * IPadoBizLink is an internal IBiz class for creating login sessions and providing
- * metadata services. This class is not allowed outside of internal use.
- * This is a class loader link class that links the main class loader to
- * an IBiz class loader.
+ * IPadoBizLink is an internal IBiz class for creating login sessions and
+ * providing metadata services. This class is not allowed outside of internal
+ * use. This is a class loader link class that links the main class loader to an
+ * IBiz class loader.
+ * 
  * @author dpark
  * 
  */
-@BizClass(bizType = BizType.PADO, name="IPadoBiz")
+@BizClass(bizType = BizType.PADO, name = "IPadoBiz")
 public interface IPadoBizLink extends IBiz
 {
 	/**
@@ -89,25 +93,44 @@ public interface IPadoBizLink extends IBiz
 
 	/**
 	 * Returns GridInfo of this grid.
-	 * 
-	 * @return
 	 */
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	GridInfo getGridInfo();
-	
-	
+
+	/**
+	 * Returns a list of ServerInfo objects from all servers in the grid.
+	 */
+	@BizMethod
+	@OnServer
+	List<ServerInfo> getServerInfoList();
+
+	/**
+	 * Returns a list of ServerInfo objects from the specified grid ID.
+	 * 
+	 * @param gridId
+	 *            Grid ID
+	 */
+	@BizMethod
+	@OnServer
+	List<ServerInfo> getServerInfoList(String gridId);
+
 	/**
 	 * Returns the number of running servers in the specified grid.
-	 * @param gridId Grid ID
+	 * 
+	 * @param gridId
+	 *            Grid ID
 	 */
 	@BizMethod
 	@OnServer
 	int getServerCount(String gridId);
-	
+
 	/**
-	 * Returns all server IDs that uniquely identify the servers in the specified grid.
-	 * @param gridId Grid ID
+	 * Returns all server IDs that uniquely identify the servers in the
+	 * specified grid.
+	 * 
+	 * @param gridId
+	 *            Grid ID
 	 */
 	@BizMethod
 	@OnServer

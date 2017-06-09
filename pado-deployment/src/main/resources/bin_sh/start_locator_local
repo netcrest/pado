@@ -26,11 +26,15 @@ if [ "$HELP" == "true" ]; then
    echo "  Starts a locator in the specified grid and site. Unlike start_locator, this"
    echo "  command executes locally."
    echo ""
-   echo "   start_locator [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo "   start_locator_local [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-clean] [-quiet] [-?]"
    echo ""
    echo "      <locator number> Locator number 1-99 ($GRID-$SITE: `getLocatorNumberRange`)"
+   echo "                       If the locator number is 'auto', i.e., -num auto, then"
+   echo "                       the locator number is automatically determined."
    echo "      -grid      Starts the locator in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Starts the locator in the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -clean     Cleans the working directory only if the locator is not running."
+   echo "      -quiet     Quiet mode. Suppresses verbose."
    echo ""
    echo "   Default: start_locator_local -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
@@ -38,6 +42,97 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# the parent directory of all servers
+if [ "$RUN_DIR" == "" ]; then
+   RUN_DIR=$BASE_DIR/run
+fi
+
+#
+# If auto, then determine the locator number 
+#
+if [ "$SERVER_NUM" == "auto" ]; then
+   #
+   # Target host
+   #
+   # LocatorArray elements:
+   #    array[0] LocatorNumber
+   #    array[1] Host
+   #    array[2] LocatorPort
+   #    array[3] JmxRmiPort
+   #    array[4] JmxHttpPort
+   setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SERVER_NUM=${array[0]}
+      if [ "$SERVER_NUM" == "" ]; then
+         continue;
+      fi
+      if [ $SERVER_NUM -lt 10 ]; then
+         SERVER_NUM=0$SERVER_NUM
+      fi
+      # Set SERVER_NUM_NO_LEADING_ZERO
+      if [[ $SERVER_NUM == 0* ]]; then
+         SERVER_NUM_NO_LEADING_ZERO=${SERVER_NUM:1};
+      else
+         SERVER_NUM_NO_LEADING_ZERO=$SERVER_NUM
+      fi
+      LOCATOR_HOST=${array[1]}
+      if [ "$LOCATOR_HOST" == "localhost" ]; then
+         LOCATOR_HOST=`hostname`
+      fi
+      LOCATOR_PORT=${array[2]}
+      JMX_MANAGER_PORT=${array[3]}
+      JMX_MANAGER_HTTP_PORT=${array[4]}
+      LOCATOR_ID=locator-${GRID}-${SITE}${SERVER_NUM}
+
+      # If locator is already running then exit
+      locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
+      lpids=""
+      for j in $locators; do
+         lpids="$j $lpids"
+      done
+      if [ "$lpids" != "" ]; then
+          # Locator is already running. Continue to next locator.
+          if [ "$QUIET" != "true" ]; then
+             echo "$LOCATOR_ID already running. Skipping..."
+          fi
+          LOCATOR_HOST=""
+          IS_LOCATOR_ALREADY_RUNNNIG=true
+          continue
+      fi
+
+      if [ "$LOCATOR_HOST" == "$MY_ADDRESS" ]; then
+         break
+      fi
+   done
+   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ]; then
+      if [ "$IS_LOCATOR_ALREADY_RUNNNIG" != "true" ]; then
+         if [ "$QUIET" != "true" ]; then
+            echo "This host is not configured to run locator. Aborted."
+         fi
+      fi
+      exit
+   fi
+fi
+# directory in which the locator to be run
+DIR=$RUN_DIR/${LOCATOR_ID}
+if [ -d $DIR ] && [ "$CLEAN" == "true" ]; then
+   locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
+   lpids=""
+   for j in $locators; do
+      lpids="$j $lpids"
+   done
+   if [ "$lpids" == "" ]; then
+      # clean only if the locator is not running
+      rm -rf $DIR
+   fi
+fi
+if [ ! -d $DIR ]; then
+  mkdir -p $DIR
+fi
 
 LOCATORS=`getGemfireLocators`
 LOCATOR_NUM=$SERVER_NUM_NO_LEADING_ZERO
@@ -56,16 +151,6 @@ LOCATOR_PORT=${array[2]}
 JMX_MANAGER_PORT=${array[3]}
 JMX_MANAGER_HTTP_PORT=${array[4]}
 
-# the parent directory of all servers
-if [ "$RUN_DIR" == "" ]; then
-   RUN_DIR=$BASE_DIR/run
-fi
-# directory in which the locator to be run
-DIR=$RUN_DIR/${LOCATOR_ID}
-if [ ! -d $DIR ]; then
-  mkdir -p $DIR
-fi
-
 GEMFIRE_REMOTE_LOCATORS=
 if [ "$REMOTE_LOCATORS" != "" ]; then
    GEMFIRE_REMOTE_LOCATORS="--J='-Dgemfire.remote-locators=${REMOTE_LOCATORS}'"
@@ -80,11 +165,6 @@ if [ "$JAVA_VERSION" != "8" ]; then
    JVM_PROPERTIES="--J=-XX:PermSize=64m --J=-XX:MaxPermSize=64m $JVM_PROPERTIES"
 fi
 
-GEMFIRE_PROPERTIES="--J=-Dgemfire.distributed-system-id=${SYSTEM_ID} ${GEMFIRE_REMOTE_LOCATORS} --J=-Dgemfire.jmx-manager=$JMX_MANAGER_ENABLED --J=-Dgemfire.jmx-manager-port=${JMX_MANAGER_PORT} --J=-Dgemfire.jmx-manager-http-port=${JMX_MANAGER_HTTP_PORT}"
-# Do not bind localhost
-if [ "$SERVER_BIND_ADDRESS" != "localhost" ]; then
-   GEMFIRE_PROPERTIES="$GEMFIRE_PROPERTIES --J=-Dgemfire.bind-address=$SERVER_BIND_ADDRESS"
-fi
 
 # ---------------------------------------------------------------------------
 # Security file paths if enabled
@@ -120,6 +200,13 @@ else
    SECURITY_PROPERTIES=--J=-Dpado.security.enabled=false
 fi
 SECURITY_PROPERTIES="$SECURITY_PROPERTIES $GEMFIRE_SECURITY_PROPERTY_SYSTEM"
+
+
+GEMFIRE_PROPERTIES="--J=-Dgemfire.distributed-system-id=${SYSTEM_ID} ${GEMFIRE_REMOTE_LOCATORS} --J=-Dgemfire.jmx-manager=$JMX_MANAGER_ENABLED --J=-Dgemfire.jmx-manager-port=${JMX_MANAGER_PORT} --J=-Dgemfire.jmx-manager-http-port=${JMX_MANAGER_HTTP_PORT}"
+# Do not bind localhost
+if [ "$SERVER_BIND_ADDRESS" != "localhost" ]; then
+   GEMFIRE_PROPERTIES="$GEMFIRE_PROPERTIES --J=-Dgemfire.bind-address=$SERVER_BIND_ADDRESS"
+fi
 
 # ---------------------------------------------------------------------------
 

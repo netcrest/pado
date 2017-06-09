@@ -15,6 +15,7 @@
  */
 package com.netcrest.pado.biz.server.impl.gemfire;
 
+import java.util.List;
 import java.util.Properties;
 
 import javax.annotation.Resource;
@@ -25,6 +26,7 @@ import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.IUserAuthentication;
 import com.netcrest.pado.IUserPrincipal;
 import com.netcrest.pado.annotation.BizMethod;
+import com.netcrest.pado.annotation.OnServer;
 import com.netcrest.pado.biz.server.IPadoBiz;
 import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.exception.PadoLoginException;
@@ -34,6 +36,7 @@ import com.netcrest.pado.info.ConfigInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PathInfo;
+import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.log.Logger;
@@ -169,6 +172,26 @@ public class PadoBizImpl implements IPadoBiz
 	public byte[] echo(byte[] payload)
 	{
 		return payload;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@Override
+	public List<ServerInfo> getServerInfoList()
+	{
+		return PadoServerManager.getPadoServerManager().getServerInfoList();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@BizMethod
+	@Override
+	public List<ServerInfo> getServerInfoList(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerInfoList(gridId);
 	}
 
 	/**

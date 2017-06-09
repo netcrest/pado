@@ -56,6 +56,7 @@ import com.netcrest.pado.info.BizInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.GridPathInfo;
 import com.netcrest.pado.info.LoginInfo;
+import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.info.message.MessageType;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.biz.util.BizUtil;
@@ -1588,6 +1589,9 @@ public abstract class PadoServerManager {
 	 *            Grid ID. null to return this grid's server IDs.
 	 */
 	public abstract Object[] getServerIds(String gridId);
+	
+	
+	public abstract List<ServerInfo> getServerInfoList(String gridId);
 
 	/**
 	 * Returns the total number of currently running servers in this grid.
@@ -1601,5 +1605,9 @@ public abstract class PadoServerManager {
 	 */
 	public Object[] getServerIds() {
 		return getServerIds(null);
+	}
+	
+	public List<ServerInfo> getServerInfoList() {
+		return getServerInfoList(null);
 	}
 }

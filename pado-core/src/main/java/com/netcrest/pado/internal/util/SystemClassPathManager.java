@@ -241,6 +241,7 @@ public class SystemClassPathManager
 				StringBuffer buffer2 = new StringBuffer(2000);
 				String bizNames[] = hotDeployment.getBizNames();
 				InvertedClassLoader classLoader = new InvertedClassLoader(urls);
+				hotDeployment.setClassLoader(classLoader);
 				int i = 0;
 				for (File file : files) {
 					if (i++ > 0) {

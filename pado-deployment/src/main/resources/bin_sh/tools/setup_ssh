@@ -48,7 +48,7 @@ HOST_NAME=`hostname`
 if [ ! -f ~/.ssh/id_rsa.pub ]; then
    echo "Generating RSA key for this host $HOST_NAME:"
    echo "   Accept the default values by hitting 'Enter'."
-   ssh-keygen -t rsa
+   ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
 fi
 if [ ! -f ~/.ssh/authorized_keys ]; then
    cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
@@ -116,7 +116,7 @@ for i in $SSH_HOSTS; do
    echo "   key generation questions. If the RSA key already exists"
    echo "   then it will prompt for overwrite. Do not overwrite"
    echo "   existing RSA keys by entering 'n'."
-   ssh -q $i "ssh-keygen -t rsa"
+   ssh -q $i "ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa"
    echo "Key generated: $i"
    echo ""
 done

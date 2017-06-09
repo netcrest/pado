@@ -36,8 +36,7 @@ import com.netcrest.pado.tools.pado.ICommand;
 import com.netcrest.pado.tools.pado.PadoShell;
 import com.netcrest.pado.tools.pado.SharedCache;
 
-public class grid implements ICommand
-{
+public class grid implements ICommand {
 	private PadoShell padoShell;
 	private static Options options = new Options();
 	static {
@@ -65,14 +64,12 @@ public class grid implements ICommand
 	}
 
 	@Override
-	public void initialize(PadoShell padoShell)
-	{
+	public void initialize(PadoShell padoShell) {
 		this.padoShell = padoShell;
 	}
 
 	@Override
-	public void help()
-	{
+	public void help() {
 		String hostGridId = "host";
 		if (SharedCache.getSharedCache().isLoggedIn()) {
 			hostGridId = "'" + SharedCache.getSharedCache().getPado().getGridId() + "'";
@@ -97,44 +94,41 @@ public class grid implements ICommand
 		PadoShell.println("                         Note that detaching a child grid is not supported.");
 		PadoShell.println("   Default: Must specify all options.");
 		PadoShell.println("   Examples:");
-		PadoShell
-				.println("      grid -attach -parent parentGrid   -- Attach the " + hostGridId + " grid as a child to 'parentGrid'.");
-		PadoShell
-				.println("      grid -detach -parent parentGrid   -- Detach the " + hostGridId + " grid from 'parentGrid'");
-		PadoShell
-				.println("      grid -attach -child childGrid     -- Attach 'childGrid' to the " + hostGridId + " grid.");
+		PadoShell.println("      grid -attach -parent parentGrid   -- Attach the " + hostGridId
+				+ " grid as a child to 'parentGrid'.");
+		PadoShell.println(
+				"      grid -detach -parent parentGrid   -- Detach the " + hostGridId + " grid from 'parentGrid'");
+		PadoShell.println(
+				"      grid -attach -child childGrid     -- Attach 'childGrid' to the " + hostGridId + " grid.");
 	}
 
-	@Override 
-	public String getShortDescription()
-	{
+	@Override
+	public String getShortDescription() {
 		return "Display grid status or attach/detach grids to/from the parent grid.";
 	}
-	
+
 	@Override
-	public boolean isLoginRequired()
-	{
+	public boolean isLoginRequired() {
 		return true;
 	}
 
 	@Override
-	public Options getOptions()
-	{
+	public Options getOptions() {
 		return options;
 	}
 
 	@Override
-	public void run(CommandLine commandLine, String command) throws Exception
-	{
+	public void run(CommandLine commandLine, String command) throws Exception {
 		String parentGridId = commandLine.getOptionValue("parent");
 		String childGridId = commandLine.getOptionValue("child");
 		if (parentGridId != null && childGridId != null) {
 			PadoShell.printlnError(this, "Invalid command. Both -parent and -child are not allowed.");
 		} else if (commandLine.hasOption("attach")) {
 			if (childGridId != null) {
-				PadoShell.printlnError(this, "A child grid cannot be attached by a parent grid.\n"
-						+ "To attach a child grid, login to the child grid and use the\n"
-						+ "\"-attach -parent <grid id>\" option.");
+				PadoShell.printlnError(this,
+						"A child grid cannot be attached by a parent grid.\n"
+								+ "To attach a child grid, login to the child grid and use the\n"
+								+ "\"-attach -parent <grid id>\" option.");
 			}
 			runCommand(commandLine);
 		} else if (commandLine.hasOption("detach")) {
@@ -146,8 +140,7 @@ public class grid implements ICommand
 		}
 	}
 
-	private void runCommand(CommandLine commandLine) throws Exception
-	{
+	private void runCommand(CommandLine commandLine) throws Exception {
 		String parentGridId = commandLine.getOptionValue("parent");
 		String childGridId = commandLine.getOptionValue("child");
 		if (commandLine.hasOption("attach")) {
@@ -161,8 +154,7 @@ public class grid implements ICommand
 		}
 	}
 
-	private void attach(String parentGridId, String childGridId) throws Exception
-	{
+	private void attach(String parentGridId, String childGridId) throws Exception {
 		IPado pado = SharedCache.getSharedCache().getPado();
 		ISysBiz sysBiz = pado.getCatalog().newInstance(ISysBiz.class);
 
@@ -174,8 +166,7 @@ public class grid implements ICommand
 		SharedCache.getSharedCache().refresh();
 	}
 
-	private void detach(String parentGridId, String childGridId) throws Exception
-	{
+	private void detach(String parentGridId, String childGridId) throws Exception {
 		IPado pado = SharedCache.getSharedCache().getPado();
 		ISysBiz sysBiz = pado.getCatalog().newInstance(ISysBiz.class);
 		if (parentGridId != null) {
@@ -200,10 +191,9 @@ public class grid implements ICommand
 		}
 		SharedCache.getSharedCache().refresh();
 	}
-	
+
 	@SuppressWarnings({ "rawtypes" })
-	private void showGridSummary()
-	{
+	private void showGridSummary() {
 		PadoInfo padoInfo = SharedCache.getSharedCache().getHostPadoInfo();
 		if (padoInfo == null || padoInfo.getAllGridInfos() == null) {
 			PadoShell.println(this, "Incomplete grid status. Please run 'refresh' and try it again.");
@@ -211,17 +201,16 @@ public class grid implements ICommand
 		}
 		ArrayList<Map> list = new ArrayList<Map>(padoInfo.getAllGridInfos().length);
 		GridInfo gridInfo = padoInfo.getGridInfo();
-		list .add(createGridSummaryMap(gridInfo, "super"));
+		list.add(createGridSummaryMap(gridInfo, "super"));
 		GridInfo[] childGridInfos = padoInfo.getChildGridInfos();
 		for (GridInfo gridInfo2 : childGridInfos) {
 			list.add(createGridSummaryMap(gridInfo2, "child"));
 		}
 		PrintUtil.printList(list);
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Map createGridSummaryMap(GridInfo gridInfo, String gridType)
-	{
+	private Map createGridSummaryMap(GridInfo gridInfo, String gridType) {
 		HashMap map = new HashMap();
 		map.put("GridId", gridInfo.getGridId());
 		map.put("Grid", gridType);
@@ -236,10 +225,9 @@ public class grid implements ICommand
 		map.put("TemporalPaths", gridInfo.getCacheInfo().getAllTemporalPathInfoList().size());
 		return map;
 	}
-	
+
 	@SuppressWarnings({ "rawtypes" })
-	private void showAllGridServers()
-	{
+	private void showAllGridServers() {
 		PadoInfo padoInfo = SharedCache.getSharedCache().getHostPadoInfo();
 		if (padoInfo == null || padoInfo.getAllGridInfos() == null) {
 			PadoShell.println(this, "Incomplete grid status. Please run 'refresh' and try it again.");
@@ -254,31 +242,32 @@ public class grid implements ICommand
 		}
 		PrintUtil.printList(mapList);
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private List<Map> addServerMaps(GridInfo gridInfo, String gridType, List<Map> mapList)
-	{
+	private List<Map> addServerMaps(GridInfo gridInfo, String gridType, List<Map> mapList) {
 		List<CacheInfo> clist = gridInfo.getCacheInfoList();
-		for (CacheInfo cacheInfo : clist) {
-			HashMap map = new HashMap();
-			map.put("GridId", gridInfo.getGridId());
-			map.put("ServerId", cacheInfo.getId());
-			map.put("Grid", gridType);
-			map.put("RootPath", gridInfo.getGridRootPath());
-			map.put("Location", gridInfo.getLocation());
-			map.put("Host", cacheInfo.getHost());
-			map.put("Paths", cacheInfo.getAllPathInfoList().size());
-			map.put("PID", cacheInfo.getProcessId());
-			List<CacheServerInfo> csiList = cacheInfo.getCacheServerInfoList();
-			StringBuffer buffer = new StringBuffer(csiList.size() * 6);
-			for (int i = 0; i < csiList.size(); i++) {
-				if (i != 0) {
-					buffer.append(",");
+		if (clist != null) {
+			for (CacheInfo cacheInfo : clist) {
+				HashMap map = new HashMap();
+				map.put("GridId", gridInfo.getGridId());
+				map.put("ServerId", cacheInfo.getId());
+				map.put("Grid", gridType);
+				map.put("RootPath", gridInfo.getGridRootPath());
+				map.put("Location", gridInfo.getLocation());
+				map.put("Host", cacheInfo.getHost());
+				map.put("Paths", cacheInfo.getAllPathInfoList().size());
+				map.put("PID", cacheInfo.getProcessId());
+				List<CacheServerInfo> csiList = cacheInfo.getCacheServerInfoList();
+				StringBuffer buffer = new StringBuffer(csiList.size() * 6);
+				for (int i = 0; i < csiList.size(); i++) {
+					if (i != 0) {
+						buffer.append(",");
+					}
+					buffer.append(csiList.get(i).getPort());
 				}
-				buffer.append(csiList.get(i).getPort());
+				map.put("Ports", buffer.toString());
+				mapList.add(map);
 			}
-			map.put("Ports", buffer.toString());
-			mapList.add(map);
 		}
 		return mapList;
 	}

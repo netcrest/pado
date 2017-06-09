@@ -22,15 +22,19 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   start_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-rebalance] [-?]"
+   echo "   start_server_local [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-rebalance] [-clean] [-quiet] [-?]"
    echo ""
    echo "   Starts a server in the specified grid and site. This is a local command."
    echo "   It must be executed in the host where the server is running. To start"
    echo "   a remote server, run the start_server command instead."
    echo ""
    echo "      <server number> Server number 1-99"
+   echo "                      If the server number is 'auto', i.e., -num auto, then"
+   echo "                      the server number is automatically determined."
    echo "      -grid      Starts the server in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Starts the server in the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -clean     Cleans the working directory only if the server is not running."
+   echo "      -quiet     Quiet mode. Suppresses verbose."
    echo ""
    echo "   Default: start_server -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
@@ -45,11 +49,6 @@ LOCATORS=`getGemfireLocators`
 # the parent directory of all servers 
 if [ "$RUN_DIR" == "" ]; then
    RUN_DIR=$BASE_DIR/run
-fi
-# directory in which the server is to be run
-DIR=$RUN_DIR/${SERVER_ID}
-if [ ! -d $DIR ]; then
-  mkdir -p $DIR
 fi
 
 # log directory
@@ -72,6 +71,7 @@ fi
 if [ "$DISK_STORE_DIR" == "" ]; then
    DISK_STORE_DIR=$DIR/store
 fi
+
 if [ ! -d $DISK_STORE_DIR ]; then
   mkdir -p $DISK_STORE_DIR
 fi
@@ -105,6 +105,93 @@ fi
 # etc directories env passed into Pado
 export PADO_ETC_DIR=$ETC_DIR
 export PADO_ETC_GRID_DIR=$ETC_GRID_DIR
+
+#
+# If auto, then determine the server number
+#
+if [ "$SERVER_NUM" == "auto" ]; then
+   # ServerArray elements:
+   #   array[0] ServerNumber
+   #   array[1] ServerHost
+   #   array[2] ServerPort
+   #   array[3] DebugPort
+   #   array[4] JmxPort
+   #   array[5] GemFireProperties
+   #   array[6] GemFireXml
+   #   array[7] PadoProperties
+   #   array[8] PadoXml
+   #   array[9] IsServerStart
+   setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SERVER_NUM=${array[0]}
+      if [ "$SERVER_NUM" == "" ]; then
+         continue;
+      fi
+      if [ $SERVER_NUM -lt 10 ]; then
+         SERVER_NUM=0$SERVER_NUM
+      fi
+      # Set SERVER_NUM_NO_LEADING_ZERO
+      if [[ $SERVER_NUM == 0* ]]; then
+         SERVER_NUM_NO_LEADING_ZERO=${SERVER_NUM:1};
+      else
+         SERVER_NUM_NO_LEADING_ZERO=$SERVER_NUM
+      fi
+      SERVER_HOST=${array[1]}
+      if [ "$SERVER_HOST" == "localhost" ]; then
+         SERVER_HOST=`hostname`
+      fi
+      SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
+
+      # If server is already running then ignore
+      servers=`$COMMAND_PREFIX $JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
+      spids=""
+      for j in $servers; do
+         spids="$j $spids"
+      done
+      if [ "$spids" != "" ]; then
+          # Server is already running. Continue to next server.
+          if [ "$QUIET" != "true" ]; then
+             echo "$SERVER_ID already running. Skipping..."
+          fi
+          SERVER_HOST=""
+          IS_SERVER_ALREADY_RUNNNIG=true
+          continue
+      fi
+
+      if [ "$SERVER_HOST" == "$MY_ADDRESS" ]; then
+         break
+      fi
+   done
+   if [ "$SERVER_HOST" != "$MY_ADDRESS" ]; then
+      if [ "$IS_SERVER_ALREADY_RUNNNIG" != "true" ]; then
+         if [ "$QUIET" != "true" ]; then
+            echo "This host is not configured to run cache server. Aborted."
+         fi
+      fi
+      exit
+   fi
+fi
+
+# directory in which the server is to be run
+DIR=$RUN_DIR/${SERVER_ID}
+if [ -d $DIR ] && [ "$CLEAN" == "true" ]; then
+   servers=`$COMMAND_PREFIX $JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
+   spids=""
+   for j in $servers; do
+      spids="$j $spids"
+   done
+   if [ "$spids" == "" ]; then
+      # clean only if the server is not running
+      rm -rf $DIR
+   fi
+fi
+if [ ! -d $DIR ]; then
+  mkdir -p $DIR
+fi
 
 # ServerArray elements:
 #   array[0] ServerNumber
@@ -292,12 +379,17 @@ else
    DEBUG=
 fi
 
+
+
+# -------------------------------------------------------------------
+
 echo "*****************************************************"
 echo "Starting $SERVER_ID on host $MY_ADDRESS..."
 echo "*****************************************************"
 
-echo cacheserver start -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
-cacheserver start -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
+
+echo cacheserver start $JVM_EXTRA -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
+cacheserver start -dir=$DIR $JVM_EXTRA -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
 
 # ------------------
 # gfsh specifics

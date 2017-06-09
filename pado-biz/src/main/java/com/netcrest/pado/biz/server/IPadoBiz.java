@@ -15,6 +15,8 @@
  */
 package com.netcrest.pado.biz.server;
 
+import java.util.List;
+
 import com.netcrest.pado.annotation.BizClass;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.annotation.BizType;
@@ -25,6 +27,7 @@ import com.netcrest.pado.info.ConfigInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PathInfo;
+import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.link.IPadoBizLink;
 
 /**
@@ -94,6 +97,23 @@ public interface IPadoBiz extends IPadoBizLink
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	GridInfo getGridInfo();
+	
+	/**
+	 * Returns a list of ServerInfo objects from all servers in the grid.
+	 */
+	@BizMethod
+	@OnServer
+	List<ServerInfo> getServerInfoList();
+
+	/**
+	 * Returns a list of ServerInfo objects from the specified grid ID.
+	 * 
+	 * @param gridId
+	 *            Grid ID
+	 */
+	@BizMethod
+	@OnServer
+	List<ServerInfo> getServerInfoList(String gridId);
 	
 	/**
 	 * Returns the number of running servers in the specified grid.

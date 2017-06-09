@@ -44,7 +44,7 @@ public abstract class GridInfo extends AppGridInfo
 	/**
 	 * Map of &lt;&lt;grid-path&gt;, List&lt;ServerInfo&gt;&gt; pairs
 	 */
-	protected transient Map<String, List<ServerInfo>> serverInfoMap = new TreeMap();
+	protected transient Map<String, List<ServerInfo>> serverInfoMap = new TreeMap<String, List<ServerInfo>>();
 
 	/**
 	 * List of all CacheInfo objects representing all grid servers.

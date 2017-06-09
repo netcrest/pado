@@ -15,6 +15,8 @@
  */
 package com.netcrest.pado.biz.gemfire.proxy.functions;
 
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -45,7 +47,8 @@ public class ServerProxyFunction extends ProxyFunction
 	private Field gridContextField;
 	private BizContextServerSingletonImpl bizContext = null;
 	private Map<String, Method> methodMap = new HashMap<String, Method>();
-//	private Map<String, Method> iBizMethodMap = new HashMap<String, Method>();
+	// private Map<String, Method> iBizMethodMap = new HashMap<String,
+	// Method>();
 
 	/**
 	 * Constructs a server-side proxy function for the specified IBiz class.
@@ -89,11 +92,11 @@ public class ServerProxyFunction extends ProxyFunction
 			Method implMethod = bizImplMap.get(methodId);
 			if (implMethod != null) {
 				methodMap.put(methodId, implMethod);
-//				iBizMethodMap.put(methodId, entry.getValue());
+				// iBizMethodMap.put(methodId, entry.getValue());
 			}
-			
+
 		}
-		
+
 		// this.bizContext is for SINGLETON only
 		switch (bizStateType) {
 		case SINGLETON:
@@ -154,8 +157,8 @@ public class ServerProxyFunction extends ProxyFunction
 			break;
 		}
 	}
-	
-	private void executeSingleton(FunctionContext fc) 
+
+	private void executeSingleton(FunctionContext fc)
 	{
 		BizArguments bizArgs = (BizArguments) fc.getArguments();
 		BizContextClientImpl client = (BizContextClientImpl) bizArgs.getBizContext();
@@ -167,12 +170,13 @@ public class ServerProxyFunction extends ProxyFunction
 			bizContext.removeBizContextClient();
 		}
 	}
-	
-	private void executeStateless(FunctionContext fc) 
+
+	private void executeStateless(FunctionContext fc)
 	{
 		BizArguments bizArgs = (BizArguments) fc.getArguments();
 		BizContextClientImpl client = (BizContextClientImpl) bizArgs.getBizContext();
-		BizContextServerImpl bizContext = new BizContextServerImpl(client, fc, bizArgs.getAdditionalArgs(), bizArgs.getTransientData());
+		BizContextServerImpl bizContext = new BizContextServerImpl(client, fc, bizArgs.getAdditionalArgs(),
+				bizArgs.getTransientData());
 		try {
 			Object bizImpl = bizImplClass.newInstance();
 			gridContextField.set(bizImpl, bizContext);
@@ -181,7 +185,7 @@ public class ServerProxyFunction extends ProxyFunction
 			throw new PadoServerException(ex);
 		}
 	}
-	
+
 	private void invokeMethod(FunctionContext fc)
 	{
 		Object retval = null;
@@ -203,41 +207,49 @@ public class ServerProxyFunction extends ProxyFunction
 					Logger.info("Invoking method [" + bizImpl.getClass().getName() + "." + method.getName()
 							+ "] with args [" + bizArgs.getArgs() + "]");
 				}
-				
+
 				// For pure clients and non-IPadoBiz calls, validate the
 				// token.
-//				if (client != null && client.getGridId() == null && targetClass.getName().equals(IPadoBiz.class.getName()) == false) {
-//					if (client.getUserContext() == null) {
-//						throw new PadoServerException("Access denied. Invalid session. IUserContext not provided.");
-//					} else {
-//						boolean isTokenValid = PadoServerManager.getPadoServerManager().isValidToken(
-//								client.getUserContext().getToken());
-//						if (isTokenValid == false) {
-//							LoginInfo loginInfo = PadoServerManager.getPadoServerManager().getLoginInfo(
-//									client.getUserContext().getToken());
-//							String appId = null;
-//							String username = null;
-//							if (loginInfo != null) {
-//								appId = loginInfo.getAppId();
-//								username = loginInfo.getUsername();
-//							}
-//
-//							throw new PadoServerException(
-//									"Access denied. Invalid session. Please login with a valid account. " + "[app-id="
-//											+ appId + ", user=" + username + ", token="
-//											+ client.getUserContext().getToken() + "]");
-//						} else {
-//							client.getUserContext().getUserInfo().setUserPrincipal(principal);
-//						}
-//					}
-//				}
-				
+				// if (client != null && client.getGridId() == null &&
+				// targetClass.getName().equals(IPadoBiz.class.getName()) ==
+				// false) {
+				// if (client.getUserContext() == null) {
+				// throw new PadoServerException("Access denied. Invalid
+				// session. IUserContext not provided.");
+				// } else {
+				// boolean isTokenValid =
+				// PadoServerManager.getPadoServerManager().isValidToken(
+				// client.getUserContext().getToken());
+				// if (isTokenValid == false) {
+				// LoginInfo loginInfo =
+				// PadoServerManager.getPadoServerManager().getLoginInfo(
+				// client.getUserContext().getToken());
+				// String appId = null;
+				// String username = null;
+				// if (loginInfo != null) {
+				// appId = loginInfo.getAppId();
+				// username = loginInfo.getUsername();
+				// }
+				//
+				// throw new PadoServerException(
+				// "Access denied. Invalid session. Please login with a valid
+				// account. " + "[app-id="
+				// + appId + ", user=" + username + ", token="
+				// + client.getUserContext().getToken() + "]");
+				// } else {
+				// client.getUserContext().getUserInfo().setUserPrincipal(principal);
+				// }
+				// }
+				// }
+
 				// TODO: Provide a way to send intermittent results
-//				Method ibizMethod = iBizMethodMap.get(bizArgs.getMethodName());
-//				if (ibizMethod != null && ibizMethod.getReturnType() == Future.class) {
-//					fc.getResultSender().sendResult(null);
-//				}
-				
+				// Method ibizMethod =
+				// iBizMethodMap.get(bizArgs.getMethodName());
+				// if (ibizMethod != null && ibizMethod.getReturnType() ==
+				// Future.class) {
+				// fc.getResultSender().sendResult(null);
+				// }
+
 				retval = method.invoke(bizImpl, bizArgs.getArgs());
 			}
 			// return result
@@ -279,7 +291,15 @@ public class ServerProxyFunction extends ProxyFunction
 			if (PadoException.class.isAssignableFrom(cause.getClass())) {
 				throw (PadoException) cause;
 			} else {
-				throw new PadoServerException(cause);
+				try {
+					// See if the default constructor is available if not, this
+					// exception is not serializable.
+					@SuppressWarnings("unused")
+					Constructor<?> constructor = cause.getClass().getConstructor();
+					throw new PadoServerException(cause);
+				} catch (Exception ex2) {
+					throw new PadoServerException(cause.getClass().getName() + ": " + cause.getMessage());
+				}
 			}
 
 		} catch (Throwable th) {
@@ -296,8 +316,15 @@ public class ServerProxyFunction extends ProxyFunction
 				}
 				cause = cause.getCause();
 			}
-			throw new PadoServerException(th);
-
+			try {
+				// See if the default constructor is available if not, this
+				// exception is not serializable.
+				@SuppressWarnings("unused")
+				Constructor<?> constructor = th.getClass().getConstructor();
+				throw new PadoServerException(th);
+			} catch (Exception ex2) {
+				throw new PadoServerException(th.getClass().getName() + ": " + th.getMessage());
+			}
 		}
 	}
 

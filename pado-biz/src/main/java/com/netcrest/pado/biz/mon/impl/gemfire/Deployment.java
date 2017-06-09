@@ -186,7 +186,7 @@ public class Deployment
 //				// Include all IBiz jars
 //				SystemClassPathManager.registerBizClasses(datedFileList);
 				
-				SystemClassPathManager.addJarsInDir(hotClassDir, true);
+				hotDeployment = SystemClassPathManager.addJarsInDir(hotClassDir, true);
 
 				codeMessage = "Deployed to " + tmpClassDirFile.getCanonicalPath();
 				if (deadlockOccurred) {

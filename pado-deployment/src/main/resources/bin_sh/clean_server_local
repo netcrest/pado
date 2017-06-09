@@ -65,12 +65,12 @@ fi
 #
 
 if [ "$PIDONLY" == "true" ]; then
-  rm -f $RUN_DIR/${SERVER_ID}/.cacheserver.ser
+  $COMMAND_PREFIX rm -f $RUN_DIR/${SERVER_ID}/.cacheserver.ser
 else
-  rm -f $LOG_DIR/${SERVER_ID}.log $STATS_DIR/${SERVER_ID}.gfs
+  $COMMAND_PREFIX rm -f $LOG_DIR/${SERVER_ID}.log $STATS_DIR/${SERVER_ID}.gfs
   if [ "$PERSIST" == "true" ]; then
-     rm -rf $RUN_DIR/${SERVER_ID}
+     $COMMAND_PREFIX rm -rf $RUN_DIR/${SERVER_ID}
   elif [ "$PID" == "true" ]; then
-     rm -f $RUN_DIR/${SERVER_ID}/.cacheserver.ser
+     $COMMAND_PREFIX rm -f $RUN_DIR/${SERVER_ID}/.cacheserver.ser
   fi
 fi

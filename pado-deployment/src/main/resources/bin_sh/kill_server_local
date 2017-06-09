@@ -30,6 +30,8 @@ if [ "$HELP" == "true" ]; then
    echo "   of data."
    echo ""
    echo "      <server number> Server number 1-99"
+   echo "                      If the server number is 'auto', i.e., -num auto, then"
+   echo "                      the server number is automatically determined."
    echo "      -grid      Kills the server in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Kills the server in the specified site. Default: ${SITE_DEFAULT}"
    echo ""
@@ -39,9 +41,73 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+#
+# If auto, then determine the server number
+#
+if [ "$SERVER_NUM" == "auto" ]; then
+   # ServerArray elements:
+   #   array[0] ServerNumber
+   #   array[1] ServerHost
+   #   array[2] ServerPort
+   #   array[3] DebugPort
+   #   array[4] JmxPort
+   #   array[5] GemFireProperties
+   #   array[6] GemFireXml
+   #   array[7] PadoProperties
+   #   array[8] PadoXml
+   #   array[9] IsServerStart
+   setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SERVER_NUM=${array[0]}
+      if [ "$SERVER_NUM" == "" ]; then
+         continue;
+      fi
+      if [ $SERVER_NUM -lt 10 ]; then
+         SERVER_NUM=0$SERVER_NUM
+      fi
+      # Set SERVER_NUM_NO_LEADING_ZERO
+      if [[ $SERVER_NUM == 0* ]]; then
+         SERVER_NUM_NO_LEADING_ZERO=${SERVER_NUM:1};
+      else
+         SERVER_NUM_NO_LEADING_ZERO=$SERVER_NUM
+      fi
+      SERVER_HOST=${array[1]}
+      if [ "$SERVER_HOST" == "localhost" ]; then
+         SERVER_HOST=`hostname`
+      fi
+      SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
+
+      # If server is running then breakout to kill it
+      servers=`$COMMAND_PREFIX $JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
+      spids=""
+      for j in $servers; do
+         spids="$j $spids"
+      done
+      if [ "$spids" != "" ]; then
+          # Server is running. Break out to stop it.
+          echo "$SERVER_ID running. Killing..."
+          IS_SERVER_ALREADY_RUNNNIG=true
+          break
+      fi
+
+      if [ "$SERVER_HOST" == "$MY_ADDRESS" ]; then
+         break
+      fi
+   done
+   if [ "$SERVER_HOST" != "$MY_ADDRESS" ]; then
+      if [ "$IS_SERVER_ALREADY_RUNNNIG" != "true" ]; then
+         echo "This host is not configured for cache server. Aborted."
+      fi
+      exit
+   fi
+fi
 
 # should be only 1 server
-servers=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
+servers=`$COMMAND_PREFIX $JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
 for j in $servers; do
    spids="$j $spids" 
 done
@@ -49,7 +115,7 @@ done
 # kill the pids
 echo
 if [ "$spids" != "" ]; then
-   kill -9 $spids
+   $COMMAND_PREFIX kill -9 $spids
    echo "Killed server: ${SERVER_ID} $spids"
 else
    echo "Kill canceled. Server is not running: ${SERVER_ID}"

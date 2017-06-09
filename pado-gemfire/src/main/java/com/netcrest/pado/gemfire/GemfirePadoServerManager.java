@@ -18,6 +18,7 @@ package com.netcrest.pado.gemfire;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -42,6 +43,7 @@ import com.gemstone.gemfire.cache.CacheListener;
 import com.gemstone.gemfire.cache.DataPolicy;
 import com.gemstone.gemfire.cache.ExpirationAction;
 import com.gemstone.gemfire.cache.ExpirationAttributes;
+import com.gemstone.gemfire.cache.FixedPartitionAttributes;
 import com.gemstone.gemfire.cache.InterestPolicy;
 import com.gemstone.gemfire.cache.PartitionAttributes;
 import com.gemstone.gemfire.cache.PartitionAttributesFactory;
@@ -90,6 +92,7 @@ import com.netcrest.pado.info.GridPathInfo;
 import com.netcrest.pado.info.GridRouterInfo;
 import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PathInfo;
+import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.info.message.GridStatusInfo;
 import com.netcrest.pado.info.message.GridStatusInfo.Status;
 import com.netcrest.pado.info.message.MessageType;
@@ -129,7 +132,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 	// <gridPath, GridRouterInfo>
 	private Region<String, GridRouterInfo> routerRegion;
 	// <serverId, BucketId> - Not Used 9/23/2012
-	private Region<String, GridInfo> serverRegion;
+	private Region<String, Object> serverRegion;
 	private Region messageRegion;
 	// Global region holding internals that are grid specific. For example,
 	// MasterServerLock uses this region to obtain a lock used to assign
@@ -418,7 +421,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		rf = cache.createRegionFactory();
 		rf.setDataPolicy(DataPolicy.PARTITION);
 		PartitionAttributesFactory paf = new PartitionAttributesFactory();
-		paf.setRedundantCopies(1);
+		paf.setRedundantCopies(0);
 		paf.setTotalNumBuckets(totalNumBuckets);
 		rf.setPartitionAttributes(paf.create());
 
@@ -465,7 +468,29 @@ public class GemfirePadoServerManager extends PadoServerManager
 			routerRegion = rf.createSubregion(padoRegion, "router");
 		}
 		if (serverRegion == null) {
-			serverRegion = rf.createSubregion(padoRegion, "server");
+			// serverRegion is used to obtain the routing bucket IDs. It is created with FixedPartitionResolver
+			// to assign a fixed routing key per server.
+			ServerPathPartitionResolver resolver = new ServerPathPartitionResolver();
+			PartitionAttributesFactory factory = new PartitionAttributesFactory().setRedundantCopies(0)
+					.setTotalNumBuckets(totalNumBuckets).setPartitionResolver(resolver);
+			FixedPartitionAttributes fpa = FixedPartitionAttributes.createFixedPartition(getServerName(), true);
+			factory.addFixedPartitionAttributes(fpa);
+			PartitionAttributes attrs = factory.create();
+			RegionFactory rf2 = cache.createRegionFactory();
+			serverRegion = rf2.setPartitionAttributes(attrs).createSubregion(padoRegion, "server");
+			// Perform a region operation to create the primary bucket ID for this server.
+			serverRegion.put(getServerId().toString(), "init");
+			serverRegion.remove(getServerId());
+			PartitionedRegion pr = (PartitionedRegion)serverRegion;
+			Set<Integer> set = pr.getDataStore().getAllLocalPrimaryBucketIds();
+			Iterator<Integer> iterator = set.iterator();
+			while (iterator.hasNext()) {
+				resolver.setBucketId(iterator.next());
+				System.out.println("ServerPathPartitionResolver bucketId=" + resolver.getBucketId());
+				break;
+			}
+			
+//			serverRegion = rf.createSubregion(padoRegion, "server");
 		}
 		if (gridRegion == null) {
 			int updateInterval = Integer.parseInt(gemfire.getGridInfoUpdateInterval());
@@ -1448,7 +1473,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 
 	public synchronized void createGridRegions(GridInfo gridInfo, boolean isParent)
 	{
-		if (gridInfo == null) {
+ 		if (gridInfo == null) {
 			return;
 		}
 
@@ -1501,8 +1526,13 @@ public class GemfirePadoServerManager extends PadoServerManager
 		Region rootRegion = cache.getRegion(rootPath);
 		if (rootRegion == null) {
 			RegionFactory rf = cache.createRegionFactory();
-			rf.setScope(Scope.LOCAL);
-			rf.setDataPolicy(DataPolicy.EMPTY);
+//			rf.setScope(Scope.LOCAL);
+//			rf.setDataPolicy(DataPolicy.EMPTY);
+			
+			// A bug in GemFire. LOCAL/EMPTY cannot be detected by cache.getRegion().
+			rf.setScope(Scope.DISTRIBUTED_NO_ACK);
+			rf.setDataPolicy(DataPolicy.NORMAL);
+			
 			rootRegion = rf.create(GemfireGridUtil.getRootName(rootPath));
 		}
 		rootRegionMap.put(gridId, rootRegion);
@@ -2635,6 +2665,20 @@ public class GemfirePadoServerManager extends PadoServerManager
 		MasterServerLock.getMasterServerLock().removeMasterFailoverListener(listener);
 	}
 
+	@Override
+	public List<ServerInfo> getServerInfoList()
+	{
+		return getGridInfo().getServerInfoList("__pado/server");
+	}
+	
+	// TODO: This method returns this grid's ServerInfo objects. It should return the
+	// ServerInfo objects of the specified grid.
+	@Override
+	public List<ServerInfo> getServerInfoList(String gridId)
+	{
+		return getGridInfo().getServerInfoList("__pado/server");
+	}
+	
 	@Override
 	public int getServerCount()
 	{

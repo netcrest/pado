@@ -46,6 +46,42 @@ public abstract class ServerInfo implements Comparable<ServerInfo>
 	protected String host;
 
 	/**
+	 * MAC (hardware) address
+	 */
+	protected String macAddress;
+
+	/**
+	 * Host IPv4 address
+	 */
+	protected String hostAddress;
+
+	/**
+	 * Canonical host name, i.e., the fully qualified host name that includes
+	 * the domain name
+	 */
+	protected String canonicalHostName;
+
+	/**
+	 * Network interface name
+	 */
+	protected String networkInterfaceName;
+
+	/**
+	 * Network interface display name
+	 */
+	protected String networkInterfaceDisplayName;
+
+	/**
+	 * Maximum Transmission Unit (MTU) for this network interface
+	 */
+	protected int mtu;
+
+	/**
+	 * IPv6 address
+	 */
+	protected String ipv6Address;
+
+	/**
 	 * Host port number.
 	 */
 	protected int port;
@@ -138,6 +174,142 @@ public abstract class ServerInfo implements Comparable<ServerInfo>
 	public void setHost(String host)
 	{
 		this.host = host;
+	}
+
+	/**
+	 * Returns the MAC address
+	 */
+	public String getMacAddress()
+	{
+		return macAddress;
+	}
+
+	/**
+	 * Sets the MAC address
+	 * 
+	 * @param macAddress
+	 *            MAC address
+	 */
+	public void setMacAddress(String macAddress)
+	{
+		this.macAddress = macAddress;
+	}
+
+	/**
+	 * Returns the IPv4 host address
+	 */
+	public String getHostAddress()
+	{
+		return hostAddress;
+	}
+
+	/**
+	 * Sets the IPv4 host address
+	 * 
+	 * @param hostAddress
+	 *            host address
+	 */
+	public void setHostAddress(String hostAddress)
+	{
+		this.hostAddress = hostAddress;
+	}
+
+	/**
+	 * Returns the canonical host name, i.e., the fully qualified name that
+	 * includes the domain name. Note that if the domain name is not included
+	 * then the domain name is not defined for the host.
+	 */
+	public String getCanonicalHostName()
+	{
+		return canonicalHostName;
+	}
+
+	/**
+	 * Sets the canonical host name.
+	 * 
+	 * @param canonicalHostName
+	 *            Canonical host name
+	 */
+	public void setCanonicalHostName(String canonicalHostName)
+	{
+		this.canonicalHostName = canonicalHostName;
+	}
+
+	/**
+	 * Returns the network interface name
+	 * 
+	 * @return
+	 */
+	public String getNetworkInterfaceName()
+	{
+		return networkInterfaceName;
+	}
+
+	/**
+	 * Sets the network interface name
+	 * 
+	 * @param networkInterfaceName
+	 */
+	public void setNetworkInterfaceName(String networkInterfaceName)
+	{
+		this.networkInterfaceName = networkInterfaceName;
+	}
+
+	/**
+	 * Returns the network interface display name
+	 */
+	public String getNetworkInterfaceDisplayName()
+	{
+		return networkInterfaceDisplayName;
+	}
+
+	/**
+	 * Sets the network interface display name
+	 * 
+	 * @param networkInterfaceDisplayName
+	 *            Network interface display name
+	 */
+	public void setNetworkInterfaceDisplayName(String networkInterfaceDisplayName)
+	{
+		this.networkInterfaceDisplayName = networkInterfaceDisplayName;
+	}
+
+	/**
+	 * Returns the Maximum Transmission Unit (MTU) for this network interface
+	 */
+	public int getMtu()
+	{
+		return mtu;
+	}
+
+	/**
+	 * Sets the Maximum Transmission Unit (MTU) for this network interface
+	 * 
+	 * @param mtu
+	 *            Maximum Transmission Unit
+	 */
+	public void setMtu(int mtu)
+	{
+		this.mtu = mtu;
+	}
+
+	/**
+	 * Returns the IPv6 address
+	 */
+	public String getIpv6Address()
+	{
+		return ipv6Address;
+	}
+
+	/**
+	 * Sets the IPv6 address
+	 * 
+	 * @param ipv6Address
+	 *            IPv6 address
+	 */
+	public void setIpv6Address(String ipv6Address)
+	{
+		this.ipv6Address = ipv6Address;
 	}
 
 	/**

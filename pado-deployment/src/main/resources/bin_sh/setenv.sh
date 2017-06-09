@@ -46,6 +46,10 @@
 #    $REMOTE_BASE_DIR - The remote base directory path. Set this variable
 #             only if the base directory in the remote hosts is different
 #             from this host's base directory.
+#    $COMMAND_PREFIX - If you need to run Pado as root, set this variable to sudo. 
+#             All commands will be run with this prefix. For example, if it
+#             is set with sudo, then start_server_local is exectued as 
+#             "sudo start_server_lcoal".
 #
 
 #
@@ -89,25 +93,29 @@
 # Use JDK 8 if GemFire version 8.2 or above. Make sure to set
 # JAVA_HOME to the same version.
 #
-JAVA_VERSION=7
+JAVA_VERSION=8
 
 # 
 # Set JAVA_HOME to the Java home (root) directory
 #
 if [ "`uname`" == "Darwin" ]; then
    # Mac
-   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
-#   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home
+#   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
+   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home
+elif [ "`uname`" == "Linux" ]; then
+#   export JAVA_HOME=/apps/adf/products/jdk1.8.0_121
+   export JAVA_HOME=/apps/adf/products/ejdk1.8.0_121/linux_armv6_vfp_hflt/jre
 else
-   export JAVA_HOME=~/Work/Java/jdk/linux/jdk1.7.0_79
-#   export JAVA_HOME=~/Work/Java/jdk/linux/jdk1.8.0_60
+#   export JAVA_HOME=~/Work/Java/jdk/linux/jdk1.7.0_79
+   export JAVA_HOME="/cygdrive/c/Program Files/Java/jdk1.8.0_112"
 fi
 
 #
 # GEMFIRE   -- Gemfire root directory path
 #
 #export GEMFIRE_V7=~/Work/GemStone/Pivotal_GemFire_70211_b48040
-export GEMFIRE_V8=~/Work/GemStone/Pivotal_GemFire_820_b17919_Linux
+#export GEMFIRE_V8=~/Work/products/Pivotal_GemFire_822_b18324_Windows
+export GEMFIRE_V8=/apps/adf/products/Pivotal_GemFire_822_b18324_Linux
 export GEMFIRE=$GEMFIRE_V8
 
 #
@@ -149,6 +157,13 @@ fi
 # to manage grids that are running in a different base directory (PADO_HOME).
 #
 #REMOTE_BASE_DIR=
+
+#
+# Command prefix
+# Set COMMAND_PREFIX to add a prefix to each command. For example,
+# if it is set to "sudo", all commands will be executed with sudo allowing
+# Pado to execute as root.
+COMMAND_PREFIX=sudo
 
 
 #

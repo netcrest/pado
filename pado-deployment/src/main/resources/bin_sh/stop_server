@@ -58,5 +58,5 @@ if [ "$SERVER_ADDRESS" == "" ]; then
    echo "   ${GRIDS_DIR}/${GRID}/server_${SITE}.sh"
    echo ""
 else
-   ssh -q -n $SSH_USER@$SERVER_ADDRESS "cd $REMOTE_BASE_DIR/bin_sh; ./stop_server_local $*;"
+   ssh -q -n $SSH_USER@$SERVER_ADDRESS "cd $REMOTE_BASE_DIR/bin_sh; $COMMAND_PREFIX ./stop_server_local $*;"
 fi

@@ -73,7 +73,7 @@ if [ "$LOCATORS" == "true" ]; then
       echo "-----------------------------------------------------"
       echo "Stop host: $i, grid: $GRID, site: $SITE"
       echo "-----------------------------------------------------"
-      ssh -q -n $SSH_USER@$LOCATOR_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./stop_locator_local -num $NUM -grid ${GRID} -site ${SITE}; "
+      ssh -q -n $SSH_USER@$LOCATOR_HOST "cd $REMOTE_BASE_DIR/bin_sh; $COMMAND_PREFIX ./stop_locator_local -num $NUM -grid ${GRID} -site ${SITE}; "
       let NUM=NUM+1
    done
 fi

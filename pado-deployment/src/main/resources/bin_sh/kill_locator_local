@@ -27,6 +27,8 @@ if [ "$HELP" == "true" ]; then
    echo "   Kills locator in the specified site of the specified grid."
    echo ""
    echo "      <locator number> Locator number 1-99 ($GRID-$SITE: `getLocatorNumberRange`)"
+   echo "                       If the locator number is 'auto', i.e., -num auto, then"
+   echo "                       the locator number is automatically determined."
    echo "      -grid      Kills the locator in the specified grid. Default: $GRID_DEFAULT"
    echo "      -site      Kills the locator in the specified site. Default: $SITE_DEFAULT"
    echo ""
@@ -37,6 +39,70 @@ fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
 
+#
+# If auto, then determine the locator number 
+#
+if [ "$SERVER_NUM" == "auto" ]; then
+   #
+   # Target host
+   #
+   # LocatorArray elements:
+   #    array[0] LocatorNumber
+   #    array[1] Host
+   #    array[2] LocatorPort
+   #    array[3] JmxRmiPort
+   #    array[4] JmxHttpPort
+   setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SERVER_NUM=${array[0]}
+      if [ "$SERVER_NUM" == "" ]; then
+         continue;
+      fi 
+      if [ $SERVER_NUM -lt 10 ]; then
+         SERVER_NUM=0$SERVER_NUM
+      fi
+      # Set SERVER_NUM_NO_LEADING_ZERO
+      if [[ $SERVER_NUM == 0* ]]; then
+         SERVER_NUM_NO_LEADING_ZERO=${SERVER_NUM:1};
+      else
+         SERVER_NUM_NO_LEADING_ZERO=$SERVER_NUM
+      fi
+      LOCATOR_HOST=${array[1]}
+      if [ "$LOCATOR_HOST" == "localhost" ]; then
+         LOCATOR_HOST=`hostname`
+      fi
+      LOCATOR_PORT=${array[2]}
+      JMX_MANAGER_PORT=${array[3]}
+      JMX_MANAGER_HTTP_PORT=${array[4]}
+      LOCATOR_ID=locator-${GRID}-${SITE}${SERVER_NUM}
+
+      # If locator is running then breakout to stop it
+      locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
+      lpids=""
+      for j in $locators; do
+         lpids="$j $lpids"
+      done
+      if [ "$lpids" != "" ]; then
+          # Locator is running. Break out to stop it.
+          echo "$LOCATOR_ID running. Stopping..."
+          IS_LOCATOR_ALREADY_RUNNNIG=true
+          break
+      fi
+      if [ "$LOCATOR_HOST" == "$MY_ADDRESS" ]; then
+         break
+      fi
+   done
+   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ]; then
+      if [ "$IS_LOCATOR_ALREADY_RUNNNIG" != "true" ]; then
+         echo "This host is not configured for locator. Aborted."
+      fi
+      exit
+   fi
+fi
+
 # should be only 1 locator
 locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
 for j in $locators; do
@@ -46,7 +112,7 @@ done
 # kill the pids
 echo
 if [ "$lpids" != "" ]; then
-   kill -9 $lpids
+   $COMMAND_PREFIX kill -9 $lpids
    echo "Killed locator: ${LOCATOR_ID} $lpids"
 else
    echo "Kill canceled. Locator is not running. ${LOCATOR_ID}"

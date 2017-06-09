@@ -68,8 +68,7 @@ public class GridRoutingTable implements Externalizable, Cloneable
 	 * from Pado. {@link #INACCESSIBLE} means Pado is not detecting the grid's
 	 * heartbeats. The grid may be down or it is in configuration transition.
 	 */
-	public enum Status
-	{
+	public enum Status {
 		LIVE, INACCESSIBLE
 	}
 
@@ -104,13 +103,13 @@ public class GridRoutingTable implements Externalizable, Cloneable
 	 * Grid&gt;&gt;. The top-level map is not sorted but the TreeMap is sorted
 	 * by Grid.cost
 	 */
-	private transient HashMap<String, TreeMap<String, Grid>> locationBasedTable = new HashMap<String, TreeMap<String, Grid>>(20);
+	private transient HashMap<String, TreeMap<String, Grid>> locationBasedTable = new HashMap<String, TreeMap<String, Grid>>(
+			20);
 
 	/**
 	 * PriorityType is currently always COST.
 	 */
-	public enum PriorityType
-	{
+	public enum PriorityType {
 		PRIMARY, COST, LOAD, LOCATION;
 	}
 
@@ -534,12 +533,19 @@ public class GridRoutingTable implements Externalizable, Cloneable
 				for (String gridId : gridIds) {
 					Grid grid = appInfo.getAllowedGrid(gridId);
 					if (grid != null) {
-						int latency = getAveragePingLatency(utilBiz, grid.getGridId(), payload);
-						grid.setLatency(latency);
-						ServerLoad serverLoad = utilBiz.getServerLoad();
-						grid.setServerLoad(serverLoad);
-						grid.setStatus(Status.LIVE);
-						addGrid(grid);
+						try {
+							int latency = getAveragePingLatency(utilBiz, grid.getGridId(), payload);
+
+							grid.setLatency(latency);
+							ServerLoad serverLoad = utilBiz.getServerLoad();
+							grid.setServerLoad(serverLoad);
+							grid.setStatus(Status.LIVE);
+							addGrid(grid);
+						} catch (Exception ex) {
+							// TODO: Exception may occur if the grid has been
+							// detached but the grid info has not been properly
+							// updated. Ignore it for now.
+						}
 					}
 				}
 			}
@@ -780,8 +786,8 @@ public class GridRoutingTable implements Externalizable, Cloneable
 		@Override
 		public String toString()
 		{
-			return "Grid [gridId=" + gridId + ", location=" + location + ", priorityType=" + priorityType
-					+ ", latency=" + latency + ", weight=" + weight + ", cost=" + cost + ", serverLoad=" + serverLoad
+			return "Grid [gridId=" + gridId + ", location=" + location + ", priorityType=" + priorityType + ", latency="
+					+ latency + ", weight=" + weight + ", cost=" + cost + ", serverLoad=" + serverLoad
 					+ ", description=" + description + ", status=" + status + "]";
 		}
 

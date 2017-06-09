@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -29,6 +30,8 @@ import com.gemstone.gemfire.cache.CacheFactory;
 import com.netcrest.pado.IBizContextClient;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.IUserPrincipal;
+import com.netcrest.pado.annotation.BizMethod;
+import com.netcrest.pado.annotation.OnServer;
 import com.netcrest.pado.biz.server.IPadoBiz;
 import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.exception.PadoLoginException;
@@ -42,6 +45,7 @@ import com.netcrest.pado.info.ConfigInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PathInfo;
+import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.internal.factory.InfoFactory;
 import com.netcrest.pado.io.IObjectSerializer;
 import com.netcrest.pado.pql.VirtualPath2;
@@ -148,6 +152,24 @@ public class GemfirePadoBizImpl implements IPadoBiz
 	public GridInfo getGridInfo()
 	{
 		return PadoServerManager.getPadoServerManager().getGridInfo();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<ServerInfo> getServerInfoList()
+	{
+		return PadoServerManager.getPadoServerManager().getServerInfoList();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<ServerInfo> getServerInfoList(String gridId)
+	{
+		return PadoServerManager.getPadoServerManager().getServerInfoList(gridId);
 	}
 	
 	/**

@@ -62,7 +62,7 @@ if [ "$LOCATORS" == "true" ]; then
          continue;
       fi
       LOCATOR_HOST=${array[1]}
-      ssh -q -n $SSH_USER@$LOCATOR_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_locator_local -num $LOCATOR_NUM -grid ${GRID} -site ${SITE}; "
+      ssh -q -n $SSH_USER@$LOCATOR_HOST "cd $REMOTE_BASE_DIR/bin_sh; $COMMAND_PREFIX ./start_locator_local -num $LOCATOR_NUM -grid ${GRID} -site ${SITE}; "
    done
    sleep 5
 fi
@@ -89,9 +89,9 @@ do
    fi
    SERVER_HOST=${array[1]}
    if [ "$PARALLEL" == "true" ]; then
-      ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;" &
+      ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; $COMMAND_PREFIX ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;" &
    else
-      ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;"
+      ssh -q -n $SSH_USER@$SERVER_HOST "cd $REMOTE_BASE_DIR/bin_sh; $COMMAND_PREFIX ./start_server_local -num $SERVER_NUM -grid $GRID -site $SITE $REBALANCE;"
    fi
 done
 disown -a -r

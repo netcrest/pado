@@ -70,12 +70,12 @@ for i in $ALL_UNIQUE_HOSTS; do
 
    # kill the pids
    if [ "$spids" != "" ]; then
-      ssh -q -n $SSH_USER@$i "kill -9 $spids;" > /dev/null 2>&1
+      ssh -q -n $SSH_USER@$i "$COMMAND_PREFIX kill -9 $spids;" > /dev/null 2>&1
    fi
    echo "Killed servers: $spids"
    if [ "$LOCATORS" == "true" ]; then
       if [ "$lpids" != "" ]; then
-         ssh -q -n $SSH_USER@$i "kill -9 $lpids;" > /dev/null 2>&1
+         ssh -q -n $SSH_USER@$i "$COMMAND_PREFIX kill -9 $lpids;" > /dev/null 2>&1
       fi
       echo "Killed locators: $lpids"
    fi

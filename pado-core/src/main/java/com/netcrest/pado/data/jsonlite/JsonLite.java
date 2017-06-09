@@ -912,6 +912,261 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			return val;
 		}
 	}
+	
+	/**
+	 * Return the mapped value in boolean type for the specified key. If the key is
+	 * not found then it returns the specified default value. If the mapped
+	 * value is not of the Boolean type then it returns true only if toString()
+	 * returns "true" (case insensitive).
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public boolean getBoolean(Object key, boolean defaultValue)
+	{
+		Object val = get(key);
+		boolean booleanValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Boolean) {
+				booleanValue = (Boolean) val;
+			} else {
+				try {
+					String str = val.toString().toLowerCase();
+					booleanValue = str.equals("true");
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return booleanValue;
+	}
+
+
+	/**
+	 * Return the mapped value in byte type for the specified key. If the key is
+	 * not found then it returns the specified default value. If the mapped
+	 * value is not of the Byte type then it returns the first byte of the
+	 * string returned by toString(). If toString() returns an empty string then
+	 * it returns the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public byte getByte(Object key, byte defaultValue)
+	{
+		Object val = get(key);
+		byte byteValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Byte) {
+				byteValue = (Byte) val;
+			} else {
+				try {
+					byte[] bytes = val.toString().getBytes();
+					if (bytes.length > 0) {
+						byteValue = bytes[0];
+					}
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return byteValue;
+	}
+
+	/**
+	 * Return the mapped value in char type for the specified key. If the key is
+	 * not found then it returns the specified default value. If the mapped
+	 * value is not of the Character type then it returns the first character of
+	 * the string returned by toString(). If toString() returns an empty string
+	 * then it returns the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public char getChar(Object key, char defaultValue)
+	{
+		Object val = get(key);
+		char charValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Character) {
+				charValue = (Character) val;
+			} else {
+				try {
+					String str = val.toString();
+					if (str.length() > 0) {
+						charValue = val.toString().charAt(0);
+					}
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return charValue;
+	}
+
+	/**
+	 * Return the mapped value in short type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
+	 * value is not of the Short type then it converts the toString() value to
+	 * the proper type. If toString() yields a non-numeric value then it returns
+	 * the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public short getShort(Object key, short defaultValue)
+	{
+		Object val = get(key);
+		short shortValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Short) {
+				shortValue = (Short) val;
+			} else {
+				try {
+					shortValue = Short.parseShort(val.toString());
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return shortValue;
+	}
+
+	/**
+	 * Return the mapped value in int type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
+	 * value is not of the Integer type then it converts the toString() value to
+	 * the proper type. If toString() yields a non-numeric value then it returns
+	 * the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public int getInt(Object key, int defaultValue)
+	{
+		Object val = get(key);
+		int intValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Integer) {
+				intValue = (Integer) val;
+			} else {
+				try {
+					intValue = Integer.parseInt(val.toString());
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return intValue;
+	}
+
+	/**
+	 * Return the mapped value in float type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
+	 * value is not of the Float type then it converts the toString() value to
+	 * the proper type. If toString() yields a non-numeric value then it returns
+	 * the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public float getFloat(Object key, float defaultValue)
+	{
+		Object val = get(key);
+		float floatValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Float) {
+				floatValue = (Float) val;
+			} else {
+				try {
+					floatValue = Float.parseFloat(val.toString());
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return floatValue;
+	}
+
+	/**
+	 * Return the mapped value in double type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
+	 * value is not of the Double type then it converts the toString() value to
+	 * the proper type. If toString() yields a non-numeric value then it returns
+	 * the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public double getDouble(Object key, double defaultValue)
+	{
+		Object val = get(key);
+		double doubleValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Double) {
+				doubleValue = (Double) val;
+			} else {
+				try {
+					doubleValue = Double.parseDouble(val.toString());
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return doubleValue;
+	}
+
+	/**
+	 * Return the mapped value in long type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
+	 * value is not of the Long type then it converts the toString() value to
+	 * the proper type. If toString() yields a non-numeric value then it returns
+	 * the default value.
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public long getLong(Object key, long defaultValue)
+	{
+		Object val = get(key);
+		long longValue = defaultValue;
+		if (val != null) {
+			if (val instanceof Long) {
+				longValue = (Long) val;
+			} else {
+				try {
+					longValue = Long.parseLong(val.toString());
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+		}
+		return longValue;
+	}
 
 	// private Map getMap(JsonLite jl, Map map)
 	// {

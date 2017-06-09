@@ -358,26 +358,51 @@ public interface IGridMapBizLink<K, V> extends IBiz, Map<K, V>
 	 * 
 	 * @param keys
 	 *            One or more keys to subscribe
+	 * @throws GridNotAvailableException
+	 *             Thrown if grid IDs are not specified. Grid IDs must be
+	 *             specified by {@link #getBizContext()}.
 	 * @see EntryEvent
 	 */
-	public void subscribeKeys(K... keys);
+	public void subscribeKeys(K... keys) throws GridNotAvailableException;
 
 	/**
-	 * Subscribes the specified regular expression to listen on entry events.
-	 * Support for filter differs from data grid to data grid and therefore this
-	 * method depends on the underlying data grid subscription model. For
-	 * example, filter is key regular expression for GemFire.
+	 * Subscribes the specified filter to listen on entry events. Support for
+	 * filter differs from data grid to data grid and therefore this method
+	 * depends on the underlying data grid subscription model. For example,
+	 * filter is key regular expression for GemFire.
 	 * 
 	 * @param filter
 	 *            Filter for subscribing data
 	 * @throws GridNotAvailableException
-	 *             Thrown if the target grid cannot be reached. If partitioned
-	 *             path then this exception thrown if the target grid is one of
-	 *             the configured grids and it is unreachable. If
-	 *             non-partitioned path then this exception may be thrown if
-	 *             none of the grids is reachable.
+	 *             Thrown if grid IDs are not specified. Grid IDs must be
+	 *             specified by {@link #getBizContext()}.
 	 */
 	public void subscribeEntries(Object filter) throws GridNotAvailableException;
+
+	/**
+	 * Unsubscribes the specified key(s).
+	 * 
+	 * @param keys
+	 *            One or more keys to unsubscribe
+	 * @throws GridNotAvailableException
+	 *             Thrown if grid IDs are not specified. Grid IDs must be
+	 *             specified by {@link #getBizContext()}.
+	 */
+	public void unsubscribeKeys(K... keys) throws GridNotAvailableException;
+
+	/**
+	 * Unsubscribes the specified filter. Support for filter differs from data
+	 * grid to data grid and therefore this method depends on the underlying
+	 * data grid subscription model. For example, filter is key regular
+	 * expression for GemFire.
+	 * 
+	 * @param filter
+	 *            Filter for unsubscribing data
+	 * @throws GridNotAvailableException
+	 *             Thrown if grid IDs are not specified. Grid IDs must be
+	 *             specified by {@link #getBizContext()}.
+	 */
+	public void unsubscribeEntries(Object filter) throws GridNotAvailableException;
 
 	/**
 	 * Adds an entry listener. The caller must subscribe one or more keys to

@@ -959,6 +959,40 @@ public class GridMapBizImplLocal<K, V> implements IGridMapBiz<K, V>, IBizLocal
 			region.registerInterestRegex(filter.toString(), InterestResultPolicy.NONE);
 		}
 	}
+	
+	@Override
+	public void unsubscribeKeys(K... keys)
+	{
+		if (keys == null) {
+			return;
+		}
+		String gridIds[] = biz.getBizContext().getGridContextClient().getGridIds();
+		if (gridIds == null || gridIds.length == 0) {
+			throw new GridNotAvailableException("None of the grids is available for this operation");
+		}
+		for (int i = 0; i < gridIds.length; i++) {
+			Region<K, V> region = gridService.getRegion(gridIds[i], gridPath);
+			for (K key : keys) {
+				region.unregisterInterest(key);
+			}
+		}
+	}
+	
+	@Override
+	public void unsubscribeEntries(Object filter)
+	{
+		if (filter == null) {
+			return;
+		}
+		String gridIds[] = biz.getBizContext().getGridContextClient().getGridIds();
+		if (gridIds == null || gridIds.length == 0) {
+			throw new GridNotAvailableException("None of the grids is available for this operation");
+		}
+		for (int i = 0; i < gridIds.length; i++) {
+			Region<K, V> region = gridService.getRegion(gridIds[i], gridPath);
+			region.unregisterInterestRegex(filter.toString());
+		}
+	}
 
 	@Override
 	public void addEntryListener(IEntryListener entryListener)
