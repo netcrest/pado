@@ -26,7 +26,7 @@ if [ "$HELP" == "true" ]; then
    echo "  Starts a locator in the specified grid and site. Unlike start_locator, this"
    echo "  command executes locally."
    echo ""
-   echo "   start_locator_local [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-clean] [-quiet] [-?]"
+   echo "   start_locator_local [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-pid|-clean] [-quiet] [-?]"
    echo ""
    echo "      <locator number> Locator number 1-99 ($GRID-$SITE: `getLocatorNumberRange`)"
    echo "                       If the locator number is 'auto', i.e., -num auto, then"
@@ -34,6 +34,7 @@ if [ "$HELP" == "true" ]; then
    echo "      -grid      Starts the locator in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Starts the locator in the specified site. Default: ${SITE_DEFAULT}"
    echo "      -clean     Cleans the working directory only if the locator is not running."
+   echo "      -pid       Removes only the locator PID and Pulse files if the locator is not running."
    echo "      -quiet     Quiet mode. Suppresses verbose."
    echo ""
    echo "   Default: start_locator_local -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
@@ -119,15 +120,22 @@ if [ "$SERVER_NUM" == "auto" ]; then
 fi
 # directory in which the locator to be run
 DIR=$RUN_DIR/${LOCATOR_ID}
-if [ -d $DIR ] && [ "$CLEAN" == "true" ]; then
-   locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
-   lpids=""
-   for j in $locators; do
-      lpids="$j $lpids"
-   done
-   if [ "$lpids" == "" ]; then
-      # clean only if the locator is not running
-      rm -rf $DIR
+if [ -d $DIR ]; then
+   if [ "$CLEAN" == "true" ] || [ "$PID" == "true"]; then
+      locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
+      lpids=""
+      for j in $locators; do
+         lpids="$j $lpids"
+      done
+      if [ "$lpids" == "" ]; then
+         # clean only if the locator is not running
+         if [ "$CLEAN" == "true" ]; then
+            rm -rf $DIR
+         elif [ "$PID" == "true"]; then
+            rm $DIR/vf.gf.locator.pid
+            rm $DIR/pulse*
+         fi 
+      fi
    fi
 fi
 if [ ! -d $DIR ]; then
@@ -217,6 +225,6 @@ pushd $DIR > /dev/null 2>&1
 echo "*****************************************************"
 echo "Starting ${LOCATOR_ID} on host ${MY_ADDRESS}:$LOCATOR_PORT..."
 echo "*****************************************************"
-echo gfsh start locator --name=${LOCATOR_ID} --locators=$LOCATORS --dir=$DIR --port=$LOCATOR_PORT --J=-Dpado.vm.id=${LOCATOR_ID} --J=-Dpado.home.dir=$PADO_HOME $JVM_PROPERTIES $GEMFIRE_PROPERTIES $SECURITY_PROPERTIES --properties-file=$GEMFIRE_PROPERTY_FILE
-gfsh start locator --name=${LOCATOR_ID} --locators=$LOCATORS --dir=$DIR --port=$LOCATOR_PORT --J=-Dpado.vm.id=${LOCATOR_ID} --J=-Dpado.home.dir=$PADO_HOME $JVM_PROPERTIES $GEMFIRE_PROPERTIES $SECURITY_PROPERTIES --properties-file=$GEMFIRE_PROPERTY_FILE
+echo gfsh start locator --name=${LOCATOR_ID} --locators=$LOCATORS --dir=$DIR --port=$LOCATOR_PORT --J=-Dpado.vm.id=${LOCATOR_ID} --J=-Dpado.home.dir=$PADO_HOME $JVM_PROPERTIES $GEMFIRE_PROPERTIES $SECURITY_PROPERTIES --properties-file=$GEMFIRE_PROPERTY_FILE --J=-Dpulse.Log-File-Name=pulse --J=-Dpulse.Log-File-Location=.
+gfsh start locator --name=${LOCATOR_ID} --locators=$LOCATORS --dir=$DIR --port=$LOCATOR_PORT --J=-Dpado.vm.id=${LOCATOR_ID} --J=-Dpado.home.dir=$PADO_HOME $JVM_PROPERTIES $GEMFIRE_PROPERTIES $SECURITY_PROPERTIES --properties-file=$GEMFIRE_PROPERTY_FILE --J=-Dpulse.Log-File-Name=pulse --J=-Dpulse.Log-File-Location=.
 popd > /dev/null 2>&1
