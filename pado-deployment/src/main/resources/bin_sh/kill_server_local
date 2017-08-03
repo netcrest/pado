@@ -17,18 +17,28 @@
 # ========================================================================
 
 . ./setenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./all_env.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./argenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   kill_server_local [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo "   kill_server_local [-all] [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
    echo ""
    echo "   Kills a local server in the specified grid and site." 
    echo "   The kill command is faster than the stop command"
    echo "   but at the expense of possible loss or corruption"
    echo "   of data."
    echo ""
+   echo "      -all      Kills all servers running on this host"
    echo "      <server number> Server number 1-99"
    echo "                      If the server number is 'auto', i.e., -num auto, then"
    echo "                      the server number is automatically determined."
@@ -41,6 +51,19 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+if [ "$ALL" == "true" ]; then
+   SERVER_ID_PREFIX=server-${GRID}-${SITE}
+   servers=`ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${SERVER_ID_PREFIX} | grep java | awk '{print $1}'`
+   spids=""
+   for j in $servers; do
+      spids="$j $spids" 
+   done
+   $COMMAND_PREFIX kill -9 $spids > /dev/null 2>&1
+   echo "Killed servers: $spids"
+   exit
+fi
+
 #
 # If auto, then determine the server number
 #
@@ -78,6 +101,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
       SERVER_HOST=${array[1]}
       if [ "$SERVER_HOST" == "localhost" ]; then
          SERVER_HOST=`hostname`
+         MY_ADDRESS=$SERVER_HOST
       fi
       SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
 
@@ -98,12 +122,20 @@ if [ "$SERVER_NUM" == "auto" ]; then
          break
       fi
    done
-   if [ "$SERVER_HOST" != "$MY_ADDRESS" ]; then
+   if [ "$SERVER_HOST" != "$MY_ADDRESS" ] && [ "$SERVER_HOST" != "localhost" ]; then
       if [ "$IS_SERVER_ALREADY_RUNNNIG" != "true" ]; then
          echo "This host is not configured for cache server. Aborted."
       fi
       exit
    fi
+fi
+
+# Need to source in override_env.sh once more for overriding
+# SERVER_ID. override_env.sh can provide SERVER_NUM to override
+# SERVER_ID.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM} 
 fi
 
 # should be only 1 server

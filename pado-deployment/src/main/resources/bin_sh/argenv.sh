@@ -67,6 +67,8 @@ IMPORT=
 CLEAN=
 QUIET=false
 REFID=
+PARENT_GRID_ID=
+PARENT_LOCATORS=
 PREFIX=
 HOST_NAMES=
 SERVER_NAMES=
@@ -109,6 +111,10 @@ do
       SERVER_NAMES=$i
    elif [ "$PREV" == "-refid" ]; then
       REFID=$i
+   elif [ "$PREV" == "-parent" ]; then
+      PARENT_GRID_ID=$i
+   elif [ "$PREV" == "-parent-locators" ]; then
+      PARENT_LOCATORS=$i
    elif [ "$i" == "-gateway" ]; then
       GATEWAY=gateway
    elif [ "$i" == "-rebalance" ]; then

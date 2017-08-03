@@ -17,8 +17,20 @@
 # ========================================================================
 
 . ./setenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   if [ "$IS_SERVER_START" == "false" ]; then
+      exit
+   fi
+fi
 . ./all_env.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./argenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
@@ -42,6 +54,12 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# Source in override_env.sh if exists. This file is typically used
+# to override env variables.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 # locators
 LOCATORS=`getGemfireLocators`
@@ -143,6 +161,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
       SERVER_HOST=${array[1]}
       if [ "$SERVER_HOST" == "localhost" ]; then
          SERVER_HOST=`hostname`
+         MY_ADDRESS=$SERVER_HOST
       fi
       SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
 
@@ -166,7 +185,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
          break
       fi
    done
-   if [ "$SERVER_HOST" != "$MY_ADDRESS" ]; then
+   if [ "$SERVER_HOST" != "$MY_ADDRESS" ] && [ "$SERVER_HOST" != "localhost" ]; then
       if [ "$IS_SERVER_ALREADY_RUNNNIG" != "true" ]; then
          if [ "$QUIET" != "true" ]; then
             echo "This host is not configured to run cache server. Aborted."
@@ -174,6 +193,14 @@ if [ "$SERVER_NUM" == "auto" ]; then
       fi
       exit
    fi
+fi
+
+# Need to source in override_env.sh once more for overriding
+# SERVER_ID. override_env.sh can provide SERVER_NUM to override
+# SERVER_ID.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM} 
 fi
 
 # directory in which the server is to be run

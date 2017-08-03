@@ -17,8 +17,20 @@
 # ========================================================================
 
 . ./setenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   if [ "$IS_LOCATOR_START" == "false" ]; then
+      exit
+   fi
+fi
 . ./all_env.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./argenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
@@ -43,6 +55,12 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# Source in override_env.sh if exists. This file is typically used
+# to override env variables.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 # the parent directory of all servers
 if [ "$RUN_DIR" == "" ]; then
@@ -83,6 +101,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
       LOCATOR_HOST=${array[1]}
       if [ "$LOCATOR_HOST" == "localhost" ]; then
          LOCATOR_HOST=`hostname`
+         MY_ADDRESS=$LOCATOR_HOST
       fi
       LOCATOR_PORT=${array[2]}
       JMX_MANAGER_PORT=${array[3]}
@@ -109,7 +128,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
          break
       fi
    done
-   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ]; then
+   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ] && [ "$LOCATOR_HOST" != "localhost" ]; then
       if [ "$IS_LOCATOR_ALREADY_RUNNNIG" != "true" ]; then
          if [ "$QUIET" != "true" ]; then
             echo "This host is not configured to run locator. Aborted."
@@ -118,10 +137,19 @@ if [ "$SERVER_NUM" == "auto" ]; then
       exit
    fi
 fi
+
+# Need to source in override_env.sh once more for overriding
+# LOCATOR_ID. override_env.sh can provide SERVER_NUM to override
+# LOCATOR_ID.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   LOCATOR_ID=locator-${GRID}-${SITE}${SERVER_NUM}
+fi
+
 # directory in which the locator to be run
 DIR=$RUN_DIR/${LOCATOR_ID}
 if [ -d $DIR ]; then
-   if [ "$CLEAN" == "true" ] || [ "$PID" == "true"]; then
+   if [ "$CLEAN" == "true" ] || [ "$PID" == "true" ]; then
       locators=`$JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${LOCATOR_ID}" | grep java | awk '{print $1}'`
       lpids=""
       for j in $locators; do
@@ -131,7 +159,7 @@ if [ -d $DIR ]; then
          # clean only if the locator is not running
          if [ "$CLEAN" == "true" ]; then
             rm -rf $DIR
-         elif [ "$PID" == "true"]; then
+         elif [ "$PID" == "true" ]; then
             rm $DIR/vf.gf.locator.pid
             rm $DIR/pulse*
          fi 
@@ -143,7 +171,10 @@ if [ ! -d $DIR ]; then
 fi
 
 LOCATORS=`getGemfireLocators`
-LOCATOR_NUM=$SERVER_NUM_NO_LEADING_ZERO
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
+LOCATOR_NUM_NO_LEADING_ZERO=$SERVER_NUM_NO_LEADING_ZERO
 
 # LocatorArray elements:
 #    array[0] LocatorNumber
@@ -152,7 +183,7 @@ LOCATOR_NUM=$SERVER_NUM_NO_LEADING_ZERO
 #    array[3] JmxRmiPort
 #    array[4] JmxHttpPort
 setLineArray $GRIDS_DIR/$GRID/locator_${SITE}.sh
-line="${LineArray[$LOCATOR_NUM]}"
+line="${LineArray[$LOCATOR_NUM_NO_LEADING_ZERO]}"
 array=($line)
 LOCATOR_PORT=${array[2]}
 

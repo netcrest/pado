@@ -17,15 +17,25 @@
 # ========================================================================
 
 . ./setenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./all_env.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./argenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   ./kill_locator_local [-num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo "   ./kill_locator_local [-all | -num <locator number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
    echo ""
    echo "   Kills locator in the specified site of the specified grid."
    echo ""
+   echo "      -all      Kills all locators running on this host"
    echo "      <locator number> Locator number 1-99 ($GRID-$SITE: `getLocatorNumberRange`)"
    echo "                       If the locator number is 'auto', i.e., -num auto, then"
    echo "                       the locator number is automatically determined."
@@ -38,6 +48,19 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+if [ "$ALL" == "true" ]; then
+   LOCATOR_ID_PREFIX=locator-${GRID}-${SITE}
+   locators=`ps -ewwwo pid,comm,args | grep pado.home.dir=${PADO_HOME} | grep ${LOCATOR_ID_PREFIX} | grep java | awk '{print $1}'`
+   for j in $locators; do
+      lpids="$j $lpids" 
+   done
+   if [ "$lpids" != "" ]; then
+      $COMMAND_PREFIX kill -9 $lpids > /dev/null 2>&1
+   fi
+   echo "Killed locators: $lpids"
+   exit
+fi
 
 #
 # If auto, then determine the locator number 
@@ -73,6 +96,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
       LOCATOR_HOST=${array[1]}
       if [ "$LOCATOR_HOST" == "localhost" ]; then
          LOCATOR_HOST=`hostname`
+         MY_ADDDRESS=$LOCATOR_HOST
       fi
       LOCATOR_PORT=${array[2]}
       JMX_MANAGER_PORT=${array[3]}
@@ -95,12 +119,20 @@ if [ "$SERVER_NUM" == "auto" ]; then
          break
       fi
    done
-   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ]; then
+   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ] && [ "$LOCATOR_HOST" != "localhost" ]; then
       if [ "$IS_LOCATOR_ALREADY_RUNNNIG" != "true" ]; then
          echo "This host is not configured for locator. Aborted."
       fi
       exit
    fi
+fi
+
+# Need to source in override_env.sh once more for overriding
+# LOCATOR_ID. override_env.sh can provide SERVER_NUM to override
+# LOCATOR_ID.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   LOCATOR_ID=locator-${GRID}-${SITE}${SERVER_NUM}
 fi
 
 # should be only 1 locator

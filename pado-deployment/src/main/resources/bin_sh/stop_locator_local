@@ -17,8 +17,17 @@
 # ========================================================================
 
 . ./setenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./all_env.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 . ./argenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
@@ -38,6 +47,9 @@ if [ "$HELP" == "true" ]; then
 fi
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
 
 # the parent directory of all servers
 if [ "$RUN_DIR" == "" ]; then
@@ -78,6 +90,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
       LOCATOR_HOST=${array[1]}
       if [ "$LOCATOR_HOST" == "localhost" ]; then
          LOCATOR_HOST=`hostname`
+         MY_ADDRESS=$LOCATOR_HOST
       fi
       LOCATOR_PORT=${array[2]}
       JMX_MANAGER_PORT=${array[3]}
@@ -100,13 +113,22 @@ if [ "$SERVER_NUM" == "auto" ]; then
          break
       fi
    done
-   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ]; then
+   if [ "$LOCATOR_HOST" != "$MY_ADDRESS" ] && [ "$LOCATOR_HOST" != "localhost" ]; then
       if [ "$IS_LOCATOR_ALREADY_RUNNNIG" != "true" ]; then
          echo "This host is not configured for locator. Aborted."
       fi
       exit
    fi
 fi
+
+# Need to source in override_env.sh once more for overriding
+# LOCATOR_ID. override_env.sh can provide SERVER_NUM to override
+# LOCATOR_ID.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   LOCATOR_ID=locator-${GRID}-${SITE}${SERVER_NUM}
+fi
+
 # directory in which the locator to be run
 DIR=$RUN_DIR/${LOCATOR_ID}
 if [ ! -d $DIR ]; then
