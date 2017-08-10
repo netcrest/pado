@@ -47,7 +47,9 @@ done
 echo "Run the following command to change the version."
 echo "The original file is backed up with the extension '.bak'."
 echo ""
-echo "sed -i '.bak' -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES"
+echo "sed -i.bak -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES"
+#sed -i '.bak' -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES
+#echo "sed -i '.bak' -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES"
 #sed -i '.bak' -e 's/${FROM_VERSION}/${TO_VERSION}/g' $ALL_POM_FILES
 
 echo ""

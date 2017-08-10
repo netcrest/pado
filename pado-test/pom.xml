@@ -21,7 +21,7 @@
 	<parent>
 		<groupId>com.netcrest.pado</groupId>
 		<artifactId>pado-parent</artifactId>
-		<version>0.4.1-B3</version>
+		<version>0.4.1-B4</version>
 	</parent>
 
 	<artifactId>pado-test</artifactId>
@@ -31,7 +31,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<pado.version>0.4.1-B3</pado.version>
+		<pado.version>0.4.1-B4</pado.version>
 	</properties>
 
 	<dependencies>
