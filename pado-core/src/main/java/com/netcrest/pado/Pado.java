@@ -36,7 +36,6 @@ import com.netcrest.pado.internal.impl.PadoClientManager;
 import com.netcrest.pado.internal.security.AESCipher;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.link.IPadoBizLink;
-import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * The Pado class provides the first client entry point to connecting to a grid.

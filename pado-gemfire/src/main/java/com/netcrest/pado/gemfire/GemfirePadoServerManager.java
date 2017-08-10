@@ -1739,7 +1739,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		sysAppInfo.setAppId("sys");
 		sysAppInfo.setPadoId(gridId);
 		sysAppInfo.setDefaultGridId(gridId);
-		sysAppInfo.addBizSet(getAllAppBizInfos());
+		sysAppInfo.addBizSet(getAllAppBizInfos("sys", null));
 		GridInfo gridInfo = gridRegion.get(gridId);
 		if (gridInfo == null) {
 			this.gridInfo = gridInfo = createGridInfo();
@@ -1767,7 +1767,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 						appInfo.setAppId(app.getId());
 						appInfo.setPadoId(gridId);
 						appInfo.addAllowedGrid(selfGrid);
-						appInfo.addBizSet(getAllAppBizInfos());
+						appInfo.addBizSet(getAllAppBizInfos("sys", null));
 
 						int i = 0;
 						String firstGridId = null;
@@ -1861,7 +1861,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		appInfo.setAppId(appId);
 		appInfo.setPadoId(gridId);
 		appInfo.addAllowedGrid(selfGrid);
-		appInfo.addBizSet(getAllAppBizInfos());
+		appInfo.addBizSet(getAllAppBizInfos("sys", null));
 
 		GemfireAppInfo sysAppInfo = appRegion.get("sys");
 
@@ -2202,7 +2202,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 		gridInfo.setClientConnectionSingleHopEnabled(isClientConnectionSingleHopEnabled());
 		gridInfo.setClientConnectionMultiuserAuthenticationEnabled(isClientConnectionMultiuserAuthenticationEnabled());
 		gridInfo.setClientLocators(getClientLocators());
-		gridInfo.setBizSet(getAllAppBizInfos());
+		gridInfo.setBizSet(getAllAppBizInfos("sys", null));
 		gridInfo.setCacheInfo(new GemfireCacheInfo(gridInfo.getGridId(), cache, gridInfo.getGridRootPath()));
 		return gridInfo;
 	}
@@ -2418,7 +2418,7 @@ public class GemfirePadoServerManager extends PadoServerManager
 	public LoginInfo login(String appId, String domainName, String username, char[] password,
 			IUserPrincipal userPrincipal)
 	{
-		Set<BizInfo> bizSet = getAllAppBizInfos();
+		Set<BizInfo> bizSet = getAllAppBizInfos("sys", null);
 		Object token = UUID.randomUUID().toString();
 		GemfireLoginInfo loginInfo = (GemfireLoginInfo) InfoFactory.getInfoFactory().createLoginInfo(appId, domainName,
 				username, token, bizSet);

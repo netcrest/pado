@@ -22,9 +22,11 @@ import java.util.TreeSet;
 import javax.annotation.Resource;
 
 import com.netcrest.pado.IBiz;
+import com.netcrest.pado.IBizInfo;
 import com.netcrest.pado.IBizLocal;
 import com.netcrest.pado.ICatalog;
 import com.netcrest.pado.IPado;
+import com.netcrest.pado.biz.info.BizInfoFactory;
 import com.netcrest.pado.link.IPadoBizLink;
 import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.exception.PadoLoginException;
@@ -59,11 +61,13 @@ public class CatalogServerImpl implements ICatalog
 		return s_clientManager.getAppInfo(appId);
 	}
 
+	@Override
 	public String getAppId()
 	{
 		return this.appId;
 	}
 	
+	@Override
 	public GridService getGridService()
 	{
 		return gridService;
@@ -79,6 +83,7 @@ public class CatalogServerImpl implements ICatalog
 	 * the user does not have proper access rights.
 	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T> T newInstance(Class<T> bizClass, Object... bizLocalArguments)
 	{
 		BizManager<IBiz> bizManager = getBizManager(bizClass);
@@ -120,6 +125,7 @@ public class CatalogServerImpl implements ICatalog
 		return (T)newInstance(bizManager, bizLocal, bizLocalArguments);
 	}
 	
+	@Override
 	public IBiz newInstance(String bizInterfaceName, Object...bizLocalArguments)
 	{
 		BizManager<IBiz> bizManager = this.getGemFireBizManager(bizInterfaceName);
@@ -152,6 +158,7 @@ public class CatalogServerImpl implements ICatalog
 		}
 	}
 	
+	@Override
 	public IBizLocal newInstanceLocal(String bizInterfaceName, String bizLocalClassName, Object...bizLocalArguments)
 	{
 		BizManager<IBiz> bizManager = this.getGemFireBizManager(bizInterfaceName);
@@ -205,6 +212,7 @@ public class CatalogServerImpl implements ICatalog
 		return bizManager;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private BizManager<IBiz> getGemFireBizManager(String bizInterfaceName)
 	{
 		BizManager<IBiz> bizManager = PadoServerManager.getPadoServerManager().getAppBizManager(bizInterfaceName);
@@ -215,14 +223,45 @@ public class CatalogServerImpl implements ICatalog
 		return bizManager;
 	}
 	
+	@Override
 	public String[] getAllBizClassNames()
 	{
 		return PadoServerManager.getPadoServerManager().getAllAppBizClassNames();
 	}
 
+	@Override
+	public String[] getBizClassNames(String regex)
+	{
+		return PadoServerManager.getPadoServerManager().getAppBizClassNames(regex);
+	}
+	
+	@Override
 	public Class<?>[] getAllBizClasses()
 	{
 		return PadoServerManager.getPadoServerManager().getAllAppBizClasses();
+	}
+	
+	@Override
+	public Class<?>[] getBizClasses(String regex)
+	{
+		return PadoServerManager.getPadoServerManager().getAppBizClasses(regex);
+	}
+	
+	@Override
+	public IBizInfo[] getAllBizInfos()
+	{
+		return getBizInfos(null);
+	}
+	
+	@Override
+	public IBizInfo[] getBizInfos(String regex)
+	{
+		Class<?>[] bizClasses = getBizClasses(regex);
+		IBizInfo[] bizInfos = new IBizInfo[bizClasses.length];
+		for (int i = 0; i < bizClasses.length; i++) {
+			bizInfos[i] = BizInfoFactory.createBizInfo(bizClasses[i]);
+		}
+		return bizInfos;
 	}
 
 	/**
@@ -234,6 +273,7 @@ public class CatalogServerImpl implements ICatalog
 		gridIdSet.clear();
 	}
 	
+	@Override
 	public void refresh()
 	{
 		gridService.refresh();
@@ -244,6 +284,7 @@ public class CatalogServerImpl implements ICatalog
 	 * object is no longer valid. This method is invoked when
 	 * the user logs out from Pado.
 	 */
+	@Override
 	public void close()
 	{
 		clear();

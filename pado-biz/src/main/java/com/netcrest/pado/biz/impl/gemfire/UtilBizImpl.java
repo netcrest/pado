@@ -69,7 +69,6 @@ import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.server.PadoServerManager;
 import com.netcrest.pado.temporal.TemporalData;
 import com.netcrest.pado.temporal.TemporalManager;
-import com.netcrest.pado.temporal.gemfire.impl.IdentityKeyPartitionResolver;
 import com.netcrest.pado.util.GridUtil;
 
 public class UtilBizImpl

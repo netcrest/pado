@@ -4,6 +4,7 @@ deploy/
 
 # Ant build folders
 build/
+build2/
 dist/
 lib/
 user.build.properties

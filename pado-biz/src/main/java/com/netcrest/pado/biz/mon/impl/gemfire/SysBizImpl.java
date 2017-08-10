@@ -55,6 +55,7 @@ import com.netcrest.pado.info.CacheServerInfo;
 import com.netcrest.pado.info.GridInfo;
 import com.netcrest.pado.info.GridPathInfo;
 import com.netcrest.pado.info.KeyTypeInfo;
+import com.netcrest.pado.info.LoginInfo;
 import com.netcrest.pado.info.PadoInfo;
 import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.internal.Constants;
@@ -172,7 +173,8 @@ public class SysBizImpl implements ISysBiz
 	@Override
 	public CacheInfo getCacheInfo()
 	{
-		return new GemfireCacheInfo(PadoServerManager.getPadoServerManager().getGridId(), CacheFactory.getAnyInstance());
+		return new GemfireCacheInfo(PadoServerManager.getPadoServerManager().getGridId(),
+				CacheFactory.getAnyInstance());
 	}
 
 	@BizMethod
@@ -202,8 +204,8 @@ public class SysBizImpl implements ISysBiz
 		List<CacheServerInfo> cacheServerInfoList = cacheInfo.getCacheServerInfoList();
 		List<ServerInfo> serverInfoList = new ArrayList(cacheServerInfoList.size() + 1);
 		for (CacheServerInfo cacheServerInfo : cacheServerInfoList) {
-			serverInfoList.add(InfoFactory.getInfoFactory().createServerInfo(gridInfo, cacheInfo, cacheServerInfo,
-					fullPath));
+			serverInfoList
+					.add(InfoFactory.getInfoFactory().createServerInfo(gridInfo, cacheInfo, cacheServerInfo, fullPath));
 		}
 		return serverInfoList;
 	}
@@ -333,19 +335,74 @@ public class SysBizImpl implements ISysBiz
 
 		}
 	}
-
+	
 	@BizMethod
 	@Override
-	public Set<BizInfo> getAllBizInfos()
+	public Set<BizInfo> getAllSysBizInfos()
 	{
-		return PadoServerManager.getPadoServerManager().getAllSysBizInfos();
+		return getSysBizInfos(null);
 	}
 
 	@BizMethod
 	@Override
+	public Set<BizInfo> getSysBizInfos(String regex)
+	{
+		LoginInfo loginInfo = PadoServerManager.getPadoServerManager()
+				.getLoginInfo(bizContext.getUserContext().getToken());
+		if (loginInfo == null) {
+			return null;
+		}
+		String appId = loginInfo.getAppId();
+		if (appId == null || appId.equals("sys") == false) {
+			return null;
+		}
+		return PadoServerManager.getPadoServerManager().getSysBizInfos("sys", regex);
+	}
+	
+	@BizMethod
+	@Override
 	public Set<BizInfo> getAllAppBizInfos()
 	{
-		return PadoServerManager.getPadoServerManager().getAllAppBizInfos();
+		return getAppBizInfos(null);
+	}
+
+	@BizMethod
+	@Override
+	public Set<BizInfo> getAppBizInfos(String regex)
+	{
+		LoginInfo loginInfo = PadoServerManager.getPadoServerManager()
+				.getLoginInfo(bizContext.getUserContext().getToken());
+		if (loginInfo == null) {
+			return null;
+		}
+		String appId = loginInfo.getAppId();
+		if (appId == null) {
+			return null;
+		}
+		return PadoServerManager.getPadoServerManager().getAllAppBizInfos(appId, regex);
+	}
+	
+	@BizMethod
+	@Override
+	public Set<BizInfo> getAllBizInfos()
+	{
+		return getBizInfos(null);
+	}
+
+	@BizMethod
+	@Override
+	public Set<BizInfo> getBizInfos(String regex)
+	{
+		LoginInfo loginInfo = PadoServerManager.getPadoServerManager()
+				.getLoginInfo(bizContext.getUserContext().getToken());
+		if (loginInfo == null) {
+			return null;
+		}
+		String appId = loginInfo.getAppId();
+		if (appId == null) {
+			return null;
+		}
+		return PadoServerManager.getPadoServerManager().getBizInfos(appId, regex);
 	}
 
 	@BizMethod
@@ -411,16 +468,16 @@ public class SysBizImpl implements ISysBiz
 
 	@Override
 	@BizMethod
-	public void registerKeyTypeQueryReferences(JsonLite jl, boolean isPersist) throws IOException,
-			ClassNotFoundException, PadoException, ClassCastException
+	public void registerKeyTypeQueryReferences(JsonLite jl, boolean isPersist)
+			throws IOException, ClassNotFoundException, PadoException, ClassCastException
 	{
 		KeyTypeManager.registerQueryReferences(PadoUtil.getProperty(Constants.PROP_DB_DIR), jl, isPersist);
 	}
 
 	@Override
 	@BizMethod
-	public void registerKeyTypeQueryReferences(JsonLite[] list, boolean isPersist) throws IOException,
-			ClassNotFoundException, PadoException, ClassCastException
+	public void registerKeyTypeQueryReferences(JsonLite[] list, boolean isPersist)
+			throws IOException, ClassNotFoundException, PadoException, ClassCastException
 	{
 		if (list == null) {
 			return;
@@ -458,8 +515,8 @@ public class SysBizImpl implements ISysBiz
 	public void detachFromParentGrid(String parentGridId)
 	{
 		Logger.info("Parent grid detachment command received and processing... [gridId="
-				+ PadoServerManager.getPadoServerManager().getGridId() + ", parentGridId=" 
-				+ parentGridId + ", user=" + bizContext.getUserContext().getUsername() + "]");
+				+ PadoServerManager.getPadoServerManager().getGridId() + ", parentGridId=" + parentGridId + ", user="
+				+ bizContext.getUserContext().getUsername() + "]");
 		if (PadoServerManager.getPadoServerManager().getGridId().equals(parentGridId)) {
 			Logger.info("Detaching grid failed. The specified grid " + parentGridId + " cannot be same as this grid.");
 			return;
@@ -488,8 +545,8 @@ public class SysBizImpl implements ISysBiz
 	@BizMethod
 	public void attachToParentGridWithGridInfo(GridInfo childGridInfo)
 	{
-		Logger.info("Child grid attachement command received and processing... [user=" 
-					+ bizContext.getUserContext().getUsername() + "]");
+		Logger.info("Child grid attachement command received and processing... [user="
+				+ bizContext.getUserContext().getUsername() + "]");
 		if (childGridInfo == null
 				|| PadoServerManager.getPadoServerManager().getGridId().equals(childGridInfo.getGridId())) {
 			Logger.info("Attaching child grid failed. The specified grid " + childGridInfo.getGridId()
@@ -499,9 +556,9 @@ public class SysBizImpl implements ISysBiz
 
 		PadoServerManager.getPadoServerManager().updateGrid(childGridInfo, false);
 		Logger.info("The specified child grid " + childGridInfo.getGridId()
-				+ " has successfully been attached to this parent grid (" 
-				+ PadoServerManager.getPadoServerManager().getGridId() + ") - "
-				+ "[user=" + bizContext.getUserContext().getUsername() + "]");
+				+ " has successfully been attached to this parent grid ("
+				+ PadoServerManager.getPadoServerManager().getGridId() + ") - " + "[user="
+				+ bizContext.getUserContext().getUsername() + "]");
 	}
 
 	@Override
@@ -519,8 +576,7 @@ public class SysBizImpl implements ISysBiz
 
 		PadoServerManager.getPadoServerManager().removeGrid(parentGridInfo, false);
 		Logger.info("This grid has successfully been detached from the specified parent grid "
-				+ parentGridInfo.getGridId()+ ") - "
-				+ "[user=" + bizContext.getUserContext().getUsername() + "]");
+				+ parentGridInfo.getGridId() + ") - " + "[user=" + bizContext.getUserContext().getUsername() + "]");
 	}
 
 	@Override
@@ -535,17 +591,17 @@ public class SysBizImpl implements ISysBiz
 	public void detachChildFromParentGrid(String childGridId)
 	{
 		Logger.info("Child grid detachment command received and processing... [gridId="
-				+ PadoServerManager.getPadoServerManager().getGridId() + ", childGridId=" + childGridId 
-				+ ", user=" + bizContext.getUserContext().getUsername() + "]");
+				+ PadoServerManager.getPadoServerManager().getGridId() + ", childGridId=" + childGridId + ", user="
+				+ bizContext.getUserContext().getUsername() + "]");
 		if (PadoServerManager.getPadoServerManager().getGridId().equals(childGridId)) {
 			Logger.info("Detaching grid failed. The specified grid " + childGridId + " cannot be same as this grid.");
 			return;
 		}
 
 		PadoServerManager.getPadoServerManager().removeGrid(childGridId, false);
-		Logger.info("The specified child grid " + childGridId + 
-				" has successfully been detached from the this parent grid (" +
-				PadoServerManager.getPadoServerManager().getGridId() + ") - "
-				+ "[user=" + bizContext.getUserContext().getUsername() + "]");
+		Logger.info("The specified child grid " + childGridId
+				+ " has successfully been detached from the this parent grid ("
+				+ PadoServerManager.getPadoServerManager().getGridId() + ") - " + "[user="
+				+ bizContext.getUserContext().getUsername() + "]");
 	}
 }

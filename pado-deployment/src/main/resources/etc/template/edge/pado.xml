@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pado SYSTEM "../pado1_0.dtd">
+
+<pado id="%%pado.id%%" location="%%pado.location%%">
+
+	<app-list>
+		<app id="sys">
+			<grid-list id="sys grid list" default-grid-id="%%pado.id%%">
+				<grid id="%%pado.id%%" routing-weight="1">
+					<description>The default grid id is itself, i.e., no children.</description>
+				</grid>
+				<description>Allowed grids for sys</description>
+			</grid-list>
+		</app>
+		<app id="test">
+			<grid-list id="test grid list" default-grid-id="%%pado.id%%">
+				<grid id="%%pado.id%%" routing-weight="1">
+					<description>Primary site</description>
+				</grid>
+				<description>%%pado.id%% test</description>
+			</grid-list>
+		</app>
+	</app-list>
+
+	<path-list>
+		<path name="iot">
+			<path name="update" refid="replicate-d-ack">
+			</path>
+			<path name="slot" refid="replicate-d-ack">
+			</path>
+			<path name="info" refid="global-replicate">
+			</path>
+		</path>
+	</path-list>
+	<gemfire root-region-path="/%%pado.id%%">
+		<gemfire-parent id="%%gemfire-parent.id%%" root-region-path="/%%gemfire-parent.id%%" locators="%%gemfire-parent.locators%%"></gemfire-parent>
+	</gemfire>
+	<startup>
+		<bean class-name="com.jnj.iot.grid.MqttListenerInitializer">
+			<property key="Edge.TotalNumBuckets" value="%%Edge.TotalNumBuckets%%" />
+			<!-- Comma-separated list of hosts other than this host. -->
+			<!-- This allows this data node to store other data node's (host's) data. -->
+			<property key="Edge.OtherHosts" value="%%Edge.OtherHosts%%" />
+			<!-- Set IsDataStore to false if this host is not to store data. 
+			     Default: false -->
+			<property key="Edge.IsDataStore" value="%%Edge.IsDataStore%%" />
+			<!-- 1.2 mil ticks or 20 min worth of data per SPI chip -->
+			<!-- 600k ticks or 10 min worth of data per SPI chip -->
+			<!-- 300k ticks or 5 min worth of data per SPI chip -->
+			<property key="Edge.EvictionMaxEntries" value="%%Edge.EvictionMaxEntries%%" />
+			
+			<property key="GridPath" value="%%GridPath%%" />
+			<property key="InfoGridPath" value="%%InfoGridPath%%" />
+			<property key="UpdateGridPath" value="%%UpdateGridPath%%" />
+			<property key="SlotGridPath" value="%%SlotGridPath%%" />
+			<property key="SlotInterval" value="%%SlotInterval%%" />
+			<!--  Set IsEdgeNode to true if this host is an edge node that will acquire
+				 data from devices. Default: false -->
+			<property key="IsEdgeNode" value="%%IsEdgeNode%%" />
+			<!-- Set IsMasterOnly to true if only the master node will process
+				MQTT messages. If IsEdgeNode is false then IsMasterOnly is always true.
+				Default: false -->
+			<property key="IsMasterOnly" value="%%IsMasterOnly%%" />
+			<property key="ServerUrl" value="%%ServerUrl%%" />
+			<!-- Do NOT set ClientId if multiple servers are running.
+			Each server must register a unique client ID. If not
+			specified then it assigns the server ID. -->
+			<property key="ClientId" value="%%ClientId%%" />
+			<!-- Use the default topic set by each server. The
+			default topic has the format <grid-id>/<server-name> 
+			for edge nodes. For non-edge nodes, Topic must be set here.
+			-->
+			<property key="Topic" value="%%Topic%%" />
+			<property key="IsDebug" value="%%IsDebug%%" />
+		</bean>
+	</startup>
+</pado>

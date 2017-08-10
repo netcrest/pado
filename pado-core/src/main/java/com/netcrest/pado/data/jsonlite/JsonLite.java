@@ -1167,6 +1167,32 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		}
 		return longValue;
 	}
+	
+	/**
+	 * Return the mapped value in String type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
+	 * value is not of the String type then it returns the toString().
+	 * 
+	 * @param key
+	 *            The key object.
+	 * @param defaultValue
+	 *            The default value to return if the mapped value is null or not
+	 *            found.
+	 */
+	public String getString(Object key, String devaultValue)
+	{
+		Object val = get(key);
+		String stringValue = devaultValue;
+		if (val != null) {
+			if (val instanceof String) {
+				stringValue = (String) val;
+			} else {
+				stringValue = val.toString();
+			}
+		}
+		return stringValue;
+	}
+	
 
 	// private Map getMap(JsonLite jl, Map map)
 	// {

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE cache PUBLIC
+  "-//GemStone Systems, Inc.//GemFire Declarative Caching 8_0//EN"
+  "http://www.gemstone.com/dtd/cache8_0.dtd">
+
+<cache>
+	<pool name="global-pool" idle-timeout="60000"
+		read-timeout="60000" multiuser-authentication="false"
+		subscription-enabled="true" pr-single-hop-enabled="true">
+		<locator port="20000" host="pado9" />
+	</pool>
+	<region name="%%pado.id%%">
+		<region name="info">
+			<region-attributes scope="local" pool-name="global-pool">
+			</region-attributes>
+		</region>
+	</region>
+
+	<initializer>
+		<class-name>com.netcrest.pado.gemfire.GemfirePadoClientInitializer</class-name>
+	</initializer>
+</cache>

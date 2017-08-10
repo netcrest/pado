@@ -1,0 +1,322 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+
+# Check for script help
+if [ "$1" == "-?" ]; then
+   echo "Usage:"
+   echo "   ./generate_conf [-grid $GRIDS_OPT] [-site $SITES_OPT] [-parent <parent grid>] [-parent-locators <parent locators>] [-?]"
+   echo ""
+   echo "   Generate conf files in the bundle/ directory."
+   echo ""
+   echo "   -parent <parent grid>  Parent grid ID."
+   echo "   -parent-locators <parent locators>  Command separated parent locators."
+   echo ""
+   echo "   Default: ./generate_conf -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+CONF_GRID_ID=$GRID
+CONF_SITE=$SITE
+CONF_PARENT_GRID_ID=$PARENT_GRID_ID
+CONF_PARENT_LOCATORS=$PARENT_LOCATORS
+
+echo CONF_GRID_ID=$GRID
+echo CONF_SITE=$SITE
+echo CONF_PARENT_GRID_ID=$CONF_PARENT_GRID_ID
+echo CONF_PARENT_LOCATORS=$CONF_PARENT_LOCATORS
+
+#
+# Create a new directory in which all files to be generated
+#
+BUILD_DIR=$PADO_HOME/bundle/$CONF_GRID_ID
+if [ ! -d $BUILD_DIR ]; then
+   mkdir -p $BUILD_DIR
+fi
+
+pushd $BUILD_DIR > /dev/null 2>&1 
+rm -rf *
+popd > /dev/null 2>&1
+
+mkdir -p $BUILD_DIR/bin_sh
+pushd $BUILD_DIR/bin_sh > /dev/null 2>&1 
+cp -rf $PADO_HOME/bin_sh/template/* .
+
+
+# -----------------
+# bin_sh/all_env.sh
+# -----------------
+
+#GRIDS="%%GRIDS%%"
+#SECURITY_ENABLED=%%SECURITY_ENABLED%%
+
+GRIDS=$CONF_GRID_ID
+SECURITY_ENABLED=false
+
+sed 's/\%\%GRIDS\%\%/'$GRIDS'/g' all_env.sh  > all_env_x.sh
+sed -i 's/\%\%SECURITY_ENABLED\%\%/'$SECURITY_ENABLED'/g' all_env_x.sh
+mv all_env_x.sh all_env.sh
+
+
+# ----------------
+# bin_sh/setenv.sh
+# ----------------
+
+#JAVA_VERSION=%%JAVA_VERSION%%
+#export JAVA_HOME=%%JAVA_HOME%%
+#export GEMFIRE=%%GEMFIRE%%
+#export ANT_HOME=%%ANT_HOME%%
+#APP_PROPERTIES="%%APP_PROPERTIES%%"
+#SSH_USER=%%SSH_USER%%
+#REMOTE_BASE_DIR=%%REMOTE_BASE_DIR%%
+#COMMAND_PREFIX=%%COMMAND_PREFIX%%
+
+JAVA_VERSION=8
+JAVA_HOME=/apps/adf/products/jdk
+GEMFIRE=/apps/adf/products/gemfire
+ANT_HOME=/app/adf/products/ant
+IOT_AGENT_DIR=/apps/adf/iot/iot-agent
+#APP_PROPERTIES="-J-Djavax.net.ssl.trustStore=../../security/pado.keystore -J-Djavax.net.ssl.keyStore=$IOT_AGENT_DIR/security/server.keystore -J-Djavax.net.ssl.keyStorePassword=jnjiot"
+APP_PROPERTIES="-J-Djavax.net.ssl.keyStore=$IOT_AGENT_DIR/security/server.keystore -J-Djavax.net.ssl.keyStorePassword=jnjiot"
+SSH_USER=
+REMOTE_BASE_DIR=
+COMMAND_PREFIX=
+
+sed 's/\%\%JAVA_VERSION\%\%/'$JAVA_VERSION'/g' setenv.sh  > setenv_x.sh
+sed -i "s|\%\%JAVA_HOME\%\%|$JAVA_HOME|g" setenv_x.sh
+sed -i "s|\%\%GEMFIRE\%\%|$GEMFIRE|g" setenv_x.sh
+sed -i "s|\%\%ANT_HOME\%\%|$ANT_HOME|g" setenv_x.sh
+sed -i "s|\%\%APP_PROPERTIES\%\%|$APP_PROPERTIES|g" setenv_x.sh
+sed -i "s|\%\%SSH_USER\%\%|$SSH_USER|g" setenv_x.sh
+sed -i "s|\%\%REMOTE_BASE_DIR\%\%|$REMOTE_BASE_DIR|g" setenv_x.sh
+sed -i "s|\%\%COMMAND_PREFIX\%\%|$COMMAND_PREFIX|g" setenv_x.sh
+mv setenv_x.sh setenv.sh
+
+popd > /dev/null 2>&1
+
+
+# ---------------------
+# bin_sh/grids/template
+# ---------------------
+
+echo $BUILD_DIR
+mv $BUILD_DIR/bin_sh/grids/template $BUILD_DIR/bin_sh/grids/$CONF_GRID_ID
+pushd $BUILD_DIR/bin_sh/grids/$CONF_GRID_ID > /dev/null 2>&1 
+mv bind_template.sh bind_$CONF_SITE.sh
+mv locator_template.sh locator_$CONF_SITE.sh
+mv server_template.sh server_$CONF_SITE.sh
+mv site_template.sh site_$CONF_SITE.sh
+
+# bind_template.sh
+#%%ServerHost%%   %%ServerBindAddress%%   %%ClientBindAddress%%  %%GatewayBindAddress%%
+
+ServerHost=`hostname`
+ServerBindAddress=`hostname`
+ClientBindAddress=`hostname`
+GatewayBindAddress=`hostname`
+
+sed 's/\%\%ServerHost\%\%/'$ServerHost'/g' bind_${CONF_SITE}.sh  > bind_${CONF_SITE}_x.sh
+sed -i "s|\%\%ServerBindAddress\%\%|$ServerBindAddress|g" bind_${CONF_SITE}_x.sh
+sed -i "s|\%\%ClientBindAddress\%\%|$ClientBindAddress|g" bind_${CONF_SITE}_x.sh
+sed -i "s|\%\%GatewayBindAddress\%\%|$GatewayBindAddress|g" bind_${CONF_SITE}_x.sh
+mv bind_${CONF_SITE}_x.sh bind_${CONF_SITE}.sh
+
+# grid_env.sh
+#SITES="%%SITES%%"
+
+SITES=$CONF_SITE
+
+sed 's/\%\%SITES\%\%/'$SITES'/g' grid_env.sh  > grid_env_x.sh
+mv grid_env_x.sh grid_env.sh
+
+# locator_template.sh
+#%%LocatorNumber%%  %%LocatorHost%%   %%LocatorPort%%  %%JmxRmiPort%%  %%JmxHttpPort%%
+
+LocatorNumber=1
+LocatorHost=localhost
+LocatorPort=14000
+JmxRmiPort=1080
+JmxHttpPort=1081
+
+sed 's/\%\%LocatorNumber\%\%/'$LocatorNumber'/g' locator_${CONF_SITE}.sh  > locator_${CONF_SITE}_x.sh
+sed -i "s|\%\%LocatorHost\%\%|$LocatorHost|g" locator_${CONF_SITE}_x.sh
+sed -i "s|\%\%LocatorPort\%\%|$LocatorPort|g" locator_${CONF_SITE}_x.sh
+sed -i "s|\%\%JmxRmiPort\%\%|$JmxRmiPort|g" locator_${CONF_SITE}_x.sh
+sed -i "s|\%\%JmxHttpPort\%\%|$JmxHttpPort|g" locator_${CONF_SITE}_x.sh
+mv locator_${CONF_SITE}_x.sh locator_${CONF_SITE}.sh
+
+# server_template.sh
+#%%ServerNumber%% %%ServerHost%% %%ServerPort%% %%DebugPort%% %%JmxPort%% %%ServerProperties%% %%ServerXml%% %%PadoProperties%% %%PadoXml%% %%IsServerStart%%
+
+ServerNumber=1
+ServerHost=localhost
+ServerPort=16001
+DebugPort=10001
+JmxPort=1082
+ServerProperties=server.properties
+ServerXml=server.xml
+PadoProperties=pado.properties
+PadoXml=pado.xml
+IsServerStart=true
+
+sed 's/\%\%ServerNumber\%\%/'$ServerNumber'/g' server_${CONF_SITE}.sh  > server_${CONF_SITE}_x.sh
+sed -i "s|\%\%ServerHost\%\%|$ServerHost|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%ServerPort\%\%|$ServerPort|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%DebugPort\%\%|$DebugPort|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%JmxPort\%\%|$JmxPort|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%ServerProperties\%\%|$ServerProperties|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%ServerXml\%\%|$ServerXml|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%PadoProperties\%\%|$PadoProperties|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%PadoXml\%\%|$PadoXml|g" server_${CONF_SITE}_x.sh
+sed -i "s|\%\%IsServerStart\%\%|$IsServerStart|g" server_${CONF_SITE}_x.sh
+mv server_${CONF_SITE}_x.sh server_${CONF_SITE}.sh
+
+# site_template.sh
+#SYSTEM_ID=%%SYSTEM_ID%%
+#LOCATOR_HEAP_MAX=%%LOCATOR_HEAP_MAX%%
+#HEAP_MAX=%%HEAP_MAX%%
+
+SYSTEM_ID=1
+LOCATOR_HEAP_MAX=256m
+HEAP_MAX=512m
+
+sed 's/\%\%SYSTEM_ID\%\%/'$SYSTEM_ID'/g' site_${CONF_SITE}.sh  > site_${CONF_SITE}_x.sh
+sed -i "s|\%\%LOCATOR_HEAP_MAX\%\%|$LOCATOR_HEAP_MAX|g" site_${CONF_SITE}_x.sh
+sed -i "s|\%\%HEAP_MAX\%\%|$HEAP_MAX|g" site_${CONF_SITE}_x.sh
+mv site_${CONF_SITE}_x.sh site_${CONF_SITE}.sh
+
+popd > /dev/null 2>&1
+
+# override_env.sh
+
+pushd $BUILD_DIR/bin_sh > /dev/null 2>&1 
+LOCATOR_HEAP_MAX=256m
+HEAP_MAX=694m
+EVICTION_HEAP_PERCENT=416
+SERVER_NUM=12345
+popd > /dev/null 2>&1
+
+
+#
+# etc/
+#
+
+mkdir -p $BUILD_DIR/etc
+
+cp -rf $PADO_HOME/etc/template/pado.properties $BUILD_DIR/etc/
+if [ "$CONF_GRID_ID" == "edge" ]; then
+   # Use the edge template
+   cp -rf $PADO_HOME/etc/template/edge $BUILD_DIR/etc/$CONF_GRID_ID
+else
+   cp -rf $PADO_HOME/etc/template/generic $BUILD_DIR/etc/$CONF_GRID_ID
+fi
+pushd $BUILD_DIR/etc/$CONF_GRID_ID > /dev/null 2>&1 
+
+#%%pado.id%% 
+#%%pado.location%%
+#%%gemfire-parent.id%%
+#%%gemfire-parent.root-region-path%%
+#%%gemfire-parent.locators%%
+#%%Edge.TotalNumBuckets%%
+#%%Edge.OtherHosts%%
+#%%Edge.IsDataStore%%
+#%%Edge.EvictionMaxEntries%%
+#%%GridPath%%
+#%%InfoGridPath%%
+#%%UpdateGridPath%%
+#%%SlotGridPath%%
+#%%SlotInterval%%
+#%%IsEdgeNode%%
+#%%IsMasterOnly%%
+#%%ServerUrl%%
+#%%ClientId%%
+#%%Topic%%
+#%%IsDebug%%
+
+pado_id=$CONF_GRID_ID
+pado_location=$CONF_SITE
+gemfire_parent_id=$CONF_PARENT_GRID_ID
+gemfire_parent_locators=$CONF_PARENT_LOCATORS
+Edge_TotalNumBuckets=113
+Edge_OtherHosts=
+Edge_IsDataStore=true
+Edge_EvictionMaxEntries=600000
+GridPath=iot/mqtt
+InfoGridPath=iot/info
+UpdateGridPath=iot/update
+SlotGridPath=iot/slot
+SlotInterval=100
+IsEdgeNode=true
+IsMasterOnly=false
+ServerUrl=ssl://localhost:8883
+ClientId=
+Topic=
+IsDebug=false
+
+sed 's/\%\%pado.id\%\%/'$pado_id'/g' pado.xml  > pado_x.xml
+sed -i 's/\%\%pado.location\%\%/'$pado_location'/g' pado_x.xml 
+sed -i 's/\%\%gemfire-parent.id\%\%/'$gemfire_parent_id'/g' pado_x.xml
+sed -i 's/\%\%gemfire-parent.locators\%\%/'$gemfire_parent_locators'/g' pado_x.xml
+sed -i 's/\%\%Edge.TotalNumBuckets\%\%/'$Edge_TotalNumBuckets'/g' pado_x.xml
+sed -i 's/\%\%Edge.OtherHosts\%\%/'$Edge_OtherHosts'/g' pado_x.xml
+sed -i 's/\%\%Edge.IsDataStore\%\%/'$Edge_IsDataStore'/g' pado_x.xml
+sed -i 's/\%\%Edge.EvictionMaxEntries\%\%/'$Edge_EvictionMaxEntries'/g' pado_x.xml
+sed -i 's|\%\%GridPath\%\%|'$GridPath'|g' pado_x.xml
+sed -i 's|\%\%InfoGridPath\%\%|'$InfoGridPath'|g' pado_x.xml
+sed -i 's|\%\%UpdateGridPath\%\%|'$UpdateGridPath'|g' pado_x.xml
+sed -i 's|\%\%SlotGridPath\%\%|'$SlotGridPath'|g' pado_x.xml
+sed -i 's|\%\%SlotInterval\%\%|'$SlotInterval'|g' pado_x.xml
+sed -i 's|\%\%IsEdgeNode\%\%|'$IsEdgeNode'|g' pado_x.xml
+sed -i 's|\%\%IsMasterOnly\%\%|'$IsMasterOnly'|g' pado_x.xml
+sed -i 's|\%\%ServerUrl\%\%|'$ServerUrl'|g' pado_x.xml
+sed -i 's|\%\%ClientId\%\%|'$ClientId'|g' pado_x.xml
+sed -i 's|\%\%Topic\%\%|'$Topic'|g' pado_x.xml
+sed -i 's|\%\%IsDebug\%\%|'$IsDebug'|g' pado_x.xml
+
+mv pado_x.xml pado.xml
+
+popd > /dev/null 2>&1
+
+#
+# etc/edge/app
+#
+pushd $BUILD_DIR/etc/$CONF_GRID_ID/app > /dev/null 2>&1 
+
+sed 's/\%\%pado.id\%\%/'$pado_id'/g' sys.xml  > sys_x.xml
+mv sys_x.xml sys.xml
+sed 's/\%\%pado.id\%\%/'$pado_id'/g' test.xml  > test_x.xml
+mv test_x.xml test.xml
+
+popd > /dev/null 2>&1
+
+
+#
+# Create bundle zip file
+#
+pushd $BUILD_DIR > /dev/null 2>&1 
+zip -q -r $PADO_HOME/bundle/${CONF_GRID_ID}-conf.zip *
+tar czf $PADO_HOME/bundle/${CONF_GRID_ID}-conf.tar.gz *
+popd > /dev/null 2>&1
+rm -rf $BUILD_DIR
+
+echo "Generated: $PADO_HOME/bundle/${CONF_GRID_ID}-conf.zip"
+echo "Generated: $PADO_HOME/bundle/${CONF_GRID_ID}-conf.tar.gz"
+unzip -l $PADO_HOME/bundle/${CONF_GRID_ID}-conf.zip
+tar tzvf $PADO_HOME/bundle/${CONF_GRID_ID}-conf.tar.gz

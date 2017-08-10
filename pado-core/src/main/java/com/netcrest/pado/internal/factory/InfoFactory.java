@@ -21,6 +21,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.netcrest.pado.biz.info.MethodArgInfo;
+import com.netcrest.pado.biz.info.MethodInfo;
+import com.netcrest.pado.biz.info.MethodReturnInfo;
+import com.netcrest.pado.biz.info.SimpleBizInfo;
 import com.netcrest.pado.info.BizInfo;
 import com.netcrest.pado.info.BucketInfo;
 import com.netcrest.pado.info.CacheDumpInfo;
@@ -121,6 +125,42 @@ public abstract class InfoFactory
 	public BizInfo createBizInfo(String ibizClassName)
 	{
 		return infoFactory.createBizInfo(ibizClassName);
+	}
+
+	/**
+	 * Creates a SimpleBizInfo object for the specified IBiz interface class
+	 * name. Returned object is serializable.
+	 * 
+	 * @param ibizClassName
+	 *            IBiz class name
+	 */
+	public SimpleBizInfo createSimpleBizInfo(String ibizClassName)
+	{
+		return infoFactory.createSimpleBizInfo(ibizClassName);
+	}
+
+	/**
+	 * Creates a MethodIfo object. Returned object is serializable.
+	 */
+	public MethodInfo createMethodInfo()
+	{
+		return infoFactory.createMethodInfo();
+	}
+
+	/**
+	 * Creates a MethodArgInfo object. Returned object is serializable.
+	 */
+	public MethodArgInfo createMethodArgInfo()
+	{
+		return infoFactory.createMethodArgInfo();
+	}
+	
+	/**
+	 * Creates a MethodReturnInfo object. Returned object is serializable.
+	 */
+	public MethodReturnInfo createMethodReturnInfo()
+	{
+		return infoFactory.createMethodReturnInfo();
 	}
 
 	/**

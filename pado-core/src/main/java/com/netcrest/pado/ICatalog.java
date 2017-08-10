@@ -36,13 +36,14 @@ public interface ICatalog
 	 * the specified IBiz class. A new IBizLocal instance is returned if the
 	 * local implementation class exists in the standard IBiz package or it is
 	 * specified by the annotation &#64;{@link BizClass#localImpl()}. To
-	 * override IBizLocal, use {@link #newInstanceLocal(Class, IBizLocal, Object...)}.
+	 * override IBizLocal, use
+	 * {@link #newInstanceLocal(Class, IBizLocal, Object...)}.
 	 * 
 	 * @param bizClass
 	 *            IBiz class
 	 * @param bizLocalArguments
-	 *            IBizLocal class initialization arguments. The arguments are passed in to
-	 *            {@link IBizLocal#init(IBiz, IPado, Object...)}.
+	 *            IBizLocal class initialization arguments. The arguments are
+	 *            passed in to {@link IBizLocal#init(IBiz, IPado, Object...)}.
 	 */
 	<T> T newInstance(Class<T> bizClass, Object... bizLocalArguments);
 
@@ -60,25 +61,26 @@ public interface ICatalog
 	 * @param bizLocal
 	 *            IBizLocal instance
 	 * @param bizLocalArguments
-	 *            IBizLocal class initialization arguments. The arguments are passed in to
-	 *            {@link IBizLocal#init(IBiz, IPado, Object...)}.
+	 *            IBizLocal class initialization arguments. The arguments are
+	 *            passed in to {@link IBizLocal#init(IBiz, IPado, Object...)}.
 	 */
 	<T> T newInstanceLocal(Class<T> bizClass, IBizLocal bizLocal, Object... bizLocalArguments);
-	
+
 	/**
 	 * Returns a new IBiz proxy instance or a new {@link IBizLocal} instance of
 	 * the specified IBiz class. A new IBizLocal instance is returned if the
 	 * local implementation class exists in the standard IBiz package or it is
 	 * specified by the annotation &#64;{@link BizClass#localImpl()}. To
-	 * override IBizLocal, use {@link #newInstanceLocal(String, String, Object...)}.
+	 * override IBizLocal, use
+	 * {@link #newInstanceLocal(String, String, Object...)}.
 	 * 
 	 * @param bizInterfaceName
 	 *            IBiz class name.
 	 * @param bizLocalArguments
-	 *            IBizLocal class initialization arguments. The arguments are passed in to
-	 *            {@link IBizLocal#init(IBiz, IPado, Object...)}.
+	 *            IBizLocal class initialization arguments. The arguments are
+	 *            passed in to {@link IBizLocal#init(IBiz, IPado, Object...)}.
 	 */
-	IBiz newInstance(String bizInterfaceName, Object...bizLocalArguments);
+	IBiz newInstance(String bizInterfaceName, Object... bizLocalArguments);
 
 	/**
 	 * Returns an instance of the specified IBizLocal class. The returned
@@ -94,8 +96,8 @@ public interface ICatalog
 	 * @param bizLocalClassName
 	 *            IBizLocal class name.
 	 * @param bizLocalArguments
-	 *            IBizLocal class initialization arguments. The arguments are passed in to
-	 *            {@link IBizLocal#init(IBiz, IPado, Object...)}.
+	 *            IBizLocal class initialization arguments. The arguments are
+	 *            passed in to {@link IBizLocal#init(IBiz, IPado, Object...)}.
 	 */
 	IBizLocal newInstanceLocal(String bizInterfaceName, String bizLocalClassName, Object... bizLocalArguments);
 
@@ -105,9 +107,42 @@ public interface ICatalog
 	String[] getAllBizClassNames();
 
 	/**
+	 * Returns all IBiz class names in the catalog.
+	 * 
+	 * @param regex
+	 *            Regular expression for filtering IBiz class names. If null, no
+	 *            filtering occurs (same as calling
+	 *            {@link #getAllBizClassNames()}.
+	 */
+	String[] getBizClassNames(String regex);
+
+	/**
 	 * Returns all IBiz classes in the catalog.
 	 */
 	Class<?>[] getAllBizClasses();
+
+	/**
+	 * Returns all IBiz classes in the catalog.
+	 * 
+	 * @param regex
+	 *            Regular expression for filtering IBiz class names. If null, no
+	 *            filtering occurs (same as calling {@link #getAllBizClasses()}.
+	 */
+	Class<?>[] getBizClasses(String regex);
+
+	/**
+	 * Returns all IBizInfo objects containing IBiz class meta data information.
+	 */
+	IBizInfo[] getAllBizInfos();
+
+	/**
+	 * Returns all IBizInfo objects containing IBiz class meta data information.
+	 * 
+	 * @param regex
+	 *            Regular expression for filtering IBiz class names. If null, no
+	 *            filtering occurs (same as calling {@link #getAllBizInfos()}.
+	 */
+	IBizInfo[] getBizInfos(String regex);
 
 	/**
 	 * Returns IDs of all participating grids that support the catalog.

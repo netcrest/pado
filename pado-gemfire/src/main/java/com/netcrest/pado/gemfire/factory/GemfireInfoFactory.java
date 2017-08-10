@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.gemstone.gemfire.cache.CacheFactory;
+import com.netcrest.pado.biz.info.MethodArgInfo;
+import com.netcrest.pado.biz.info.MethodInfo;
+import com.netcrest.pado.biz.info.MethodReturnInfo;
+import com.netcrest.pado.biz.info.SimpleBizInfo;
 import com.netcrest.pado.gemfire.info.GemfireBizInfo;
 import com.netcrest.pado.gemfire.info.GemfireBucketInfo;
 import com.netcrest.pado.gemfire.info.GemfireCacheDumpInfo;
@@ -33,8 +37,12 @@ import com.netcrest.pado.gemfire.info.GemfireGridPathInfo;
 import com.netcrest.pado.gemfire.info.GemfireGridRouterInfo;
 import com.netcrest.pado.gemfire.info.GemfireGridStatusInfo;
 import com.netcrest.pado.gemfire.info.GemfireLoginInfo;
+import com.netcrest.pado.gemfire.info.GemfireMethodArgInfo;
+import com.netcrest.pado.gemfire.info.GemfireMethodInfo;
+import com.netcrest.pado.gemfire.info.GemfireMethodReturnInfo;
 import com.netcrest.pado.gemfire.info.GemfirePadoInfo;
 import com.netcrest.pado.gemfire.info.GemfireServerInfo;
+import com.netcrest.pado.gemfire.info.GemfireSimpleBizInfo;
 import com.netcrest.pado.info.BizInfo;
 import com.netcrest.pado.info.BucketInfo;
 import com.netcrest.pado.info.CacheDumpInfo;
@@ -66,19 +74,46 @@ public class GemfireInfoFactory extends InfoFactory
 		return new GemfireLoginInfo(appId, domain, username, token, bizSet);
 	}
 
+	@Override
 	public ConfigInfo createConfigInfo()
 	{
 		return new GemfireConfigInfo();
 	}
 
+	@Override
 	public PadoInfo createPadoInfo(String appId)
 	{
 		return new GemfirePadoInfo(appId);
 	}
 
+	@Override
 	public BizInfo createBizInfo(String bizInterfaceName)
 	{
 		return new GemfireBizInfo(bizInterfaceName);
+	}
+	
+	@Override
+	public SimpleBizInfo createSimpleBizInfo(String bizInterfaceName)
+	{
+		return new GemfireSimpleBizInfo(bizInterfaceName);
+	}
+	
+	@Override
+	public MethodInfo createMethodInfo()
+	{
+		return new GemfireMethodInfo();
+	}
+	
+	@Override
+	public MethodArgInfo createMethodArgInfo()
+	{
+		return new GemfireMethodArgInfo();
+	}
+	
+	@Override
+	public MethodReturnInfo createMethodReturnInfo()
+	{
+		return new GemfireMethodReturnInfo();
 	}
 
 	public BucketInfo createBucketInfo(int bucketId, boolean isPrimary, int size, long totalBytes)
@@ -86,16 +121,19 @@ public class GemfireInfoFactory extends InfoFactory
 		return new GemfireBucketInfo(bucketId, isPrimary, size, totalBytes);
 	}
 
+	@Override
 	public CacheServerInfo createCacheServerInfo()
 	{
 		return new GemfireCacheServerInfo();
 	}
 
+	@Override
 	public GridRouterInfo createGridRouterInfo(String gridPath)
 	{
 		return new GemfireGridRouterInfo(gridPath);
 	}
 
+	@Override
 	public ServerInfo createServerInfo(GridInfo gridInfo, CacheInfo cacheInfo, CacheServerInfo cacheServerInfo,
 			String fullPath)
 	{
@@ -103,23 +141,27 @@ public class GemfireInfoFactory extends InfoFactory
 				(GemfireCacheServerInfo) cacheServerInfo, fullPath);
 	}
 	
+	@Override
 	public CacheDumpInfo createCacheDumpInfo(List<DumpInfo> dumpInfoList)
 	{
 		PadoServerManager sm = PadoServerManager.getPadoServerManager();
 		return new GemfireCacheDumpInfo(sm.getGridId(), CacheFactory.getAnyInstance(), dumpInfoList);
 	}
 	
+	@Override
 	public DumpInfo createDumpInfo(String parentFullPath, File file, Date date, boolean recursive)
 	{
 		return new GemfireDumpInfo(parentFullPath, file, date, recursive);
 	}
 
+	@Override
 	public GridStatusInfo createGridStatusInfo(GridStatusInfo.Status status, String gridId, String masterId,
 			String serverId, String message)
 	{
 		return new GemfireGridStatusInfo(status, gridId, masterId, serverId, message);
 	}
 
+	@Override
 	public GridPathInfo createGridPathInfo(String gridPath)
 	{
 		return new GemfireGridPathInfo(gridPath);

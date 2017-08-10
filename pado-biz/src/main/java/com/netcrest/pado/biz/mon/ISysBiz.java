@@ -174,12 +174,58 @@ public interface ISysBiz extends IBiz
 	Set<BizInfo> getAllBizInfos();
 
 	/**
+	 * Returns all BizInfo object information including system and app-level
+	 * IBiz classes.
+	 * 
+	 * @param regex
+	 *            Regular expression for filtering IBiz class names. If null, no
+	 *            filtering occurs (same as calling {@link #getAllBizInfos()}.
+	 */
+	@BizMethod
+	@OnServer(broadcast = false)
+	Set<BizInfo> getBizInfos(String regex);
+
+	/**
 	 * Returns all BizInfo object information pertaining only to app-level IBiz
 	 * classes. The system-level BizInfo objects are not included.
 	 */
 	@BizMethod
 	@OnServer(broadcast = false)
 	Set<BizInfo> getAllAppBizInfos();
+
+	/**
+	 * Returns all BizInfo object information pertaining only to app-level IBiz
+	 * classes. The system-level BizInfo objects are not included.
+	 * 
+	 * @param regex
+	 *            Regular expression for filtering IBiz class names. If null, no
+	 *            filtering occurs (same as calling
+	 *            {@link #getAllAppBizInfos()}.
+	 */
+	@BizMethod
+	@OnServer(broadcast = false)
+	Set<BizInfo> getAppBizInfos(String regex);
+
+	/**
+	 * Returns all system-level BizInfo object information. The app-level
+	 * BizInfo objects are not included.
+	 */
+	@BizMethod
+	@OnServer(broadcast = false)
+	Set<BizInfo> getAllSysBizInfos();
+
+	/**
+	 * Returns all system-level BizInfo object information. The app-level
+	 * BizInfo objects are not included.
+	 * 
+	 * @param regex
+	 *            Regular expression for filtering IBiz class names. If null, no
+	 *            filtering occurs (same as calling
+	 *            {@link #getAllSysBizInfos()}.
+	 */
+	@BizMethod
+	@OnServer(broadcast = false)
+	Set<BizInfo> getSysBizInfos(String regex);
 
 	/**
 	 * Returns a map of all GridPathInfo objects maintained by Pado.
@@ -295,7 +341,8 @@ public interface ISysBiz extends IBiz
 	 *       "Depth": 3
 	 *    }
 	 * }
-	 * </pre>
+	 *            </pre>
+	 * 
 	 * @param isPersist
 	 *            True to persist, false to register in memory only. If false,
 	 *            then the changes will be lost when the server restarts. This
@@ -316,8 +363,8 @@ public interface ISysBiz extends IBiz
 	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@OnServer(broadcast = true, broadcastGrids = true)
-	void registerKeyTypeQueryReferences(JsonLite keyTypeDefinition, boolean isPersist) throws IOException,
-			ClassNotFoundException, PadoException, ClassCastException;
+	void registerKeyTypeQueryReferences(JsonLite keyTypeDefinition, boolean isPersist)
+			throws IOException, ClassNotFoundException, PadoException, ClassCastException;
 
 	/**
 	 * Registers the specified KeyType definitions to all grids and servers.
@@ -344,8 +391,8 @@ public interface ISysBiz extends IBiz
 	@SuppressWarnings("rawtypes")
 	@BizMethod
 	@OnServer(broadcast = true, broadcastGrids = true)
-	void registerKeyTypeQueryReferences(JsonLite[] keyTypeDefinitions, boolean isPersist) throws IOException,
-			ClassNotFoundException, PadoException, ClassCastException;
+	void registerKeyTypeQueryReferences(JsonLite[] keyTypeDefinitions, boolean isPersist)
+			throws IOException, ClassNotFoundException, PadoException, ClassCastException;
 
 	/**
 	 * Attaches the grid that this client has logged on to to the specified
