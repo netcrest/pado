@@ -85,22 +85,6 @@ if [ ! -d $STATS_DIR ]; then
   mkdir -p $STATS_DIR
 fi
 
-# disk-store directory
-if [ "$DISK_STORE_DIR" == "" ]; then
-   DISK_STORE_DIR=$DIR/store
-fi
-
-if [ ! -d $DISK_STORE_DIR ]; then
-  mkdir -p $DISK_STORE_DIR
-fi
-if [ ! -d $DISK_STORE_DIR/cache ]; then
-  mkdir -p $DISK_STORE_DIR/cache
-fi
-if [ ! -d $DISK_STORE_DIR/gateway ]; then
-  mkdir -p $DISK_STORE_DIR/gateway
-fi
-export DISK_STORE_DIR
-
 # plugins directory
 if [ "$PADO_PLUGINS_DIR" == "" ]; then
    PADO_PLUGINS_DIR=$BASE_DIR/plugins
@@ -218,6 +202,21 @@ if [ -d $DIR ] && [ "$CLEAN" == "true" ]; then
 fi
 if [ ! -d $DIR ]; then
   mkdir -p $DIR
+fi
+
+# disk-store directory
+if [ "$DISK_STORE_DIR" == "" ]; then
+   DISK_STORE_DIR=$DIR/store
+fi
+
+if [ ! -d $DISK_STORE_DIR ]; then
+  mkdir -p $DISK_STORE_DIR
+fi
+if [ ! -d $DISK_STORE_DIR/cache ]; then
+  mkdir -p $DISK_STORE_DIR/cache
+fi
+if [ ! -d $DISK_STORE_DIR/gateway ]; then
+  mkdir -p $DISK_STORE_DIR/gateway
 fi
 
 # ServerArray elements:
