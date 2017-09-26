@@ -15,6 +15,7 @@
 				<exclude>com.netcrest.pado:pado-biz</exclude>
 				<exclude>com.netcrest.pado:pado-biz-gemfire</exclude>
 				<exclude>com.netcrest.pado:pado-test</exclude>
+				<exclude>com.netcrest.pado:pado-rpc-biz</exclude>
 				<exclude>com.gemstone.gemfire:gemfire</exclude>
 				<exclude>antlr:antlr</exclude>
 				<exclude>commons-io*</exclude>
@@ -34,11 +35,14 @@
 				<include>com.netcrest.pado:pado-biz</include>
 				<include>com.netcrest.pado:pado-biz-gemfire</include>
 				<include>com.netcrest.pado:pado-test</include>
+				<include>com.netcrest.pado:pado-rpc-biz</include>
 			</includes>
 			<outputDirectory>/plugins</outputDirectory>
 		</dependencySet>
 	</dependencySets>
+	
 	<fileSets>
+		<!--  Collect all resources -->
 		<fileSet>
 			<directory>src/main/resources</directory>
 			<excludes>
@@ -47,6 +51,26 @@
 				<exclude>etc/create_dtd_java</exclude>
 			</excludes>
 			<outputDirectory>
+			</outputDirectory>
+		</fileSet>
+		
+		<!--  Collect all rpc resources -->
+		<fileSet>
+			<directory>../pado-rpc/src/resources/java</directory>
+			<outputDirectory>
+			lang/java
+			</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>../pado-rpc/src/main/python</directory>
+			<outputDirectory>
+			lang/python/src
+			</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>../pado-rpc/src/main/python/bin_sh</directory>
+			<outputDirectory>
+			lang/python/bin_sh
 			</outputDirectory>
 		</fileSet>
 
@@ -60,6 +84,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 		</fileSet>
+		
 
 		<fileSet>
 			<directory>..</directory>

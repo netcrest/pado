@@ -136,8 +136,8 @@ public interface IIndexMatrixBiz<T> extends IIndexMatrixBizLink<T>
 	 * 
 	 * <b>IMPORTANT:</b> <i>This method uses the query string as the unique ID
 	 * to cache the returned result set in the grid. This means the result set
-	 * can be shared across different clients.</i> If rsult-sharing is not
-	 * desiralbe then invoke {@linkplain #execute(String, String)} instead.
+	 * can be shared across different clients.</i> If result-sharing is not
+	 * desirable then invoke {@linkplain #execute(String, String)} instead.
 	 * <p>
 	 * 
 	 * @param queryString

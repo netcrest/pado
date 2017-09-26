@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+PADO_DIR=/apps/adf/pado/prod-iot
+
+# First, remove cron jobs and stop server and locator
+if [ -e /etc/cron.d/pado.server ]; then
+   rm /etc/cron.d/pado.server
+fi
+if [ -e /etc/cron.d/pado.locator ]; then
+   rm /etc/cron.d/pado.locator
+fi
+if [ -e /etc/init.d/pado.server ]; then
+   service pado-server stop
+fi
+if [ -e $PADO_DIR/bin_sh/kill_server_local ]; then
+   (cd $PADO_DIR/bin_sh; ./kill_server_local -all)
+fi
+if [ -e /etc/init.d/pado.locator ]; then
+   service pado-locator stop
+fi
+if [ -e $PADO_DIR/bin_sh/kill_locator_local ]; then
+   (cd $PADO_DIR/bin_sh; ./kill_locator_local -all)
+fi

@@ -15,7 +15,6 @@
  */
 package com.netcrest.pado.biz.gemfire.proxy.functions;
 
-import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -27,6 +26,8 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import com.gemstone.gemfire.cache.execute.FunctionContext;
+import com.gemstone.gemfire.cache.execute.ResultSender;
+import com.gemstone.gemfire.internal.cache.execute.FunctionContextImpl;
 import com.netcrest.pado.IBizContextServer;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.biz.gemfire.proxy.GemfireBizUtil;
@@ -127,9 +128,9 @@ public class ServerProxyFunction extends ProxyFunction
 		}
 	}
 
-	private Map<String, Method> getBizMethodMap(Class clazz)
+	private Map<String, Method> getBizMethodMap(Class<?> clazz)
 	{
-		HashMap<String, Method> map = new HashMap();
+		HashMap<String, Method> map = new HashMap<String, Method>();
 		for (Method m : clazz.getMethods()) {
 			if (m.isAnnotationPresent(BizMethod.class)) {
 				String methodName = GemfireBizUtil.getMethodName(m);
@@ -139,39 +140,79 @@ public class ServerProxyFunction extends ProxyFunction
 		return map;
 	}
 
+	/**
+	 * Executes the service logic by forwarding the invocation to the IBiz
+	 * implementation class' method specified in bizArgs. This method is made
+	 * available for server plugins to invoke IBiz methods locally.
+	 * <p>
+	 * <b>IMPORTANT:</b> This method does not follow the IBiz pattern. It does
+	 * not distribute the call. It only makes in-process method invocation and
+	 * returns the results of the call. If the method has the void type then it
+	 * returns null. Also, because it is locally invoked, {@link ResultSender}
+	 * accessible by {@link FunctionContext} is always null.
+	 * 
+	 * @param bizArgs
+	 *            IBiz arguments
+	 * @return null if the IBiz method's return type is void
+	 * @throws PadoServerException
+	 *             thrown if any method invocation error occurs
+	 */
+	public Object execute(BizArguments bizArgs)
+	{
+		FunctionContextImpl fc = new FunctionContextImpl(getId(), bizArgs, null);
+		Object retval = null;
+		switch (bizStateType) {
+		case SINGLETON:
+			retval = executeSingleton(fc);
+			break;
+		case STATELESS:
+			retval = executeStateless(fc);
+			break;
+		}
+		return retval;
+	}
+
 	/*
-	 * Executes the service logic by forwarding the invocation to the service
-	 * implementation class
+	 * Executes the service logic by forwarding the invocation to the IBiz
+	 * implementation class' method specified in bizArgs found in the specified
+	 * function context.
 	 * 
 	 * @see ProxyFunction
 	 */
 	@Override
 	public void execute(FunctionContext fc)
 	{
+		Object retval = null;
 		switch (bizStateType) {
 		case SINGLETON:
-			executeSingleton(fc);
+			retval = executeSingleton(fc);
 			break;
 		case STATELESS:
-			executeStateless(fc);
+			retval = executeStateless(fc);
 			break;
 		}
+		// Due to GemFire restrictions, we must send something even for void
+		// typed methods. invokeMethod() returns null if the method's return
+		// type is void.
+		fc.getResultSender().lastResult(retval);
 	}
 
-	private void executeSingleton(FunctionContext fc)
+	private Object executeSingleton(FunctionContext fc)
 	{
 		BizArguments bizArgs = (BizArguments) fc.getArguments();
+		
 		BizContextClientImpl client = (BizContextClientImpl) bizArgs.getBizContext();
 		if (bizContext != null) {
 			bizContext.addBizContextClient(client, fc, bizArgs.getAdditionalArgs(), bizArgs.getTransientData());
 		}
-		invokeMethod(fc);
+		Object retval = invokeMethod(bizArgs);
 		if (bizContext != null) {
 			bizContext.removeBizContextClient();
 		}
+		return retval;
 	}
 
-	private void executeStateless(FunctionContext fc)
+	private Object executeStateless(FunctionContext fc)
 	{
 		BizArguments bizArgs = (BizArguments) fc.getArguments();
 		BizContextClientImpl client = (BizContextClientImpl) bizArgs.getBizContext();
@@ -180,13 +221,147 @@ public class ServerProxyFunction extends ProxyFunction
 		try {
 			Object bizImpl = bizImplClass.newInstance();
 			gridContextField.set(bizImpl, bizContext);
-			invokeMethod(fc);
+			return invokeMethod(bizArgs);
 		} catch (Exception ex) {
 			throw new PadoServerException(ex);
 		}
 	}
 
-	private void invokeMethod(FunctionContext fc)
+	private Object invokeMethod(BizArguments bizArgs)
+	{
+		Object retval = null;
+
+		// Invoke the method
+		try {
+			Method method = methodMap.get(bizArgs.getMethodName());
+			if (method == null) {
+				if (Logger.isInfoEnabled()) {
+					Logger.info("The specified method does not exist [" + bizImpl.getClass().getName() + "."
+							+ bizArgs.getMethodName());
+				}
+				throw new PadoServerException("The specified method does not exist [" + bizImpl.getClass().getName()
+						+ "." + bizArgs.getMethodName());
+			} else {
+				if (Logger.isFineEnabled()) {
+					Logger.info("Invoking method [" + bizImpl.getClass().getName() + "." + method.getName()
+							+ "] with args [" + bizArgs.getArgs() + "]");
+				}
+
+				// For pure clients and non-IPadoBiz calls, validate the
+				// token.
+				// if (client != null && client.getGridId() == null &&
+				// targetClass.getName().equals(IPadoBiz.class.getName()) ==
+				// false) {
+				// if (client.getUserContext() == null) {
+				// throw new PadoServerException("Access denied. Invalid
+				// session. IUserContext not provided.");
+				// } else {
+				// boolean isTokenValid =
+				// PadoServerManager.getPadoServerManager().isValidToken(
+				// client.getUserContext().getToken());
+				// if (isTokenValid == false) {
+				// LoginInfo loginInfo =
+				// PadoServerManager.getPadoServerManager().getLoginInfo(
+				// client.getUserContext().getToken());
+				// String appId = null;
+				// String username = null;
+				// if (loginInfo != null) {
+				// appId = loginInfo.getAppId();
+				// username = loginInfo.getUsername();
+				// }
+				//
+				// throw new PadoServerException(
+				// "Access denied. Invalid session. Please login with a valid
+				// account. " + "[app-id="
+				// + appId + ", user=" + username + ", token="
+				// + client.getUserContext().getToken() + "]");
+				// } else {
+				// client.getUserContext().getUserInfo().setUserPrincipal(principal);
+				// }
+				// }
+				// }
+
+				// TODO: Provide a way to send intermittent results
+				// Method ibizMethod =
+				// iBizMethodMap.get(bizArgs.getMethodName());
+				// if (ibizMethod != null && ibizMethod.getReturnType() ==
+				// Future.class) {
+				// fc.getResultSender().sendResult(null);
+				// }
+
+				retval = method.invoke(bizImpl, bizArgs.getArgs());
+			}
+			// return result
+			if (Logger.isFineEnabled()) {
+				String message = "Completed " + bizImpl.getClass().getName() + ". " + method.getName()
+						+ "] returning [";
+				if (method.getReturnType() == void.class) {
+					message += "void]";
+				} else {
+					message += retval + "]";
+				}
+				Logger.fine(message);
+			}
+			return retval;
+		} catch (SecurityException ex) {
+			Logger.error(ex);
+			throw new PadoServerException(ex);
+		} catch (IllegalArgumentException ex) {
+			Logger.error(ex);
+			throw new PadoServerException(ex);
+		} catch (IllegalAccessException ex) {
+			Logger.error(ex);
+			throw new PadoServerException(ex);
+
+		} catch (InvocationTargetException ex) {
+
+			// InvocationTargetException wraps the exception raised by the
+			// method
+			// Do NOT log. Logging is not necessary since the exception is
+			// handled
+			// by the client.
+			Throwable cause = ex.getCause();
+			if (PadoException.class.isAssignableFrom(cause.getClass())) {
+				throw (PadoException) cause;
+			} else {
+				try {
+					// See if the default constructor is available if not, this
+					// exception is not serializable.
+					@SuppressWarnings("unused")
+					Constructor<?> constructor = cause.getClass().getConstructor();
+					throw new PadoServerException(cause);
+				} catch (Exception ex2) {
+					throw new PadoServerException(cause.getClass().getName() + ": " + cause.getMessage());
+				}
+			}
+
+		} catch (Throwable th) {
+
+			Logger.error(th);
+
+			// Send only PadoException. Wrap the exception if not PadoException.
+			Throwable cause = th;
+			Throwable lastThrowable = cause;
+			while (cause != null) {
+				lastThrowable = cause;
+				if (PadoException.class.isAssignableFrom(lastThrowable.getClass())) {
+					throw (PadoException) lastThrowable;
+				}
+				cause = cause.getCause();
+			}
+			try {
+				// See if the default constructor is available if not, this
+				// exception is not serializable.
+				@SuppressWarnings("unused")
+				Constructor<?> constructor = th.getClass().getConstructor();
+				throw new PadoServerException(th);
+			} catch (Exception ex2) {
+				throw new PadoServerException(th.getClass().getName() + ": " + th.getMessage());
+			}
+		}
+	}
+
+	private Object invokeMethod(FunctionContext fc)
 	{
 		Object retval = null;
 
@@ -269,7 +444,9 @@ public class ServerProxyFunction extends ProxyFunction
 				// Due to GemFire restrictions, we must send something for void
 				// typed methods.
 				fc.getResultSender().lastResult(null);
+				retval = null;
 			}
+			return retval;
 		} catch (SecurityException ex) {
 			Logger.error(ex);
 			throw new PadoServerException(ex);

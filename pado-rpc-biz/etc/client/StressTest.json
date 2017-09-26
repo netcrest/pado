@@ -1,0 +1,23 @@
+{
+	"Paths": [
+		{
+			"Path": "stress/test1",
+			"PathType": "TEMPORAL",
+			"PayloadSize": 1024,
+			"FieldCount": 20,
+			"UpdateIntervalInMsec": 0,
+			"TotalEntryCount": 10000
+		},
+		{
+			"Path": "stress/test2",
+			"PathType": "TEMPORAL",
+			"PayloadSize": 1024,
+			"FieldCount": 20,
+			"UpdateIntervalInMsec": 0,
+			"TotalEntryCount": 10000
+		}
+	],
+	"LoopCount": 5,
+	"ThreadCountPerServer": 5,
+	"IsIncludeObjectCreationTime": false
+}

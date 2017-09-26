@@ -569,7 +569,10 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 				} else if (bean != null) {
 					tokenizer.nonJsonLiteValue = bean;
 				} else if (value != null && (value instanceof Collection || value.getClass().isArray())) {
-					tokenizer.nonJsonLiteValue = value;
+					// TODO: This code looks shaky
+					if (valueMap == null || valueMap.size() == 0) {
+						tokenizer.nonJsonLiteValue = value;
+					}
 				}
 				return;
 			default:

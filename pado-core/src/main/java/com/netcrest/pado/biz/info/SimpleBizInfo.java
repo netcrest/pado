@@ -1,7 +1,6 @@
 package com.netcrest.pado.biz.info;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -67,11 +66,11 @@ public class SimpleBizInfo implements IBizInfo
 				list.add(methodInfo);
 
 				// Args
-				Parameter[] params = method.getParameters();
+				Class<?>[] params = method.getParameterTypes();
 				MethodArgInfo[] argInfos = new MethodArgInfo[params.length];
 				int i = 0;
-				for (Parameter param : params) {
-					argInfos[i++] = createArg(param.getName(), param.getType().getName(), null, null, null, true);
+				for (Class<?> param : params) {
+					argInfos[i++] = createArg(param.getName(), param.getName(), null, null, null, true);
 				}
 				methodInfo.setArgInfos(argInfos);
 

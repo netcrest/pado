@@ -16,6 +16,9 @@
 package com.netcrest.pado.log;
 
 import java.lang.reflect.Method;
+import java.util.WeakHashMap;
+
+import com.netcrest.pado.internal.Constants;
 
 /**
  * Logger delegates log messages to the underlying logging facility.
@@ -25,18 +28,16 @@ import java.lang.reflect.Method;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class Logger
 {
-	
-	private final static String PROP_CLASS_LOGGER = "class.logger";
-	private final static String DEFAULT_CLASS_LOGGER = "com.netcrest.pado.gemfire.util.GemfireLogger";
-	
 	private static ILogger logger;
+	
+	private static WeakHashMap<String, ILogger> loggerMap = new WeakHashMap<String, ILogger>();
 	
 	static {
 		try {
 			// TODO: Unable to use PadoUtil due to dependency problems. See if we
 			// can also support pado.properties.
 //			Class clazz = PadoUtil.getClass(PROP_CLASS_LOGGER, DEFAULT_CLASS_LOGGER);
-			String className = System.getProperty(PROP_CLASS_LOGGER, DEFAULT_CLASS_LOGGER);
+			String className = System.getProperty("pado." + Constants.PROP_CLASS_LOGGER, Constants.DEFAULT_CLASS_LOGGER);
 			Class clazz = Class.forName(className);
 			Method method = clazz.getMethod("getLogger");
 			logger = (ILogger)method.invoke(null);

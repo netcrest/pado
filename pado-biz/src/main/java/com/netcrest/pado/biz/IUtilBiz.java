@@ -91,7 +91,7 @@ public interface IUtilBiz extends IUtilBizLink
 	 * Dumps the contents of all of the valid paths to the directory designated
 	 * by the server startup scripts.
 	 * 
-	 * @return Server dump directory paths
+	 * @return Directory paths of CSV files stored in each server
 	 */
 	@BizMethod
 	@OnServer(broadcast = true)
@@ -104,7 +104,7 @@ public interface IUtilBiz extends IUtilBizLink
 	 * 
 	 * @param gridPaths
 	 *            Grid paths
-	 * @return Server CSV file paths
+	 * @return Directory paths of CSV files stored in each server
 	 */
 	@BizMethod
 	@OnServer(broadcast = true)

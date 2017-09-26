@@ -1,0 +1,104 @@
+#!/bin/sh
+# Start/stop the Pado server
+#
+### BEGIN INIT INFO
+# Provides:          pado-server
+# Required-Start:    $remote_fs $syslog $time
+# Required-Stop:     $remote_fs $syslog $time
+# Should-Start:      $network $named slapd autofs ypbind nscd nslcd winbind
+# Should-Stop:       $network $named slapd autofs ypbind nscd nslcd winbind
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: Pado server
+# Description:       Pado server is a wrapper to GemFire cache server that participates
+                     as a peer member in a GemFire data grid.
+### END INIT INFO
+
+PADO_HOME=/apps/adf/pado/prod-iot
+cd $PADO_HOME/bin_sh
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DESC="Pado server is GemFire cache server running as a peer member in a GemFire data grid."
+NAME=pado
+DAEMON=$PADO_HOME/bin_sh/start_server_local
+PIDFILE=$PADO_HOME/run/cache-server.pid
+START_DAEMON="./start_server_local -num auto -clean"
+STOP_DAEMON="./kill_server_local -all"
+SCRIPTNAME=/etc/init.d/"$NAME"
+
+#test -x ${START_DAEMON} || exit 0
+
+umask 022
+
+. /lib/lsb/init-functions
+
+# Are we running from init?
+run_by_init() {
+    ([ "$previous" ] && [ "$runlevel" ]) || [ "$runlevel" = S ]
+}
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+case "$1" in
+  start)
+#        if init_is_upstart; then
+#            exit 1
+#        fi
+        log_daemon_msg "Starting cache server:" "pado-server "
+        if $START_DAEMON ; then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+  stop)
+#        if init_is_upstart; then
+#            exit 0
+#        fi
+        log_daemon_msg "Stopping cache server:" "pado-server "
+        if $STOP_DAEMON; then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+  reload|force-reload)
+#        if init_is_upstart; then
+#            exit 1
+#        fi
+        log_daemon_msg "Reloading configuration files for cache server:" "pado-server "
+        if $STOP_DAMEON ; then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+
+  restart)
+#        if init_is_upstart; then
+#            exit 1
+#        fi
+        log_daemon_msg "Restarting cache server:" "pado-server " 
+        $STOP_DAEMON
+        if $START_DAEMON ; then
+            log_end_msg 0
+        else
+            log_end_msg 1
+        fi
+        ;;
+
+
+  status)
+#        if init_is_upstart; then
+#            exit 1
+#        fi
+        status_of_proc -p ${PIDFILE} ${DAEMON} mosquitto && exit 0 || exit $?
+        ;;
+
+status)
+        status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+        ;;
+*)	log_action_msg "Usage: /etc/init.d/pado-server {start|stop|status|restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+exit 0

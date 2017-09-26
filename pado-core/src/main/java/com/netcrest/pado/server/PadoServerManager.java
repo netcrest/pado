@@ -223,7 +223,7 @@ public abstract class PadoServerManager
 
 	/**
 	 * System map containing system-level IBiz classes, i.e., &lt;IBiz class
-	 * name, Biz Manager&gt;. System-level IBiz classes requires "sys" level
+	 * name, Biz Manager&gt;. System-level IBiz classes require "sys" level
 	 * permissions to access.
 	 * 
 	 * 

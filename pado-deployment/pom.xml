@@ -68,6 +68,16 @@
 			<artifactId>pado-tools</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-rpc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netcrest.pado</groupId>
+			<artifactId>pado-rpc-biz</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. ./setenv.sh > /dev/null 2>&1
+pushd .. > /dev/null 2>&1
+$PYTHON -m com.netcrest.pado.rpc.rpc $* > log/rpc_client.log
+popd > /dev/null 2>&1

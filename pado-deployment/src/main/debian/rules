@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+# You must remove unused comment lines for the released package.
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+%:
+	dh $@  
+
+override_dh_auto_install:
+	dh_auto_install -- prefix=/apps/adf/pado/prod-iot
+
+override_dh_installinit:
+	dh_installinit -ppado --name=pado-locator
+	dh_installinit -ppado --name=pado-server
+
+override_dh_installcron:
+	dh_installcron -ppado --name=pado-locator
+	dh_installcron -ppado --name=pado-server
+
+override_dh_strip_nondeterminism:
+	dh_strip_nondeterminism -Xdebian/pado/apps/adf/pado/prod-iot/bin_win/images/Start.png -Xdebian/pado/apps/adf/pado/prod-iot/bin_win/images/Stop.png
+
+#override_dh_install:
+#	dh_install --list-missing -X.pyc -X.pyo

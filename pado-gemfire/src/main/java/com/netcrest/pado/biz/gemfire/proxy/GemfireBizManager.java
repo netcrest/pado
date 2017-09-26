@@ -246,4 +246,12 @@ public class GemfireBizManager<T> extends BizManager<T>
 		return (T) Proxy.newProxyInstance(ibizClass.getClassLoader(), new Class[] { ibizClass }, handler);
 	}
 
+	/**
+	 * Returns the server function registered for the IBiz class.
+	 * @return
+	 */
+	public Function getFunction()
+	{
+		return function;
+	}
 }

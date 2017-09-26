@@ -40,6 +40,20 @@ bild.log
 
 # Backup files
 *.bak
-deploy_old2
 .swp
 archive
+*.gfs
+*.log
+
+# Python
+.pydevproject
+*.pyc
+
+# Development
+/setenv.sh
+/pado-rpc/etc
+/pado-mqtt
+/pado-python
+/pado-rpc_bak
+/deploy_old2
+copyjar*
