@@ -10,11 +10,10 @@ import sys
 import threading
 import uuid
 
-from com.netcrest.pado.rpc.singleton import Singleton
 from paho.mqtt.client import MQTT_ERR_SUCCESS
 import paho.mqtt.client as mqtt
 
-class RpcClient(Singleton):
+class RpcClient(object):
     '''
     RpcClient establishes RPC services via MQTT.
     
