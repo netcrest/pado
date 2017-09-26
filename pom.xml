@@ -37,8 +37,6 @@
 		<module>pado-test</module>
 		<module>pado-tools</module>
 		<module>pado-demo</module>
-		<module>pado-python</module>
-		<module>pado-mqtt</module>
 		<module>pado-javadoc</module>
 		<module>pado-deployment</module>
 	</modules>
