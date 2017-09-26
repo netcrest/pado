@@ -68,9 +68,9 @@
 			</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>../pado-rpc/src/main/python/bin_sh</directory>
+			<directory>../pado-rpc/src/resources/python</directory>
 			<outputDirectory>
-			lang/python/bin_sh
+			lang/python
 			</outputDirectory>
 		</fileSet>
 

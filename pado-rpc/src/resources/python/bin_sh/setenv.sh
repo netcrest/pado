@@ -12,5 +12,5 @@ DATA_DIR=$BASE_DIR/data
 if [ ! -d $DATA_DIR ]; then
   mkdir -p $DATA_DIR
 fi
-export PYTHON=/home/dpark/anaconda2/bin/python
+export PYTHON=python
 export PYTHONPATH=$BASE_DIR/src
