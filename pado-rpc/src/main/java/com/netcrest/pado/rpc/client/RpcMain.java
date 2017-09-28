@@ -54,35 +54,34 @@ public class RpcMain
 		System.out.println(line);
 	}
 
-	private static void write(String str)
-	{
-		System.out.print(str);
-	}
-
 	private static void usage()
 	{
 		writeLine();
 		writeLine("Usage:");
-		writeLine("   RpcMain [-reply] [-?] <Pado extended JSON-RPC 2.0 request>");
+		writeLine("   RpcMain <server-id> <request> [-reply] [-?] ");
 		writeLine();
 		writeLine("   RpcMain takes an extended JSON-RPC 2.0 request and invokes the specified");
 		writeLine("   class' method.");
 		writeLine();
+		writeLine("      <server-id> Unique Pado server ID representing the data node.");
+		writeLine("      <request> Pado extended JSON-RPC 2.0. Must be enclosed in double quotes.");
 		writeLine("      -reply If specified, then it prints the reply.");
 		writeLine();
-		writeLine("   Default: RpcMain <Pado extended JSON-RPC 2.0 request>");
+		writeLine("   Default: RpcMain <server-id> <request>");
 		writeLine();
 		System.exit(0);
 	}
-
+	
 	public static void main(String[] args)
 	{
+
 		if (args == null || args.length == 0) {
 			return;
 		}
 
 		String arg;
 		boolean isReply = false;
+		String serverId = null;
 		String request = "";
 		for (int i = 0; i < args.length; i++) {
 			arg = args[i];
@@ -90,24 +89,72 @@ public class RpcMain
 				usage();
 			} else if (arg.equals("-reply")) {
 				isReply = true;
+			} else if (serverId == null) {
+				serverId = arg;
 			} else {
 				request = arg;
 			}
 		}
 
+		if (serverId == null) {
+			System.err.println("Server ID not specified. Aborted.");
+			System.exit(-1);
+		}
 		request = request.trim();
 		if (request.startsWith("{") == false || request.endsWith("}") == false) {
 			System.err.println("Valid request must be specified. Aborted.");
-			System.exit(-1);
+			System.exit(-2);
 		}
 
-		RpcUtil.readRpcProperties();
+		// Initializer the MQTT mechanics
+		MqttJsonRpcClient.initialize(serverId);
+		
+		RpcUtil.processRequest(request, isReply);
+
+		// Close MQTT
+		MqttJsonRpcClient.getRpcClient().close();
+		System.exit(0);
+	
+	}
+
+	public static void main2(String[] args)
+	{
+		if (args == null || args.length == 0) {
+			return;
+		}
+
+		String arg;
+		boolean isReply = false;
+		String serverId = null;
+		String request = "";
+		for (int i = 0; i < args.length; i++) {
+			arg = args[i];
+			if (arg.equalsIgnoreCase("-?")) {
+				usage();
+			} else if (arg.equals("-reply")) {
+				isReply = true;
+			} else if (serverId == null) {
+				serverId = arg;
+			} else {
+				request = arg;
+			}
+		}
+
+		if (serverId == null) {
+			System.err.println("Server ID not specified. Aborted.");
+			System.exit(-1);
+		}
+		request = request.trim();
+		if (request.startsWith("{") == false || request.endsWith("}") == false) {
+			System.err.println("Valid request must be specified. Aborted.");
+			System.exit(-2);
+		}
 
 		final JsonLite jrequest = new JsonLite(request);
 		System.out.println("Request:");
 		System.out.println(jrequest.toString());
 		System.out.println(jrequest.toString(4, false, false));
-
+		
 		String className = jrequest.getString(RequestKey.classname.name(), null);
 		try {
 			Class clazz = Class.forName(className);
@@ -119,6 +166,9 @@ public class RpcMain
 				System.out.println("method=" + method + ", obj=" + obj + ", params=" + params);
 
 				boolean isDaemon = jrequest.getBoolean(RequestKey.daemon.name(), true);
+				
+				// Initializer the MQTT mechanics
+				MqttJsonRpcClient.initialize(serverId);
 
 				if (isDaemon) {
 					try {

@@ -16,6 +16,7 @@ public class RpcRequestTest extends AbstractTest implements Constants
 	@Test
 	public void testRpcRequest() throws MqttPersistenceException, MqttException
 	{
+		String serverId = "server-mygrid-us01";
 		JsonLite request = new JsonLite();
 		request.put(RequestKey.id.name(), "10");
 		request.put(RequestKey.jsonrpc.name(), "2.0");
@@ -25,7 +26,7 @@ public class RpcRequestTest extends AbstractTest implements Constants
 		params.put("queryPredicate", "get('Name')='Park'");
 		request.put(RequestKey.params.name(), params);
 		MqttMessage message = new MqttMessage(request.toString().getBytes());
-		mqttAsyncClient.publish(TOPIC_REQUEST, message);
+		mqttAsyncClient.publish(TOPIC_REQUEST_PREFIX + "/" + serverId, message);
 	}
 
 }

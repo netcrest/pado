@@ -16,7 +16,7 @@ public interface Constants
 	 */
 	public final static String DEFAULT_HEARTBEAT_TOPIC = "/__pado/heartbeat";
 
-	public final static String TOPIC_REQUEST = "/__pado/request";
+	public final static String TOPIC_REQUEST_PREFIX = "/__pado/request";
 	public final static String TOPIC_REPLY = "/__pado/reply";
 	public final static String TOPIC_RESULT = "/__pado/result";
 	public final static String TOPIC_LISTENER = "/__pado/listener";

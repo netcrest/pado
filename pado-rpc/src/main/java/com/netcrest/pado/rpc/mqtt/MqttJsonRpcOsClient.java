@@ -8,6 +8,7 @@ import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.rpc.mqtt.client.ClientConstants;
 import com.netcrest.pado.rpc.util.OsUtil;
+import com.netcrest.pado.rpc.util.RpcUtil;
 import com.netcrest.pado.server.PadoServerManager;
 
 /**
@@ -51,7 +52,8 @@ public class MqttJsonRpcOsClient implements ClientConstants
 	 */
 	public String[] getLangCommand(JsonLite request)
 	{
-		return new String[] { RPC_CLIENT_COMMAND, request.toString() };
+		return new String[] { RPC_CLIENT_COMMAND, PadoServerManager.getPadoServerManager().getServerName(),
+			 request.toString() };
 	}
 
 	/**
@@ -89,25 +91,39 @@ public class MqttJsonRpcOsClient implements ClientConstants
 			return null;
 		}
 		JsonLite reply = null;
-		try {
-			String id = request.getString(RequestKey.id.name(), null);
-			if (id != null) {
-				ThreadReply threadReply = new ThreadReply(Thread.currentThread());
-				idThreadMap.put(id, threadReply);
 
-				OsUtil.CommandOutput output = null;
-				try {
-					String workingDir = getWorkingDir(request);
-					String[] langCommand = getLangCommand(request);
-					output = OsUtil.executeCommand(langCommand, workingDir, null, false);
-				} catch (IOException | InterruptedException e) {
-					Logger.error("Error occured while executing an OS command: request=" + request);
-				}
-				// Note that output is always null if the isOutput argument of
-				// OsUtil.executeCommand() is false.
-				if (output != null) {
-					String result = output.getOutput();
-					Logger.info(result);
+		String id = request.getString(RequestKey.id.name(), null);
+		if (id != null) {
+			ThreadReply threadReply = new ThreadReply(Thread.currentThread());
+			idThreadMap.put(id, threadReply);
+			boolean isAgent = request.getBoolean(RequestKey.agent.name(), true);
+
+			try {
+				if (isAgent) {
+					// Agent requests go directly on the MQTT agent request
+					// topic (from server to rpc_agent)
+					String lang = request.getString(RequestKey.lang.name(), "java");
+					String agentRequestTopic = RpcUtil.getAgentRequestTopic(lang, PadoServerManager.getPadoServerManager().getServerName());
+					MqttJsonRpcListenerImpl.getMqttJsonRpcListenerImpl().publish(agentRequestTopic, request);
+
+				} else {
+
+					// Non-agent requests executes CLI
+					OsUtil.CommandOutput output = null;
+					try {
+						String workingDir = getWorkingDir(request);
+						String[] langCommand = getLangCommand(request);
+						output = OsUtil.executeCommand(langCommand, workingDir, null, false);
+					} catch (IOException | InterruptedException e) {
+						Logger.error("Error occured while executing an OS command: request=" + request);
+					}
+					// Note that output is always null if the isOutput argument
+					// of
+					// OsUtil.executeCommand() is false.
+					if (output != null) {
+						String result = output.getOutput();
+						Logger.info(result);
+					}
 				}
 				reply = (JsonLite) threadReply.reply;
 				int timeout = request.getInt(RequestKey.timeout.name(), Constants.DEFAULT_TIMEOUT_IN_MSEC);
@@ -119,15 +135,20 @@ public class MqttJsonRpcOsClient implements ClientConstants
 						}
 						threadReply.wait(timeout);
 					}
-					idThreadMap.remove(id);
 					reply = (JsonLite) threadReply.reply;
 				}
+			} catch (Exception e) {
+				Logger.warning(e);
+				reply = RpcUtil.createReply(request, -1010,
+						"Error occourred while executing JSON RPC request in data node: " + e.getMessage(), null);
+			} finally {
+				idThreadMap.remove(id);
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
+
 		if (reply == null) {
 			reply = new JsonLite();
+			reply.put(ReplyKey.id.name(), id);
 		}
 		reply.put(ReplyKey.gid.name(), PadoServerManager.getPadoServerManager().getGridId());
 		reply.put(ReplyKey.sid.name(), PadoServerManager.getPadoServerManager().getServerName());

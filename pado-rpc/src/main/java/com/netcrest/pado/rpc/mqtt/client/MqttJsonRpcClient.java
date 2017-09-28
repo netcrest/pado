@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +33,9 @@ import com.netcrest.pado.rpc.util.StringUtil;
  * topic. It also provides methods to execute "request" services on the data
  * node and the "result" method to send the result to the data node that
  * originated the start of the client app which led to use of this class.
+ * <p>
+ * <b>IMPORTANT</b> <b> The {@link #initialize(String)} method must be invoked
+ * first to create the singleton object.
  * 
  * @author dpark
  *
@@ -37,7 +43,7 @@ import com.netcrest.pado.rpc.util.StringUtil;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MqttJsonRpcClient implements ClientConstants
 {
-	private static final MqttJsonRpcClient rpcClient = new MqttJsonRpcClient(readRpcProperties());
+	private static MqttJsonRpcClient rpcClient;
 
 	private static Logger LOGGER = Logger.getLogger(MqttJsonRpcClient.class.getName());
 
@@ -47,8 +53,14 @@ public class MqttJsonRpcClient implements ClientConstants
 	// <listenerName, IRpcListener>
 	HashMap<String, List<IRpcListener>> idRpcListenerMap = new HashMap<String, List<IRpcListener>>(10);
 	HashMap<String, List<IRpcListener>> liveIdRpcListenerMap = new HashMap<String, List<IRpcListener>>(10);
+	private String requestTopic;
 	private String replyTopic;
+	private String agentRequestTopic;
+	private boolean isAgent;
 	private boolean isDebug;
+	
+	// agentExecutorService is created only if the isAgent is true
+	private ExecutorService agentExecutorService;
 
 	/**
 	 * Constructs a private instance of MqttJsonRpcClient.
@@ -56,10 +68,14 @@ public class MqttJsonRpcClient implements ClientConstants
 	 * @param props
 	 *            RPC specific properties typically read from the
 	 *            "rpc.properties" file.
+	 * @param serverId
+	 *            Unique server ID representing the data node to communicate
+	 *            with. This ID is used to create the agent request topic and/or
+	 *            the reply topic.
 	 */
-	private MqttJsonRpcClient(Properties props)
+	private MqttJsonRpcClient(Properties props, String serverId)
 	{
-		init(props);
+		init(props, serverId);
 	}
 
 	/**
@@ -69,7 +85,7 @@ public class MqttJsonRpcClient implements ClientConstants
 	 *            RPC specific properties typically read from the
 	 *            "rpc.properties" file.
 	 */
-	private void init(Properties rpcProps)
+	private void init(Properties rpcProps, String serverId)
 	{
 		String hostName = null;
 		try {
@@ -88,7 +104,10 @@ public class MqttJsonRpcClient implements ClientConstants
 				// ignore
 			}
 		}
-		String val = rpcProps.getProperty(PROP_RPC_DEBUG, "false");
+		String val = rpcProps.getProperty(PROP_RPC_AGENT_ENABLED, "false");
+		isAgent = Boolean.valueOf(val);
+
+		val = rpcProps.getProperty(PROP_RPC_DEBUG, "false");
 		isDebug = Boolean.valueOf(val);
 
 		String urls = rpcProps.getProperty(PROP_MQTT_URL);
@@ -96,10 +115,25 @@ public class MqttJsonRpcClient implements ClientConstants
 		if (urls != null) {
 			urlArray = StringUtil.string2Array(urls, ",");
 		}
+		requestTopic = TOPIC_REQUEST_PREFIX + "/" + serverId;
 		UUID uuid = UUID.randomUUID();
 		String clientId = "rpc-client-" + hostName + "-" + uuid.toString();
-		replyTopic = TOPIC_REPLY + "/" + uuid.toString();
-		String topics[] = new String[] { replyTopic };
+		replyTopic = TOPIC_REPLY_PREFIX + "/" + uuid.toString();
+		String topics[];
+		if (isAgent) {
+			agentRequestTopic = RpcUtil.getAgentRequestTopic("java", serverId);
+			topics = new String[] { agentRequestTopic, replyTopic };
+			val = rpcProps.getProperty(PROP_RPC_AGENT_THREAD_POOL_SIZE, Integer.toString(DEFAULT_RPC_AGENT_POOL_SIZE));
+			int agentThreadPoolSize;
+			try {
+				agentThreadPoolSize = Integer.parseInt(val);
+			} catch (Exception ex) {
+				agentThreadPoolSize = DEFAULT_RPC_AGENT_POOL_SIZE;
+			}
+			agentExecutorService = Executors.newFixedThreadPool(agentThreadPoolSize);
+		} else {
+			topics = new String[] { replyTopic };
+		}
 		mqttClientThread = new MqttClientThread("MqttJsonRpcThread", clientId, urlArray, topics,
 				heartbeatIntervalInMsec);
 		mqttClientThread.setDispatcherListener(new PayloadListenerImpl());
@@ -144,6 +178,19 @@ public class MqttJsonRpcClient implements ClientConstants
 	}
 
 	/**
+	 * Initializes MqttJsonRpcClient for the specified unique server ID.
+	 * 
+	 * @param serverId
+	 *            Unique server ID (or name)
+	 */
+	public final static synchronized void initialize(String serverId)
+	{
+		if (rpcClient == null) {
+			rpcClient = new MqttJsonRpcClient(readRpcProperties(), serverId);
+		}
+	}
+
+	/**
 	 * Returns the singleton instance of the MqttJsonRpcClient class.
 	 * 
 	 * @return
@@ -172,6 +219,14 @@ public class MqttJsonRpcClient implements ClientConstants
 	{
 		mqttClientThread.terminate();
 		mqttClientThread.interrupt();
+	}
+
+	/**
+	 * Returns true if the this client has been stopped.
+	 */
+	public boolean isStopped()
+	{
+		return mqttClientThread.isTerminated();
 	}
 
 	/**
@@ -279,14 +334,15 @@ public class MqttJsonRpcClient implements ClientConstants
 	public JsonLite execute(JsonLite request, int timeout)
 	{
 		JsonLite reply = null;
-		try {
-			String id = request.getString(RequestKey.id.name(), null);
-			if (id != null) {
+
+		String id = request.getString(RequestKey.id.name(), null);
+		if (id != null) {
+			try {
 				ThreadReply threadReply = new ThreadReply(Thread.currentThread());
 				idThreadMap.put(id, threadReply);
 				request.put(RequestKey.replytopic.name(), replyTopic);
 				System.out.println("MqttJsonRpcClient.execute(): " + request);
-				mqttClientThread.publish(TOPIC_REQUEST, request);
+				mqttClientThread.publish(requestTopic, request);
 				if (timeout < 0) {
 					timeout = 0;
 				}
@@ -297,12 +353,15 @@ public class MqttJsonRpcClient implements ClientConstants
 				if (threadReply != null) {
 					reply = (JsonLite) threadReply.reply;
 				}
+			} catch (MqttException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				idThreadMap.remove(id);
 			}
-		} catch (MqttException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
+
 		return reply;
 	}
 
@@ -388,21 +447,37 @@ public class MqttJsonRpcClient implements ClientConstants
 		{
 			MqttClientThread.Message message = (MqttClientThread.Message) obj;
 			byte[] payload = message.getMqttMessage().getPayload();
-			JsonLite reply = new JsonLite(new String(payload));
-			String id = reply.getString(ReplyKey.id.name(), null);
-			if (id != null) {
-				ThreadReply threadReply = idThreadMap.get(id);
-				if (threadReply != null) {
-					synchronized (threadReply) {
-						threadReply.reply = reply;
-						threadReply.notify();
+			if (message.getTopic().equals(agentRequestTopic)) {
+				// agent request
+				final String request = new String(payload);
+				agentExecutorService.execute(new Runnable() {
+
+					@Override
+					public void run()
+					{
+						RpcUtil.processRequest(request, false);
 					}
-				}
+
+				});
+
 			} else {
-				List<IRpcListener> liveListenerList = getLiveRpcListenerList(message.getTopic());
-				if (liveListenerList != null) {
-					for (IRpcListener listener : liveListenerList) {
-						listener.messageReceived(reply);
+				// reply
+				JsonLite reply = new JsonLite(new String(payload));
+				String id = reply.getString(ReplyKey.id.name(), null);
+				if (id != null) {
+					ThreadReply threadReply = idThreadMap.get(id);
+					if (threadReply != null) {
+						synchronized (threadReply) {
+							threadReply.reply = reply;
+							threadReply.notify();
+						}
+					}
+				} else {
+					List<IRpcListener> liveListenerList = getLiveRpcListenerList(message.getTopic());
+					if (liveListenerList != null) {
+						for (IRpcListener listener : liveListenerList) {
+							listener.messageReceived(reply);
+						}
 					}
 				}
 			}

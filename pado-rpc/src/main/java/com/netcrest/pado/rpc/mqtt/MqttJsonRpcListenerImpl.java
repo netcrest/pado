@@ -51,7 +51,7 @@ public class MqttJsonRpcListenerImpl implements QueueDispatcherListener, Constan
 		MqttClientThread.Message message = (MqttClientThread.Message) obj;
 		String topic = message.getTopic();
 		byte[] payload = message.getMqttMessage().getPayload();
-		boolean isRequest = topic.startsWith(TOPIC_REQUEST);
+		boolean isRequest = topic.startsWith(TOPIC_REQUEST_PREFIX);
 
 		JsonLite jl = null;
 		try {

@@ -5,7 +5,12 @@ Created on Sep 14, 2017
 '''
 import importlib
 import json
+import sys
+import threading
 import time
+
+from com.netcrest.pado.rpc.rpc_shared import RpcShared
+
 
 def create_request(class_name, method_name, params):
     request = json.loads('{"jsonrpc":"2.0"}')
@@ -60,3 +65,59 @@ def invoke(jrequest):
     obj = clazz()
     jresult = getattr(obj, method_name)(jparams)
     return jresult
+
+
+def process_request(jrequest):
+    
+    # rpc is globally shared
+    rpc = RpcShared.rpc
+    is_daemon = True
+    if 'daemon' in jrequest:
+        is_daemon = jrequest['daemon']
+    
+    if is_daemon:
+        jresult = invoke(jrequest)
+        if 'error' in jresult:
+            error = jresult['__error']
+            jreply = create_reply(jrequest)
+            jreply['error'] = error
+        else:
+            jreply = create_reply(jrequest, jresult)
+        rpc.send_result(jreply)
+    else:
+        try:
+            jreply = create_reply(jrequest)
+            rpc.send_result(jreply)
+            thread = WokerThread(rpc, jrequest)
+            thread.start()
+            thread.join()
+            jresult = thread.jresult
+            jreply = create_reply(jrequest, jresult)
+        except:
+            sys.stderr.write('Unexpected error: ' + str(sys.exc_info()[0]))
+            sys.stderr.flush()
+            
+    if not rpc.is_agent:
+        try:
+            rpc.close()
+        except:
+            sys.stderr.write('Unexpected error: ' + str(sys.exc_info()[0]))
+            sys.stderr.flush()
+            
+class WokerThread(threading.Thread):
+    rpc = None
+    jrequest = None
+    jresult = None
+    def __init__(self, rpc, jrequest):
+        threading.Thread.__init__(self, name='RpcWorkerThread')
+        self.rpc = rpc
+        self.jrequest = jrequest
+    
+    def run(self):
+        jresult = invoke(self.jrequest)
+    
+    def get_result(self):
+        return self.jresult
+ 
+
+    

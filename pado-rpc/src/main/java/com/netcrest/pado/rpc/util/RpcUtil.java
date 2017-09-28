@@ -9,10 +9,17 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
+import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.rpc.mqtt.Constants;
 import com.netcrest.pado.rpc.mqtt.ReplyKey;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
+import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 
 /**
  * RpcUtil provides convenience methods for handling Pado-extended JSON RPC 2.0
@@ -28,6 +35,15 @@ public class RpcUtil
 	public final static String DEFAULT_RPC_PROPERTIES_FILE_PATH = "etc/rpc.properties";
 
 	/**
+	 * Returns the agent request request topic.
+	 * @param serverName Unique server name
+	 */
+	public final static String getAgentRequestTopic(String lang, String serverName)
+	{
+		return Constants.TOPIC_REQUEST_PREFIX + "/agent/" + lang + "/" + serverName;
+	}
+	
+	/**
 	 * Creates a request object for the specified function and parameters.
 	 * 
 	 * @param functionName
@@ -36,7 +52,7 @@ public class RpcUtil
 	 *            Function parameters
 	 * @return Request object
 	 */
-	public static JsonLite createRequest(String functionName, JsonLite params)
+	public final static JsonLite createRequest(String functionName, JsonLite params)
 	{
 		return createRequest(null, functionName, params);
 	}
@@ -52,7 +68,7 @@ public class RpcUtil
 	 *            equivalent to a function name.
 	 * @param params Method or function parameters
 	 */
-	public static JsonLite createRequest(String className, String methodName, JsonLite params)
+	public final static JsonLite createRequest(String className, String methodName, JsonLite params)
 	{
 		JsonLite request = new JsonLite();
 		request.put(RequestKey.id.name(), Long.toString(System.nanoTime()));
@@ -76,7 +92,7 @@ public class RpcUtil
 	 * @param error
 	 *            Error to be included in the reply object
 	 */
-	public static JsonLite createReplyError(JsonLite request, JsonLite error)
+	public final static JsonLite createReplyError(JsonLite request, JsonLite error)
 	{
 		JsonLite reply = new JsonLite();
 		reply.put(ReplyKey.id.name(), request.getString(RequestKey.id.name(), null));
@@ -96,7 +112,7 @@ public class RpcUtil
 	 * @param result
 	 *            Result to be included in the reply object.
 	 */
-	public static JsonLite createReplyResult(JsonLite request, Object result)
+	public final static JsonLite createReplyResult(JsonLite request, Object result)
 	{
 		JsonLite reply = new JsonLite();
 		reply.put(ReplyKey.id.name(), request.getString(RequestKey.id.name(), null));
@@ -119,7 +135,7 @@ public class RpcUtil
 	 * @param errorData
 	 *            Optional error data
 	 */
-	public static JsonLite createReply(JsonLite request, int errorCode, String errorMessage, Object errorData)
+	public final static JsonLite createReply(JsonLite request, int errorCode, String errorMessage, Object errorData)
 	{
 		JsonLite reply = new JsonLite();
 		reply.put(ReplyKey.id.name(), request.getString(RequestKey.id.name(), null));
@@ -147,7 +163,7 @@ public class RpcUtil
 	 *         suitable for direct inclusion in JSON RPC 2.0 reply messages. The
 	 *         returned object should be returned from a client business object.
 	 */
-	public static JsonLite createErrorWrap(int errorCode, String errorMessage, Object errorData)
+	public final static JsonLite createErrorWrap(int errorCode, String errorMessage, Object errorData)
 	{
 		JsonLite retval = new JsonLite();
 		JsonLite error = new JsonLite();
@@ -173,7 +189,7 @@ public class RpcUtil
 	 *         suitable for direct inclusion in JSON RPC 2.0 reply messages. The
 	 *         returned object should be returned from a client business object.
 	 */
-	public static JsonLite createErrorWrap(int errorCode)
+	public final static JsonLite createErrorWrap(int errorCode)
 	{
 		return createErrorWrap(errorCode, null, null);
 	}
@@ -191,7 +207,7 @@ public class RpcUtil
 	 *         suitable for direct inclusion in JSON RPC 2.0 reply messages. The
 	 *         returned object should be returned from a client business object.
 	 */
-	public static JsonLite createErrorWrap(int errorCode, String errorMessage)
+	public final static JsonLite createErrorWrap(int errorCode, String errorMessage)
 	{
 		return createErrorWrap(errorCode, errorMessage, null);
 	}
@@ -207,7 +223,7 @@ public class RpcUtil
 	 *         suitable for direct inclusion in JSON RPC 2.0 reply messages. The
 	 *         returned object should be returned from a client business object.
 	 */
-	public static JsonLite createErrorWrap(JsonLite error)
+	public final static JsonLite createErrorWrap(JsonLite error)
 	{
 		JsonLite retval = new JsonLite();
 		retval.put(ReplyKey.__error.name(), error);
@@ -236,7 +252,7 @@ public class RpcUtil
 	 * @throws InvocationTargetException
 	 *             Thrown if the method call throws an exception
 	 */
-	public static Object invoke(Object obj, JsonLite request) throws NoSuchMethodException, SecurityException,
+	public final static Object invoke(Object obj, JsonLite request) throws NoSuchMethodException, SecurityException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		if (obj == null) {
@@ -258,7 +274,7 @@ public class RpcUtil
 	 * @param bizClassName
 	 * @return null if the specified class name is null or empty.
 	 */
-	public static String getBizImplClassName(String bizClassName)
+	public final static String getBizImplClassName(String bizClassName)
 	{
 		if (bizClassName == null) {
 			return null;
@@ -290,7 +306,7 @@ public class RpcUtil
 	 * @return null if the specified implementation class name is a
 	 *         non-conforming name.
 	 */
-	public static String getBizClassName(String bizImplClassName)
+	public final static String getBizClassName(String bizImplClassName)
 	{
 		if (bizImplClassName == null) {
 			return null;
@@ -324,7 +340,7 @@ public class RpcUtil
 	 * should be used by rpc-client and invoked only once during startup to
 	 * initialize the RPC mechanics.
 	 */
-	public static Properties readRpcProperties()
+	public final static Properties readRpcProperties()
 	{
 		String propertiesFilePath = System.getProperty(PROP_RPC_PROPERTIES_FILE, DEFAULT_RPC_PROPERTIES_FILE_PATH);
 		Properties props = new Properties();
@@ -361,6 +377,86 @@ public class RpcUtil
 		}
 
 		return props;
+	}
+	
+	public final static void processRequest(String request, boolean isReply)
+	{
+		final JsonLite jrequest = new JsonLite(request);
+		System.out.println("Request:");
+		System.out.println(jrequest.toString());
+		System.out.println(jrequest.toString(4, false, false));
+
+		String className = jrequest.getString(RequestKey.classname.name(), null);
+		try {
+			Class clazz = Class.forName(className);
+			final Object obj = clazz.newInstance();
+			String methodName = jrequest.getString(RequestKey.method.name(), null);
+			final Method method = clazz.getMethod(methodName, JsonLite.class);
+			if (method != null) {
+				final JsonLite params = (JsonLite) jrequest.get(RequestKey.params.name());
+				System.out.println("method=" + method + ", obj=" + obj + ", params=" + params);
+
+				boolean isDaemon = jrequest.getBoolean(RequestKey.daemon.name(), true);
+
+				if (isDaemon) {
+					try {
+						JsonLite result = (JsonLite) method.invoke(obj, params);
+						JsonLite reply;
+						if (result != null) {
+							JsonLite error = (JsonLite) result.get(ReplyKey.__error.name());
+							if (error != null) {
+								reply = RpcUtil.createReplyError(jrequest, error);
+							} else {
+								reply = RpcUtil.createReplyResult(jrequest, result);
+							}
+						} else {
+							reply = RpcUtil.createReplyResult(jrequest, null);
+						}
+						System.out.println("RpcMain.main(): before result call: size=" + result.size());
+						MqttJsonRpcClient.getRpcClient().sendResult(reply);
+						System.out.println("RpcMain.main(): after result call: size=" + result.size());
+						if (isReply) {
+							System.out.println(reply.toString());
+						}
+					} catch (InvocationTargetException e) {
+						Logger.error(e);
+					}
+				} else {
+					Future<?> future = Executors.newSingleThreadExecutor().submit(new Callable() {
+						@Override
+						public Object call()
+						{
+							JsonLite result = null;
+							try {
+								result = (JsonLite) method.invoke(obj, params);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								Logger.error(e);
+							}
+							return result;
+						}
+					});
+
+					JsonLite reply = RpcUtil.createReplyResult(jrequest, null);
+					MqttJsonRpcClient.getRpcClient().sendResult(reply);
+					if (isReply) {
+						System.out.println(reply.toString());
+					}
+
+					// Block until the thread completes
+					try {
+						Object result = future.get();
+						if (result != null) {
+							Logger.info(result.toString());
+						}
+					} catch (InterruptedException | ExecutionException e) {
+						Logger.error(e);
+					}
+				}
+			}
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException
+				| SecurityException | IllegalArgumentException e) {
+			Logger.error(e);
+		}
 	}
 
 }

@@ -32,7 +32,7 @@ public class MqttJsonRpcInitializer implements IBeanInitializable, DeploymentLis
 		for (String s : mqttUrls) {
 			mqttUrls[i++] = s.trim();
 		}
-		String topics[] = new String[] { Constants.TOPIC_REQUEST, Constants.TOPIC_RESULT };
+		String topics[] = new String[] { Constants.TOPIC_REQUEST_PREFIX + "/" + PadoServerManager.getPadoServerManager().getServerName(), Constants.TOPIC_RESULT };
 		int heartbeatIntervalInMsec = 60000;
 		MqttClientThread mqttClientThread = new MqttClientThread("MqttJsonRpcThread", clientId, mqttUrls, topics,
 				heartbeatIntervalInMsec);

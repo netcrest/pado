@@ -134,6 +134,14 @@ public class MqttClientThread extends Thread implements IMqttMessageListener, Co
 		isTerminated = true;
 		unsubscribeTopics();
 	}
+	
+	/**
+	 * Returns true is terminated.
+	 */
+	public boolean isTerminated()
+	{
+		return isTerminated;
+	}
 
 	/**
 	 * Connects to the specified broker. If the specified URL is null or same as

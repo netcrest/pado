@@ -11,7 +11,10 @@ import threading
 import uuid
 
 from paho.mqtt.client import MQTT_ERR_SUCCESS
+
+from com.netcrest.pado.rpc.util import rpc_util
 import paho.mqtt.client as mqtt
+
 
 class RpcClient(object):
     '''
@@ -23,9 +26,11 @@ class RpcClient(object):
     originated the start of the client app which led to use of this class.
     '''
 #     __metaclass__=Singleton
-    topic_request = '/__pado/request'
+    topic_request = None
     topic_result = '/__pado/result'
     topic_reply = '/__pado/reply/' + uuid.uuid1().hex
+    topic_agent_request = None
+    is_agent = False
     thread = None
     is_terminated = False
     id_map = dict()
@@ -36,57 +41,71 @@ class RpcClient(object):
     port = 1883
     logger = logging.getLogger('RpcClient')
     
-    def __init__(self, host='localhost', port=1883):
+    def __init__(self, server_id, host='localhost', port=1883, is_agent=False):
         '''
         Constructor
         '''
-        print("params=", host, port)
+        self.topic_request = '/__pado/request/' + server_id
+        self.topic_agent_request = '/__pado/request/agent/python/' + server_id
         self.host = host
         self.port = port
+        self.is_agent = is_agent
         self.client = mqtt.Client()
         self.client.on_connect = self.__on_connect
         self.client.on_message = self.__on_message
         self.client.on_publish = self.__on_publish
         self.client.connect(host, port, 600)
+        if is_agent:
+            self.client.subscribe(self.topic_agent_request, 2)
         self.client.subscribe(self.topic_reply, 2)
         self.thread = threading.Thread(target=self.__run)
         self.thread.setDaemon(True)
         self.thread.start()
-        print('=============== RpcClient.__init__(): host=' + host + ", port=", port)
+        print('RpcClient.__init__(): host=' + host + ", port=" + str(port) + ", server_id=" + server_id + ", is_agent=" + str(is_agent))
+        sys.stdout.flush()
         
         
     # The callback for when the client receives a CONNACK response from the server.
     def __on_connect(self, client, userdata, flags, rc):
         print("RpcClient.__on_connect(): Connected with result code " + str(rc))
+        sys.stdout.flush()
     
     # The callback for when a PUBLISH message is received from the server.
     def __on_message(self, client, userdata, msg):
         # A bug in Paho MQTT on Windows. The payload contains extra characters
         if platform.system() == 'Windows':
-            reply = str(msg.payload)[2:-1]
+            message = str(msg.payload)[2:-1]
         else:
-            reply = str(msg.payload)
-        self.logger.info("RpcClient.__on_message().reply: " + msg.topic + " " + reply)
-        jreply = json.loads(reply)
-        self.logger.info("RpcClient.__on_message().jreply: " + msg.topic + " ", jreply)
-        if 'id' in jreply:
-            id_ = jreply['id']
-            if id_ in self.id_map:
-                threadReply = self.id_map[id_]
-                if threadReply != None:
-                    threadReply.__condition__.acquire()
-                    threadReply.jreply = jreply
-                    threadReply.__condition__.notify()
-                    threadReply.__condition__.release()
+            message = str(msg.payload)
+        if msg.topic == self.topic_agent_request:
+            # agent request
+            # TODO: use thread pool
+            jrequest = json.loads(message)
+            thread = self.AgentThread(jrequest)
+            thread.start()
+            
         else:
-            print('rpc_client.__on_message() - msg.topic=' + msg.topic)
-            live_listener_set = self.getLiveRpcListenerSet(msg.topic)
-            if live_listener_set != None:
-                for listener in live_listener_set:
-                    listener(reply)
+            # reply 
+            jreply = json.loads(message)
+            sys.stdout.flush()
+            if 'id' in jreply:
+                id_ = jreply['id']
+                if id_ in self.id_map:
+                    threadReply = self.id_map[id_]
+                    if threadReply != None:
+                        threadReply.__condition__.acquire()
+                        threadReply.jreply = jreply
+                        threadReply.__condition__.notify()
+                        threadReply.__condition__.release()
+            else:
+                live_listener_set = self.getLiveRpcListenerSet(msg.topic)
+                if live_listener_set != None:
+                    for listener in live_listener_set:
+                        listener(message)
     
     def __on_publish(self, client, userdata, mid):
-        print("RpcClient.__on_publish(): mid=", mid)
+        print("RpcClient.__on_publish(): mid=" + str(mid))
+        sys.stdout.flush()
             
     def __run(self):
         while (self.is_terminated == False):
@@ -97,7 +116,11 @@ class RpcClient(object):
         try:
             self.client.disconnect()
         except:
-            print('Unexpected error: ' + str(sys.exc_info()[0]))
+            sys.stderr.write('Unexpected error: ' + str(sys.exc_info()[0]))
+            sys.stderr.flush()
+    
+    def is_closed(self):
+        return self.is_terminated
     
     # Returns JSON reply
     def execute(self, jrequest, timeout = 0):
@@ -119,8 +142,9 @@ class RpcClient(object):
             jrequest['replytopic'] = self.topic_reply
             request = json.dumps(jrequest)
             (result, mid) = self.client.publish(self.topic_request, request, 2, False)
-            if result == MQTT_ERR_SUCCESS:
-                print('rpc_client.execute() - publish success')
+            if result != MQTT_ERR_SUCCESS:
+                sys.stderr.write('rpc_client.execute() - publish filed')
+                sys.stderr.flush()
                 
             if timeout < 0:
                 timeout = 0
@@ -183,4 +207,12 @@ class RpcClient(object):
         def __init__(self, thread):
             self.thread = thread
     
+    class AgentThread(threading.Thread):
+        jrequest = None
+        def __init__(self, jrequest):
+            threading.Thread.__init__(self, name='RpcAgentThread')
+            self.jrequest = jrequest
             
+        def run(self):
+            rpc_util.process_request(self.jrequest)
+         
