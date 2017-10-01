@@ -22,15 +22,17 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   kill_server [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo "   start_rpc [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
    echo ""
-   echo "   Kills a remote server in the specified grid and site."
+   echo "  Starts RPC agents in the specified grid and site. This command remotely executes"
+   echo "  start_rpc. It looks up the remote rpc host mapped by the specified server"
+   echo "  number in ${GRIDS_DIR}/${GRID}/rpc_${SITE}.sh"
    echo ""
    echo "      <server number> Server number 1-99"
-   echo "      -grid      Kills the server in the specified grid. Default: ${GRID_DEFAULT}"
-   echo "      -site      Kills the server in the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -grid      Starts the agents in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Starts the agents in the specified site. Default: ${SITE_DEFAULT}"
    echo ""
-   echo "   Default: kill_server -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo "   Default: start_rpc -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
    exit
 fi
@@ -40,21 +42,20 @@ fi
 #
 # Target host
 #
-# ServerArray elements:
+# RpcArray elements:
 #   array[0] ServerNumber
-#   array[1] ServerHost
-#   array[2] ServerPort
+#   array[1] RpcHost
+#   array[2] MqttUrl
 #   array[3] DebugPort
 #   array[4] JmxPort
-setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+#   array[5] IsRpcStart
+setLineArray $GRIDS_DIR/$GRID/rpc_${SITE}.sh
 line="${LineArray[$SERVER_NUM_NO_LEADING_ZERO]}"
 array=($line)
-SERVER_ADDRESS=${array[1]}
+RPC_HOST=${array[1]}
 
-if [ "$SERVER_ADDRESS" == "" ]; then
-   echo "Invalid server number. Please enter the server number and its host address in"
-   echo "   ${GRIDS_DIR}/${GRID}/server_${SITE}.sh"
-   echo ""
+if [ "$RPC_HOST" == "" ]; then
+i   RPC_HOST=localhost
 else
-   ssh -q -n $SSH_USER@$SERVER_ADDRESS "cd $REMOTE_BASE_DIR/bin_sh; ./kill_server_local $*;"
+   ssh -q -n $SSH_USER@$RPC_HOST "cd $REMOTE_BASE_DIR/bin_sh; $COMMAND_PREFIX ./start_rpc_local $*;"
 fi

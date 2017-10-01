@@ -37,7 +37,7 @@ if [ "$HELP" == "true" ]; then
    echo "   start_server_local [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-rebalance] [-clean] [-quiet] [-?]"
    echo ""
    echo "   Starts a server in the specified grid and site. This is a local command."
-   echo "   It must be executed in the host where the server is running. To start"
+   echo "   It must be executed in the host where the server is to be run. To start"
    echo "   a remote server, run the start_server command instead."
    echo ""
    echo "      <server number> Server number 1-99"
@@ -47,8 +47,10 @@ if [ "$HELP" == "true" ]; then
    echo "      -site      Starts the server in the specified site. Default: ${SITE_DEFAULT}"
    echo "      -clean     Cleans the working directory only if the server is not running."
    echo "      -quiet     Quiet mode. Suppresses verbose."
+   echo "      -rebalance Rebalances the grid after the new server has been added."
+   echo 
    echo ""
-   echo "   Default: start_server -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo "   Default: start_server_local -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
    echo ""
    exit
 fi

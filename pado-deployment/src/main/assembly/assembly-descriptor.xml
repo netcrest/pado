@@ -60,6 +60,9 @@
 			<outputDirectory>
 			lang/java
 			</outputDirectory>
+			<excludes>
+				<exclude>bin_sh/**</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>../pado-rpc/src/main/python</directory>
@@ -72,9 +75,30 @@
 			<outputDirectory>
 			lang/python
 			</outputDirectory>
+			<excludes>
+				<exclude>bin_sh/**</exclude>
+			</excludes>
 		</fileSet>
-
-		<!-- Executable permissions - TODO: The following has no effect. -->
+		
+		<!-- Executable permissions -->
+		<fileSet>
+			<directory>../pado-rpc/src/resources/java/bin_sh</directory>
+			<outputDirectory>lang/java/bin_sh</outputDirectory>
+			<includes>
+				<include>**</include>
+			</includes>
+			<fileMode>0755</fileMode>
+			<directoryMode>0755</directoryMode>
+		</fileSet>
+		<fileSet>
+			<directory>../pado-rpc/src/resources/python/bin_sh</directory>
+			<outputDirectory>lang/python/bin_sh</outputDirectory>
+			<includes>
+				<include>**</include>
+			</includes>
+			<fileMode>0755</fileMode>
+			<directoryMode>0755</directoryMode>
+		</fileSet>
 		<fileSet>
 			<directory>src/main/resources/bin_sh</directory>
 			<outputDirectory>/bin_sh</outputDirectory>

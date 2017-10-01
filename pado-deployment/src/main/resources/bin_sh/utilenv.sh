@@ -209,6 +209,14 @@ function getServerHosts
 }
 
 #
+# Returns a list of RPC hosts found in the $GRIDS_DIR/$GRID/rpc_${SITE}.sh file.
+#
+function getRpcHosts
+{
+   getHostsFromFile "$GRIDS_DIR/$GRID/rpc_${SITE}.sh"
+}
+
+#
 # Returns a list of all hosts found in the $GRIDS_DIR/$GRID/locator_${SITE}.sh and
 # $GRIDS_DIR/$GRID/server_${SITE}.sh files.
 #

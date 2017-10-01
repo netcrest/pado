@@ -355,6 +355,13 @@ if [ "$REMOTE_TOP_DIR" == "" ]; then
    REMOTE_TOP_DIR=/
 fi
 
+if [ "$RPC_LANG_LIST" == "" ]; then
+   RPC_LANG_LIST="java python"
+fi
+if [ "$RPC_LANG_DIR" == "" ]; then
+   RPC_LANG_DIR=$BASE_DIR/lang
+fi
+
 # Load the grid specifics from the grid_env.sh file which
 # must be supplied in the grid directory that has the
 # same name as the grid ID.

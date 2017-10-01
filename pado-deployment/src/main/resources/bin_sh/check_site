@@ -25,7 +25,7 @@ if [ "$HELP" == "true" ]; then
    echo "   ./check_site [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
    echo ""
    echo "       Displays running status of all locators and servers"
-   echo "       in the specified grid."
+   echo "       in the specified site and grid."
    echo ""
    echo "      -grid      Displays servers in the specified grid. Default: ${GRID_DEFAULT}"
    echo "      -site      Displays servers in the specified site. Default: ${SITE_DEFAULT}"
@@ -52,7 +52,6 @@ ALL_HOSTS="$LOCATOR_HOSTS $SERVER_HOSTS"
 unique_words "$ALL_HOSTS" ALL_UNIQUE_HOSTS
 max_len_word "$ALL_UNIQUE_HOSTS" MAX_LEN_HOST
 max_len_word "$LOCATOR_ID"01 MAX_LEN_LOCATOR_ID
-
 echo
 NODE="Node"
 NODE_LINE="----"

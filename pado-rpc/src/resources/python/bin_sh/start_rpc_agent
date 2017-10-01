@@ -1,6 +1,30 @@
 #!/bin/bash
 
 . ./setenv.sh > /dev/null 2>&1
-pushd .. > /dev/null 2>&1
-$PYTHON -m com.netcrest.pado.rpc.rpc_agent $* > log/rpc_agent.log 2>&1
-popd > /dev/null 2>&1
+
+# Exit if it is already running
+START_RPC_AGENT="com.netcrest.pado.rpc.rpc_agent $*"
+pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep python | awk '{print $1}'`
+for i in $pids; do
+   if [ "$agents" == "" ]; then
+      agents=$i
+   else
+      agents="$agents $i"
+   fi
+done
+if [ "$agents" != "" ]; then
+   echo "python: rpc agent already running [$agents]"
+else
+   pushd .. > /dev/null 2>&1
+   $PYTHON -m com.netcrest.pado.rpc.rpc_agent $* > log/rpc_agent.log 2>&1 &
+   popd > /dev/null 2>&1
+   pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep python | awk '{print $1}'`
+   for i in $pids; do
+      if [ "$agents" == "" ]; then
+         agents=$i
+      else
+         agents="$agents $i"
+      fi
+   done
+   echo "python: rpc agent started [$agents]"
+fi

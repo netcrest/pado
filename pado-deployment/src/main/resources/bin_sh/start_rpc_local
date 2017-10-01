@@ -1,0 +1,191 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   if [ "$IS_SERVER_START" == "false" ]; then
+      exit
+   fi
+fi
+. ./all_env.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
+. ./argenv.sh > /dev/null 2>&1
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   start_rpc_local [-num <server number>] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-clean] [-quiet] [-?]"
+   echo ""
+   echo "   Starts Pado RPC agents in the specified grid and site. This is a local command."
+   echo "   It must be executed in the host where the agents are to be run. To start remote"
+   echo "   RPC agents, run the start_rpc command instead."
+   echo ""
+   echo "      <server number> Server number 1-99"
+   echo "                      If the server number is 'auto', i.e., -num auto, then"
+   echo "                      the server number is automatically determined."
+   echo "      -grid      Starts the server in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Starts the server in the specified site. Default: ${SITE_DEFAULT}"
+   echo "      -clean     Cleans the working directory only if the server is not running."
+   echo "      -quiet     Quiet mode. Suppresses verbose."
+   echo ""
+   echo "   Default: start_rpc_local -num 1 -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+# Source in override_env.sh if exists. This file is typically used
+# to override env variables.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+fi
+
+# MQTT brokers
+MATT_BROKERS=tcp://localhost:1833
+
+# plugins directory
+if [ "$PADO_PLUGINS_DIR" == "" ]; then
+   PADO_PLUGINS_DIR=$BASE_DIR/plugins
+fi
+if [ ! -d $PADO_PLUGINS_DIR ]; then
+  mkdir -p $PADO_PLUGINS_DIR
+fi
+
+#
+# If auto, then determine the server number
+#
+if [ "$SERVER_NUM" == "auto" ]; then
+   # ServerArray elements:
+   #   array[0] ServerNumber
+   #   array[1] ServerHost
+   #   array[2] ServerPort
+   #   array[3] DebugPort
+   #   array[4] JmxPort
+   #   array[5] GemFireProperties
+   #   array[6] GemFireXml
+   #   array[7] PadoProperties
+   #   array[8] PadoXml
+   #   array[9] IsServerStart
+   setLineArray $GRIDS_DIR/$GRID/server_${SITE}.sh
+
+   for (( i = 1; i <= $LAST_SERVER_NUM; i++ ))
+   do
+      line="${LineArray[$i]}"
+      array=($line)
+      SERVER_NUM=${array[0]}
+      if [ "$SERVER_NUM" == "" ]; then
+         continue;
+      fi
+      if [ $SERVER_NUM -lt 10 ]; then
+         SERVER_NUM=0$SERVER_NUM
+      fi
+      # Set SERVER_NUM_NO_LEADING_ZERO
+      if [[ $SERVER_NUM == 0* ]]; then
+         SERVER_NUM_NO_LEADING_ZERO=${SERVER_NUM:1};
+      else
+         SERVER_NUM_NO_LEADING_ZERO=$SERVER_NUM
+      fi
+      SERVER_HOST=${array[1]}
+      if [ "$SERVER_HOST" == "localhost" ]; then
+         SERVER_HOST=`hostname`
+         MY_ADDRESS=$SERVER_HOST
+      fi
+      SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
+
+      # If server is already running then ignore
+      servers=`$COMMAND_PREFIX $JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
+      spids=""
+      for j in $servers; do
+         spids="$j $spids"
+      done
+      if [ "$spids" != "" ]; then
+          # Server is already running. Continue to next server.
+          if [ "$QUIET" != "true" ]; then
+             echo "$SERVER_ID already running. Skipping..."
+          fi
+          SERVER_HOST=""
+          IS_SERVER_ALREADY_RUNNNIG=true
+          continue
+      fi
+
+      if [ "$SERVER_HOST" == "$MY_ADDRESS" ]; then
+         break
+      fi
+   done
+   if [ "$SERVER_HOST" != "$MY_ADDRESS" ] && [ "$SERVER_HOST" != "localhost" ]; then
+      if [ "$IS_SERVER_ALREADY_RUNNNIG" != "true" ]; then
+         if [ "$QUIET" != "true" ]; then
+            echo "This host is not configured to run cache server. Aborted."
+         fi
+      fi
+      exit
+   fi
+fi
+
+# Need to source in override_env.sh once more for overriding
+# SERVER_ID. override_env.sh can provide SERVER_NUM to override
+# SERVER_ID.
+if [ -e override_env.sh ]; then
+   . override_env.sh > /dev/null 2>&1
+   SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM} 
+fi
+
+# RPC lang directory 
+if [ "$RPC_LANG_DIR" == "" ]; then
+   RPC_LANG_DIR=$PADO_HOME/lang
+fi
+SERVER_NAME=${GRID}-${SITE}-${SERVER_NUM}
+
+#
+# Check if security is enabled
+#
+#if [ "$SECURITY_ENABLED" == "true" ]; then
+# do nothing for now
+#fi
+
+if [ "$GRID_ID" == "" ]; then
+   GRID_ID=$GRID
+fi
+if [ "$GRID_NAME" == "" ]; then
+   GRID_NAME=$GRID
+fi
+if [ "$SITE_ID" == "" ]; then
+   SITE_ID=$SITE
+fi
+if [ "$SITE_NAME" == "" ]; then
+   SITE_NAME=$SITE
+fi
+
+# -------------------------------------------------------------------
+
+echo "************************************************************"
+echo "Starting RPC agents ($RPC_LANG_LIST) on host $MY_ADDRESS..."
+echo "************************************************************"
+
+for LANG in $RPC_LANG_LIST; do
+   pushd $RPC_LANG_DIR/$LANG/bin_sh > /dev/null 2>&1
+#   echo $LANG: ./start_rpc_agent $SERVER_NAME
+   ./start_rpc_agent $SERVER_NAME
+   popd > /dev/null 2>&1
+done

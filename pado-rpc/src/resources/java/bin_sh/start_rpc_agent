@@ -27,7 +27,6 @@ if [ "$HELP" == "true" ]; then
    exit
 fi
 
-echo BASE_DIR=$BASE_DIR
 if [ "$RUN_DIR" == "" ]; then
    RUN_DIR=$BASE_DIR
 fi
@@ -81,6 +80,30 @@ else
    DEBUG=
 fi
 
-pushd $BASE_DIR > /dev/null 2>&1
-$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcAgent $* > log/rpc_agent.log
-popd  > /dev/null 2>&1
+# Exit if it is already running
+LANG=java
+START_RPC_AGENT="com.netcrest.pado.rpc.client.RpcAgent $*"
+pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep java | awk '{print $1}'`
+for i in $pids; do
+   if [ "$agents" == "" ]; then
+      agents=$i
+   else
+      agents="$agents $i"
+   fi
+done
+if [ "$agents" != "" ]; then
+   echo "$LANG: rpc agent already running [$agents]"
+else
+   pushd $BASE_DIR > /dev/null 2>&1
+   $PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcAgent $* > log/rpc_agent.log & > /dev/null 2>&1
+   popd  > /dev/null 2>&1
+   pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep java | awk '{print $1}'`
+   for i in $pids; do
+      if [ "$agents" == "" ]; then
+         agents=$i
+      else
+         agents="$agents $i"
+      fi
+   done
+   echo "$LANG: rpc agent started [$agents]"
+fi
