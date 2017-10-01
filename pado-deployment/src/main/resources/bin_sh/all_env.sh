@@ -38,8 +38,7 @@ SYSTEM_NAME=PADO
 #    locator_<site-id>.sh - Defines server-bind IP addresses.
 #    server_<site-id>.sh - Defines server-bind IP addresses.
 
-GRIDS="pi3"
-#GRIDS="mygrid"
+GRIDS="mygrid"
 #GRIDS="mygrid_ssl"
 #GRIDS="grid0 grid1 grid2"
 #GRIDS="grid0 grid1 grid2 grid3 grid4 grid5"

@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# ========================================================================
+# Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ========================================================================
+
+. ./setenv.sh > /dev/null 2>&1
+. ./all_env.sh > /dev/null 2>&1
+. ./argenv.sh > /dev/null 2>&1
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./check_site_rpc [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
+   echo ""
+   echo "       Displays running status of all RPC agents in the specified site and grid."
+   echo ""
+   echo "      -grid      Displays agents in the specified grid. Default: ${GRID_DEFAULT}"
+   echo "      -site      Displays sservers in the specified site. Default: ${SITE_DEFAULT}"
+   echo ""
+   echo "   Default: ./check_site_rpc -grid $GRID_DEFAULT -site $SITE_DEFAULT"
+   echo ""
+   exit
+fi
+
+. ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
+
+
+SERVER_PREFIX=server-${GRID}-${SITE}
+SERVER_HOSTS=`getServerHosts`
+RPC_HOSTS=`getRpcHosts`
+ALL_HOSTS="$RPC_HOSTS"
+unique_words "$ALL_HOSTS" ALL_UNIQUE_HOSTS
+max_len_word "$ALL_UNIQUE_HOSTS" MAX_LEN_HOST
+max_len_word "$SERVER_PREFIX"01 MAX_LEN_SERVER_ID
+echo
+NODE="Node"
+NODE_LINE="----"
+append_spaces $MAX_LEN_HOST $NODE NODE_HEADER
+
+echo "$NODE_HEADER   Agents"
+append_spaces $MAX_LEN_HOST $NODE_LINE NODE_HEADER
+echo "$NODE_HEADER   ------"
+for i in $ALL_UNIQUE_HOSTS; do
+   let agent_count=0
+   for LANG in $RPC_LANG_LIST; do
+      if [ "$LANG" == "java" ]; then
+         START_RPC_AGENT="com.netcrest.pado.rpc.client.RpcAgent"
+      elif [ "$LANG" == "python" ]; then
+         START_RPC_AGENT="com.netcrest.pado.rpc.rpc_agent"
+      else
+          continue
+      fi
+      let count=0
+      count=`ssh -q -n $SSH_USER@$i "ps -ewwwo pid,comm,args | grep \"${START_RPC_AGENT}\"" | grep ${LANG} | wc -l; > /dev/null 2>&1`
+      let agent_count=agent_count+count
+   done
+
+   append_spaces $MAX_LEN_HOST $i HOST_NAME
+
+   if [ "$OS_NAME" == "Darwin" ]; then
+      echo "$HOST_NAME  $agent_count"
+   else
+      echo "$HOST_NAME   $agent_count"
+   fi
+done
+
+#
+# Display formatted headers
+#
+MAX_LEN_NUM=3
+echo ""
+NUM="Num"
+NUM_LINE="---"
+NODE="Node"
+NODE_LINE="----"
+NAME="Name"
+NAME_LINE="----"
+append_spaces $MAX_LEN_NUM $NUM NUM_HEADER
+append_spaces $MAX_LEN_HOST $NODE NODE_HEADER
+append_spaces $MAX_LEN_SERVER_ID $NAME NAME_HEADER
+echo "$NUM_HEADER $NODE_HEADER $NAME_HEADER Lang   PID"
+append_spaces $MAX_LEN_NUM $NUM_LINE NUM_HEADER
+append_spaces $MAX_LEN_HOST $NODE_LINE NODE_HEADER
+append_spaces $MAX_LEN_SERVER_ID $NAME_LINE NAME_HEADER
+echo "$NUM_HEADER $NODE_HEADER $NAME_HEADER ----   ---"
+
+
+# Display servers
+SERVER_NUM=0
+# ServerArray elements:
+#   array[0] ServerNumber
+#   array[1] ServerHost
+#   array[2] ServerPort
+#   array[3] DebugPort
+#   array[4] JmxPort
+setLineArray $GRIDS_DIR/$GRID/rpc_${SITE}.sh
+for (( i = 1; i <= ${LAST_SERVER_NUM}; i++ ))
+do
+   line="${LineArray[$i]}"
+   array=($line)
+   SERVER_NUM=${array[0]}
+   if [ "$SERVER_NUM" == "" ]; then
+      continue
+   fi
+   RPC_HOST=${array[1]}
+   if [ $SERVER_NUM -lt 10 ]; then
+      SERVER_NUM=0$SERVER_NUM
+   fi
+   SERVER_NAME=${GRID}-${SITE}-${SERVER_NUM}
+   SERVER_ID=${SERVER_PREFIX}${SERVER_NUM}
+   for LANG in $RPC_LANG_LIST; do
+      if [ "$LANG" == "java" ]; then
+         START_RPC_AGENT="com.netcrest.pado.rpc.client.RpcAgent ${SERVER_NAME}"
+      elif [ "$LANG" == "python" ]; then
+         START_RPC_AGENT="com.netcrest.pado.rpc.rpc_agent ${SERVER_NAME}"
+      else
+          continue
+      fi
+      pid=`ssh -q -n $SSH_USER@$SERVER_HOST "ps -ewwwo pid,comm,args | grep \"${START_RPC_AGENT}\"" | grep ${LANG} | awk '{print $1}'`
+      if [ "$SERVER_NAME" != "" ]; then
+         append_spaces $MAX_LEN_NUM $SERVER_NUM FORMATTED_SERVER_NUM
+         append_spaces $MAX_LEN_HOST $RPC_HOST FORMATTED_HOST_NAME
+         append_spaces $MAX_LEN_SERVER_ID $SERVER_ID FORMATTED_SERVER_ID
+         append_spaces 5 $LANG FORMATTED_LANG
+         echo "$FORMATTED_SERVER_NUM $FORMATTED_HOST_NAME $FORMATTED_SERVER_ID $FORMATTED_LANG $pid"
+      fi
+   done
+done
+
+echo
+disown -a -r
+
