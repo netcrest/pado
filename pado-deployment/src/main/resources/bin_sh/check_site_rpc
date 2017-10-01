@@ -128,7 +128,7 @@ do
       else
           continue
       fi
-      pid=`ssh -q -n $SSH_USER@$SERVER_HOST "ps -ewwwo pid,comm,args | grep \"${START_RPC_AGENT}\"" | grep ${LANG} | awk '{print $1}'`
+      pid=`ssh -q -n $SSH_USER@$RPC_HOST "ps -ewwwo pid,comm,args | grep \"${START_RPC_AGENT}\"" | grep ${LANG} | awk '{print $1}'`
       if [ "$SERVER_NAME" != "" ]; then
          append_spaces $MAX_LEN_NUM $SERVER_NUM FORMATTED_SERVER_NUM
          append_spaces $MAX_LEN_HOST $RPC_HOST FORMATTED_HOST_NAME
