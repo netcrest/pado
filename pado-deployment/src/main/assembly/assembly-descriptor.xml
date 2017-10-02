@@ -65,12 +65,6 @@
 			</excludes>
 		</fileSet>
 		<fileSet>
-			<directory>../pado-rpc/src/main/python</directory>
-			<outputDirectory>
-			lang/python/src
-			</outputDirectory>
-		</fileSet>
-		<fileSet>
 			<directory>../pado-rpc/src/resources/python</directory>
 			<outputDirectory>
 			lang/python
@@ -78,6 +72,15 @@
 			<excludes>
 				<exclude>bin_sh/**</exclude>
 			</excludes>
+		</fileSet>
+		
+		<!-- Collect rpc language specifics -->
+		<fileSet>
+			<directory>target/assembly</directory>
+			<outputDirectory>lang/python/lib</outputDirectory>
+			<includes>
+				<include>pado-rpc-py-${pado.version}.zip</include>
+			</includes>
 		</fileSet>
 		
 		<!-- Executable permissions -->

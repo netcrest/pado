@@ -82,6 +82,47 @@
 
 	<build>
 		<plugins>
+		
+			<!-- Pado plugins -->
+			<plugin>
+				<groupId>com.soebes.maven.plugins</groupId>
+				<artifactId>iterator-maven-plugin</artifactId>
+				<version>0.3</version>
+				<executions>
+					<execution>
+						<id>pado-rpc</id>
+						<phase>package</phase>
+						<goals>
+							<goal>iterator</goal>
+						</goals>
+						<configuration>
+							<items>
+								<item>pado-rpc-py</item>
+							</items>
+							<pluginExecutors>
+								<pluginExecutor>
+									<goal>single</goal>
+									<plugin>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-assembly-plugin</artifactId>
+									</plugin>
+									<configuration>
+										<descriptors>
+											<descriptor>${project.basedir}/src/main/assembly/${item}.xml</descriptor>
+										</descriptors>
+										<finalName>${item}</finalName>
+										<appendAssemblyId>true</appendAssemblyId>
+										<outputDirectory>target/assembly</outputDirectory>
+										<tarLongFileMode>gnu</tarLongFileMode>
+									</configuration>
+								</pluginExecutor>
+							</pluginExecutors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!--  Pado distribution -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
@@ -102,7 +143,7 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			
 			<!-- Unzip the build in the deploy directory for testing -->
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
