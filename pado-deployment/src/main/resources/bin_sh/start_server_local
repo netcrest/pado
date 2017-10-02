@@ -149,7 +149,7 @@ if [ "$SERVER_NUM" == "auto" ]; then
          SERVER_HOST=`hostname`
          MY_ADDRESS=$SERVER_HOST
       fi
-      SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
+      export SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM}
 
       # If server is already running then ignore
       servers=`$COMMAND_PREFIX $JAVA_HOME/bin/jps -v | grep "pado.home.dir=${PADO_HOME}" | grep "pado.vm.id=${SERVER_ID}" | grep java | awk '{print $1}'`
@@ -186,7 +186,7 @@ fi
 # SERVER_ID.
 if [ -e override_env.sh ]; then
    . override_env.sh > /dev/null 2>&1
-   SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM} 
+   export SERVER_ID=server-${GRID}-${SITE}${SERVER_NUM} 
 fi
 
 # directory in which the server is to be run
@@ -208,7 +208,9 @@ fi
 
 # disk-store directory
 if [ "$DISK_STORE_DIR" == "" ]; then
-   DISK_STORE_DIR=$DIR/store
+   DISK_STORE_DIR=$DIR/$SERVER_ID/store
+else
+   DISK_STORE_DIR=$DISK_STORE_DIR/$SERVER_ID
 fi
 
 if [ ! -d $DISK_STORE_DIR ]; then
@@ -296,7 +298,7 @@ if [ "$IS_SERVER_START" != "true" ]; then
    exit
 fi
 
-SERVER_NAME=${GRID}-${SITE}-${SERVER_NUM}
+export SERVER_NAME=${GRID}-${SITE}-${SERVER_NUM}
 LOG_FILE=${LOG_DIR}/${SERVER_ID}.log
 STATS_FILE=${STATS_DIR}/${SERVER_ID}.gfs
 
@@ -406,7 +408,6 @@ if [ "$DEBUG_ENABLED" == "true" ]; then
 else
    DEBUG=
 fi
-
 
 
 # -------------------------------------------------------------------

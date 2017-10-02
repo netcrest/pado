@@ -25,6 +25,78 @@ class PathBiz(RpcShared):
         '''
         self._grid_path = grid_path
         
+    def put(self, key, value):
+        '''Puts the specified (key, value) pair in the grid path.
+        
+        Args:
+            key: Key of string or numeric type.
+            value: Value of string, numeric or JSON object (JSON array not supported)
+            
+        Returns: Value put in the grid path
+        '''
+        jparams = json.loads('{}')
+        jparams['gridPath'] = self._grid_path
+        jparams['key'] = key
+        jparams['value'] = value
+        jrequest = create_request(self._biz_class_name, 'put', jparams)
+        return self.rpc.execute(jrequest, 10)
+    
+    def putAll(self, entry_map):
+        '''Puts the entries on the specified map the grid path.
+        
+        Args:
+            entry_map: (key, value) entries. Must be of JSON type.
+            
+        Returns: void
+        '''
+        jparams = json.loads('{}')
+        jparams['gridPath'] = self._grid_path
+        jparams['entryMap'] = entry_map
+        jrequest = create_request(self._biz_class_name, 'putAll', jparams)
+        return self.rpc.execute(jrequest, 10)
+    
+    def remove(self, key):
+        '''Removes the specified key from the grid path.
+        
+        Args:
+            key: Key to remove. Must be of string or numeric type.
+            
+        Returns: Removed value.
+        '''
+        jparams = json.loads('{}')
+        jparams['gridPath'] = self._grid_path
+        jparams['key'] = key
+        jrequest = create_request(self._biz_class_name, 'remove', jparams)
+        return self.rpc.execute(jrequest, 10)
+    
+    def get(self, key):
+        '''Gets the value of the specified key from the grid path.
+        
+        Args:
+            key: Key of string or numeric type.
+            
+        Returns: Key mapped value in the grid path.
+        '''
+        jparams = json.loads('{}')
+        jparams['gridPath'] = self._grid_path
+        jparams['key'] = key
+        jrequest = create_request(self._biz_class_name, 'get', jparams)
+        return self.rpc.execute(jrequest, 10)
+    
+    def getAll(self, key_array):
+        '''Gets the values of the specified keys from the grid path.
+        
+        Args:
+            key: JSON array of keys. Keys must be of string or numeric type.
+            
+        Returns: JSON object containing (key, value) pairs.
+        '''
+        jparams = json.loads('{}')
+        jparams['gridPath'] = self._grid_path
+        jparams['keyArray'] = key_array
+        jrequest = create_request(self._biz_class_name, 'getAll', jparams)
+        return self.rpc.execute(jrequest, 10)
+    
     def query(self, queryPredicate):
         '''Execute the specified query predicate on the grid path.
         
@@ -34,7 +106,7 @@ class PathBiz(RpcShared):
         Returns: Query results in JSON RPC reply form
         
         Example:
-            value['Name']='Smith'
+            query("value['Name']='Smith'")
         '''
         jparams = json.loads('{}')
         jparams['gridPath'] = self._grid_path

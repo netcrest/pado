@@ -17,11 +17,18 @@ package com.netcrest.pado.temporal;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
+import com.netcrest.pado.data.jsonlite.JsonLite;
+
+@SuppressWarnings({ "rawtypes" })
 public class TemporalUtil
 {
 	public static final TimeZone TIME_ZONE;
@@ -30,12 +37,12 @@ public class TemporalUtil
 	public static final long MAX_TIME;
 	public static final Date MIN_DATE;
 	public static final Date MAX_DATE;
-	
+
 	static {
 		String tzStr = System.getProperty("pado.timezone");
 		TIME_ZONE = tzStr == null ? TimeZone.getDefault() : TimeZone.getTimeZone(tzStr);
 	}
-	
+
 	private static final ThreadLocal<Calendar> TL_CAL = new ThreadLocal<Calendar>() {
 		@Override
 		protected Calendar initialValue()
@@ -150,4 +157,281 @@ public class TemporalUtil
 		}
 
 	}
+
+	/**
+	 * Returns a composite identity key for the specified arguments. An identity
+	 * composite key is comprised of one or more string values separated by '.'.
+	 * 
+	 * @param args
+	 *            Key arguments
+	 */
+	public static String getIdentityKey(String... args)
+	{
+		if (args == null) {
+			return null;
+		}
+		String retVal = "";
+		int i = 0;
+		for (String arg : args) {
+			if (i > 0) {
+				retVal += ".";
+			}
+			retVal += arg;
+			i++;
+		}
+		return retVal;
+	}
+
+	/**
+	 * Finds the first JsonLite object that has the specified key in the
+	 * specified list.
+	 * 
+	 * @param list
+	 *            JsonLite object list
+	 * @param key
+	 *            Key to search
+	 * @param value
+	 *            Value to search
+	 * @return null if not found;
+	 */
+	public static JsonLite findValue(List<JsonLite> list, Object key, JsonLite value)
+	{
+		JsonLite foundJl = null;
+		for (JsonLite jl : list) {
+			Object obj = jl.get(key);
+			if (obj != null && obj.equals(value)) {
+				foundJl = jl;
+				break;
+			}
+		}
+		return foundJl;
+	}
+
+	/**
+	 * Returns a list of all found JsonLite objects that have the specified key
+	 * in the specified list.
+	 * 
+	 * @param list
+	 *            JsonLite object list
+	 * @param key
+	 *            Field name to search
+	 * @param value
+	 *            Field value to search
+	 * @return null if not found;
+	 */
+	public static List<JsonLite> findValueList(List<JsonLite> list, String key, JsonLite value)
+	{
+		List<JsonLite> foundList = null;
+		for (JsonLite jl : list) {
+			Object obj = jl.get(key);
+			if (obj != null && obj.equals(value)) {
+				if (foundList == null) {
+					foundList = new ArrayList<JsonLite>(5);
+				}
+				foundList.add(jl);
+			}
+		}
+		return foundList;
+	}
+
+	/**
+	 * Returns a list of all found JsonLite objects that have the specified keys
+	 * in the specified list.
+	 * 
+	 * @param list
+	 *            JsonLite object list
+	 * @param key1
+	 *            First key to search
+	 * @param value1
+	 *            First value to search
+	 * @param key2
+	 *            Second key to search
+	 * @param value2
+	 *            Second value to search
+	 * @return null if not found;
+	 */
+	public static List<JsonLite> findValueList(List<JsonLite> list, Object key1, JsonLite value1, Object key2,
+			JsonLite value2)
+	{
+		List<JsonLite> foundList = null;
+		for (JsonLite jl : list) {
+			Object obj1 = jl.get(key1);
+			if (obj1 != null && obj1.equals(value1)) {
+				Object obj2 = jl.get(key2);
+				if (obj2 != null && obj2.equals(value2)) {
+					if (foundList == null) {
+						foundList = new ArrayList<JsonLite>(5);
+					}
+					foundList.add(jl);
+				}
+			}
+		}
+		return foundList;
+	}
+
+	/**
+	 * Returns a list of all found JsonLite objects that have the specified key
+	 * in the specified list.
+	 * 
+	 * @param list
+	 *            Temporal entry list
+	 * @param key
+	 *            Key to search
+	 * @param value
+	 *            Value to search
+	 * @return null if not found;
+	 */
+	public static List<JsonLite> findValueTemporalList(List<TemporalEntry<ITemporalKey, ITemporalData>> list,
+			Object key, JsonLite value)
+	{
+		List<JsonLite> foundList = null;
+		for (TemporalEntry<ITemporalKey, ITemporalData> te : list) {
+			JsonLite jl = (JsonLite) te.getTemporalData().getValue();
+			Object obj = jl.get(key);
+			if (obj != null && obj.equals(value)) {
+				if (foundList == null) {
+					foundList = new ArrayList<JsonLite>(5);
+				}
+				foundList.add(jl);
+			}
+		}
+		return foundList;
+	}
+
+	/**
+	 * Returns a list of all found JsonLite objects that have the specified keys
+	 * in the specified list.
+	 * 
+	 * @param list
+	 *            Temporal entry list
+	 * @param key1
+	 *            First key to search
+	 * @param value1
+	 *            First value to search
+	 * @param key2
+	 *            Second key to search
+	 * @param value2
+	 *            Second value to search
+	 * @return null if not found;
+	 */
+	public static List<JsonLite> findValueTemporalList(List<TemporalEntry<ITemporalKey, ITemporalData>> list,
+			Object key1, Object value1, Object key2, JsonLite value2)
+	{
+		List<JsonLite> foundList = null;
+		for (TemporalEntry<ITemporalKey, ITemporalData> te : list) {
+			JsonLite jl = (JsonLite) te.getTemporalData().getValue();
+			Object obj1 = jl.get(key1);
+			if (obj1 != null && obj1.equals(value1)) {
+				Object obj2 = jl.get(key2);
+				if (obj2 != null && obj2.equals(value2)) {
+					if (foundList == null) {
+						foundList = new ArrayList<JsonLite>(5);
+					}
+					foundList.add(jl);
+				}
+			}
+		}
+		return foundList;
+	}
+
+	/**
+	 * Returns a list of all found JsonLite objects that have the specified key
+	 * in the specified list. The specified map contains all entries starting
+	 * from the beginning of time. This method finds entries with writtenTime >=
+	 * fromWrttenTime.
+	 * 
+	 * @param map
+	 *            Temporal entry map
+	 * @param key
+	 *            Key to search
+	 * @param value
+	 *            Value to search
+	 * @param fromWrittenTime
+	 *            Start written time
+	 * 
+	 * @return null if not found
+	 */
+	public static List<JsonLite> findValueTemporalMap(Map<ITemporalKey, ITemporalData> map, Object key, JsonLite value,
+			long fromWrittenTime)
+	{
+		List<JsonLite> foundList = null;
+		Set<Map.Entry<ITemporalKey, ITemporalData>> set = map.entrySet();
+		for (Map.Entry<ITemporalKey, ITemporalData> entry : set) {
+			ITemporalKey tk = entry.getKey();
+			if (fromWrittenTime > tk.getWrittenTime()) {
+				continue;
+			}
+			JsonLite jl = (JsonLite) entry.getValue().getValue();
+			Object obj = jl.get(key);
+			if (obj != null && obj.equals(value)) {
+				if (foundList == null) {
+					foundList = new ArrayList<JsonLite>(5);
+				}
+				foundList.add(jl);
+			}
+		}
+		return foundList;
+	}
+
+	/**
+	 * Returns a list of JsonLite objects that have writtenTime >=
+	 * fromWrittenTime.
+	 * 
+	 * @param map
+	 *            Temporal entry map
+	 * @param fromWrittenTime
+	 *            Start written time
+	 */
+	public static List<JsonLite> findValueTemporalMap(Map<ITemporalKey, ITemporalData> map, long fromWrittenTime)
+	{
+		List<JsonLite> foundList = new ArrayList<JsonLite>();
+		Set<Map.Entry<ITemporalKey, ITemporalData>> set = map.entrySet();
+		for (Map.Entry<ITemporalKey, ITemporalData> entry : set) {
+			ITemporalKey tk = entry.getKey();
+			if (fromWrittenTime > tk.getWrittenTime()) {
+				continue;
+			}
+			JsonLite jl = (JsonLite) entry.getValue().getValue();
+			foundList.add(jl);
+		}
+		return foundList;
+	}
+
+	/**
+	 * Returns a list of all found JsonLite objects that have the specified keys
+	 * in the specified list.
+	 * 
+	 * @param map
+	 *            Temporal entry map
+	 * @param key1
+	 *            First key to search
+	 * @param fieldValue1
+	 *            First value to search
+	 * @param key2
+	 *            Second key to search
+	 * @param fieldValue2
+	 *            Second value to search
+	 * @return null if not found;
+	 */
+	public static List<JsonLite> findValueTemporalMap(Map<ITemporalKey, ITemporalData> map, Object key1,
+			JsonLite fieldValue1, Object key2, JsonLite fieldValue2)
+	{
+		List<JsonLite> foundList = null;
+		Set<Map.Entry<ITemporalKey, ITemporalData>> set = map.entrySet();
+		for (Map.Entry<ITemporalKey, ITemporalData> entry : set) {
+			JsonLite jl = (JsonLite) entry.getValue().getValue();
+			Object obj1 = jl.get(key1);
+			if (obj1 != null && obj1.equals(fieldValue1)) {
+				Object obj2 = jl.get(key2);
+				if (obj2 != null && obj2.equals(fieldValue2)) {
+					if (foundList == null) {
+						foundList = new ArrayList<JsonLite>(5);
+					}
+					foundList.add(jl);
+				}
+			}
+		}
+		return foundList;
+	}
+
 }

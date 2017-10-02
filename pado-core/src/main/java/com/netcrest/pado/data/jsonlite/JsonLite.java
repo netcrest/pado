@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -52,6 +53,7 @@ import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.data.jsonlite.JsonLiteSchemaManager.KeyInfo;
 import com.netcrest.pado.data.jsonlite.internal.JsonLiteHelper;
 import com.netcrest.pado.data.jsonlite.internal.JsonLiteSerializer;
+import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.gemfire.factory.GemfireVersionSpecifics;
 import com.netcrest.pado.gemfire.util.DataSerializerEx;
 
@@ -915,10 +917,10 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 			return val;
 		}
 	}
-	
+
 	/**
-	 * Return the mapped value in boolean type for the specified key. If the key is
-	 * not found then it returns the specified default value. If the mapped
+	 * Return the mapped value in boolean type for the specified key. If the key
+	 * is not found then it returns the specified default value. If the mapped
 	 * value is not of the Boolean type then it returns true only if toString()
 	 * returns "true" (case insensitive).
 	 * 
@@ -946,7 +948,6 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		}
 		return booleanValue;
 	}
-
 
 	/**
 	 * Return the mapped value in byte type for the specified key. If the key is
@@ -1048,8 +1049,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 	}
 
 	/**
-	 * Return the mapped value in int type for the specified key. If the key
-	 * is not found then it returns the specified default value. If the mapped
+	 * Return the mapped value in int type for the specified key. If the key is
+	 * not found then it returns the specified default value. If the mapped
 	 * value is not of the Integer type then it converts the toString() value to
 	 * the proper type. If toString() yields a non-numeric value then it returns
 	 * the default value.
@@ -1141,8 +1142,8 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 	}
 
 	/**
-	 * Return the mapped value in long type for the specified key. If the key
-	 * is not found then it returns the specified default value. If the mapped
+	 * Return the mapped value in long type for the specified key. If the key is
+	 * not found then it returns the specified default value. If the mapped
 	 * value is not of the Long type then it converts the toString() value to
 	 * the proper type. If toString() yields a non-numeric value then it returns
 	 * the default value.
@@ -1170,7 +1171,7 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		}
 		return longValue;
 	}
-	
+
 	/**
 	 * Return the mapped value in String type for the specified key. If the key
 	 * is not found then it returns the specified default value. If the mapped
@@ -1195,47 +1196,134 @@ public class JsonLite<V> implements KeyMap<V>, Externalizable, Cloneable, DataSe
 		}
 		return stringValue;
 	}
-	
 
-	// private Map getMap(JsonLite jl, Map map)
-	// {
-	// Set<Map.Entry> set = jl.entrySet();
-	// for (Entry entry : set) {
-	// map.put(entry.getKey(), entry.getValue());
-	// }
-	// }
+	/**
+	 * Returns an array for the specified field. It converts a collection object
+	 * to an array.
+	 * 
+	 * @param key
+	 *            Key to retrieve from thus object
+	 * @return null if key is not found
+	 * @throws JsonLiteException
+	 *             Thrown if the value is not an array or a collection.
+	 */
+	public Object[] getArray(Object key) throws JsonLiteException
+	{
+		Object obj = get(key);
+		if (obj == null) {
+			return null;
+		}
+		Object values[];
+		if (obj.getClass().isArray()) {
+			values = (Object[]) obj;
+		} else {
+			if (obj instanceof Collection) {
+				values = ((Collection<?>) obj).toArray();
+			} else {
+				throw new JsonLiteException("Object is not an array or a collection. Type=" + obj.getClass().getName());
+			}
+		}
+		return values;
+	}
 
-	// public Object get(String key, Class returnClass)
-	// {
-	// Object val = get(key);
-	// if (val == null) {
-	// return null;
-	// }
-	// if (returnClass == null) {
-	// return val;
-	// }
-	// try {
-	// if (returnClass == Date.class) {
-	// return iso8601DateFormat.parse(val.toString());
-	// } else if (returnClass == BigDecimal.class) {
-	// return new BigDecimal((Double) val);
-	// } else if (returnClass == BigInteger.class){
-	// return new BigInteger(val.toString());
-	// // } else if (returnClass == HashMap.class) {
-	// // JsonLite jl = (JsonLite)val;
-	// // HashMap map = new HashMap(jl.size(), 1f);
-	// // Set<Map.Entry> set = jl.entrySet();
-	// // for (Entry entry : set) {
-	// // map.put(entry.getKey(), entry.getValue());
-	// // }
-	// // return map;
-	// } else {
-	// return val;
-	// }
-	// } catch (Exception ex) {
-	// throw new JsonLiteException(ex);
-	// }
-	// }
+	/**
+	 * Returns a list for the specified key. It converts a collection or an
+	 * array to a List object.
+	 * 
+	 * @param key
+	 *            Key to retrieve fromat this object
+	 * @return null if key is not found
+	 * @throws JsonLiteException
+	 *             Thrown if the value is not an array or a collection.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public List getList(Object key) throws JsonLiteException
+	{
+		Object obj = get(key);
+		if (obj == null) {
+			return null;
+		}
+		List list = null;
+		if (obj.getClass().isArray()) {
+			Object[] values = (Object[]) obj;
+			list = new ArrayList(values.length);
+			for (Object value : values) {
+				list.add(value);
+			}
+		} else {
+			if (obj instanceof List) {
+				list = (List) obj;
+			} else if (obj instanceof Collection) {
+				list = new ArrayList((Collection) obj);
+			} else {
+				throw new JsonLiteException("Object is not an array or a collection. Type=" + obj.getClass().getName());
+			}
+		}
+		return list;
+	}
+
+	/**
+	 * Returns a list of lists for the specified key. It converts collections or
+	 * arrays to lists.
+	 * 
+	 * @param key
+	 *            Key to retrieve from this object
+	 * @return null if key is not found
+	 * @throws JsonLiteException
+	 *             Thrown if the field value is not an array or a collection.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public List<List<?>> getListOfLists(Object key) throws JsonLiteException
+	{
+		Object obj = get(key);
+		if (obj == null) {
+			return null;
+		}
+		List list = null;
+		if (obj.getClass().isArray()) {
+			Object[] values = (Object[]) obj;
+			list = new ArrayList(values.length);
+			for (Object value : values) {
+				if (value.getClass().isArray()) {
+					Object[] values2 = (Object[]) value;
+					List list2 = new ArrayList(values2.length);
+					for (Object object2 : values2) {
+						list2.add(object2);
+					}
+					list.add(list2);
+				} else {
+					list.add(Collections.singletonList(value));
+				}
+			}
+		} else {
+			if (obj instanceof List) {
+				list = (List) obj;
+			} else if (obj instanceof Collection) {
+				list = new ArrayList((Collection) obj);
+			} else {
+				throw new JsonLiteException("Object is not an array or a collection. Type=" + obj.getClass().getName());
+			}
+			for (int i = 0; i < list.size(); i++) {
+				Object value = list.get(i);
+				if (value instanceof List) {
+					continue;
+				} else if (value instanceof Collection) {
+					List list2 = new ArrayList((Collection) value);
+					list.set(i, list2);
+				} else if (value.getClass().isArray()) {
+					Object[] values2 = (Object[]) value;
+					List list2 = new ArrayList(values2.length);
+					for (Object object2 : values2) {
+						list2.add(object2);
+					}
+					list.set(i, list2);
+				} else {
+					list.set(i, Collections.singletonList(value));
+				}
+			}
+		}
+		return list;
+	}
 
 	/**
 	 * Puts the specified value mapped by the specified key into this object.

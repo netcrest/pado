@@ -2,7 +2,7 @@ package com.netcrest.pado.test.rpc.client;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.log.Logger;
-import com.netcrest.pado.rpc.client.biz.PathRpcBiz;
+import com.netcrest.pado.rpc.client.biz.PathBiz;
 import com.netcrest.pado.rpc.mqtt.ReplyKey;
 import com.netcrest.pado.rpc.mqtt.client.IRpcListener;
 
@@ -12,7 +12,7 @@ public class MlDemo
 	public JsonLite execute(JsonLite params)
 	{
 		String gridPath = params.getString("gridPath", "test1");
-		PathRpcBiz pathBiz = new PathRpcBiz(gridPath);
+		PathBiz pathBiz = new PathBiz(gridPath);
 		String queryPredicate = (String) params.get("queryPredicate");
 		JsonLite queryResult = pathBiz.query(queryPredicate);
 		Object[] list = (Object[]) queryResult.get("result");
@@ -35,7 +35,7 @@ public class MlDemo
 	public void testRpcListener(JsonLite params)
 	{
 		String gridPath = params.getString("gridPath", "test1");
-		final PathRpcBiz pathBiz = new PathRpcBiz(gridPath);
+		final PathBiz pathBiz = new PathBiz(gridPath);
 		params.getString("name", pathBiz.getGridPath());
 		final IRpcListener listener = new RpcListenerImpl();
 		pathBiz.addListener(pathBiz.getGridPath(), listener);

@@ -185,7 +185,6 @@ echo "************************************************************"
 
 for LANG in $RPC_LANG_LIST; do
    pushd $RPC_LANG_DIR/$LANG/bin_sh > /dev/null 2>&1
-#   echo $LANG: ./start_rpc_agent $SERVER_NAME
    ./start_rpc_agent $SERVER_NAME
    popd > /dev/null 2>&1
 done

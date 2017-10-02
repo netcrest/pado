@@ -1,8 +1,10 @@
 package com.netcrest.pado.rpc.client.biz.impl.gemfire;
 
 import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 
@@ -23,10 +25,116 @@ import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.util.GridUtil;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class PathRpcBizImpl implements IRpc
+public class PathBizImpl implements IRpc
 {
 	private static HashMap<String, CacheListener> cacheListenerMap = new HashMap<String, CacheListener>();
 
+	public JsonLite put(JsonLite params) throws Exception
+	{
+		String gridPath = params.getString("gridPath", null);
+		String key = params.getString("key", null);
+		JsonLite value = (JsonLite)params.get("value", null);
+
+		if (gridPath == null) {
+			throw new InvalidParameterException("gridPath undefined");
+		}
+		if (key == null) {
+			throw new InvalidParameterException("key undefined");
+		}
+		if (value == null) {
+			throw new InvalidParameterException("value undefined");
+		}
+
+		String fullPath = GridUtil.getFullPath(gridPath);
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
+		}
+		region.put(key, value);
+		return value;
+	}
+	
+	public void putAll(JsonLite params) throws Exception
+	{
+		String gridPath = params.getString("gridPath", null);
+		JsonLite entryMap = (JsonLite)params.get("entryMap", null);
+
+		if (gridPath == null) {
+			throw new InvalidParameterException("gridPath undefined");
+		}
+		if (entryMap == null) {
+			throw new InvalidParameterException("entryMap undefined");
+		}
+	
+		String fullPath = GridUtil.getFullPath(gridPath);
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
+		}
+		region.putAll(entryMap);
+	}
+	
+	public JsonLite remove(JsonLite params) throws Exception
+	{
+		String gridPath = params.getString("gridPath", null);
+		String key = params.getString("key", null);
+
+		if (gridPath == null) {
+			throw new InvalidParameterException("gridPath undefined");
+		}
+		if (key == null) {
+			throw new InvalidParameterException("key undefined");
+		}
+
+		String fullPath = GridUtil.getFullPath(gridPath);
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
+		}
+		return (JsonLite)region.remove(key);
+	}
+	
+	public JsonLite get(JsonLite params) throws Exception
+	{
+		String gridPath = params.getString("gridPath", null);
+		String key = params.getString("key", null);
+
+		if (gridPath == null) {
+			throw new InvalidParameterException("gridPath undefined");
+		}
+		if (key == null) {
+			throw new InvalidParameterException("key undefined");
+		}
+
+		String fullPath = GridUtil.getFullPath(gridPath);
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
+		}
+		return (JsonLite)region.get(key);
+	}
+	
+	public JsonLite getAll(JsonLite params) throws Exception
+	{
+		String gridPath = params.getString("gridPath", null);
+		Object[] keyArray = (Object[])params.getArray("keyArray");
+
+		if (gridPath == null) {
+			throw new InvalidParameterException("gridPath undefined");
+		}
+		if (keyArray == null || keyArray.length == 0) {
+			throw new InvalidParameterException("keyArray undefined");
+		}
+
+		String fullPath = GridUtil.getFullPath(gridPath);
+		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
+		if (region == null) {
+			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
+		}
+		Map<String, JsonLite> map = region.getAll(Arrays.asList(keyArray));
+		return new JsonLite<>(map);
+	}
+	
 	public List<JsonLite> query(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
