@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.util.PadoUtil;
@@ -144,6 +145,7 @@ public class FileUtilUnix
 			}
 
 		});
+		Arrays.sort(files);
 		return files;
 	}
 
