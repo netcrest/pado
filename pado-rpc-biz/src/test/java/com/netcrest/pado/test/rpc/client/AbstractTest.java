@@ -65,7 +65,7 @@ public class AbstractTest
 		request.put(RequestKey.classname.name(), className);
 		request.put(RequestKey.method.name(), methodName);
 		request.put(RequestKey.id.name(), System.nanoTime() + "");
-		request.put(RequestKey.agent.name(), false);
+		request.put(RequestKey.agent.name(), true);
 		request.put(RequestKey.jsonrpc.name(), "2.0");
 		return request;
 	}

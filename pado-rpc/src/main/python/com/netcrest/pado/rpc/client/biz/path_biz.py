@@ -41,7 +41,7 @@ class PathBiz(RpcShared):
         jrequest = create_request(self._biz_class_name, 'put', jparams)
         return self.rpc.execute(jrequest, 10)
     
-    def putAll(self, entry_map):
+    def put_all(self, entry_map):
         '''Puts the entries on the specified map the grid path.
         
         Args:
@@ -83,7 +83,7 @@ class PathBiz(RpcShared):
         jrequest = create_request(self._biz_class_name, 'get', jparams)
         return self.rpc.execute(jrequest, 10)
     
-    def getAll(self, key_array):
+    def get_all(self, key_array):
         '''Gets the values of the specified keys from the grid path.
         
         Args:
@@ -114,7 +114,7 @@ class PathBiz(RpcShared):
         jrequest = create_request(self._biz_class_name, 'query', jparams)
         return self.rpc.execute(jrequest, 10)
     
-    def dump(self):
+    def dump_grid_path(self):
         '''Dump the grid path contents in the default data node dump directory.
         
         Returns: Execution results in JSON.
@@ -134,7 +134,7 @@ class PathBiz(RpcShared):
         jrequest = create_request(self._biz_class_name, 'size', jparams)
         return self.rpc.execute(jrequest, 10)
     
-    def addListener(self, listener_name, listener):
+    def add_listener(self, listener_name, listener):
         '''Adds a listener to listen on data changes made in the grid path
         
         Args:
@@ -157,7 +157,7 @@ class PathBiz(RpcShared):
         self.rpc.add_rpc_listener(listener_name, listener)
         return self.rpc.execute(jrequest, 10)
     
-    def removeListener(self, listener_name, listener):
+    def remove_listener(self, listener_name, listener):
         '''Remove the specified listener
         
         Args:
