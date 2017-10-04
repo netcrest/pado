@@ -5,7 +5,9 @@ import com.netcrest.pado.rpc.mqtt.client.IRpcListener;
 import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 
 /**
- * PathBiz provides grid path methods
+ * PathBiz provides grid path methods. All methods except for
+ * {@link #put(Object, Object)} and {@link #put(Object, Object)} execute only on
+ * the local data node.
  * 
  * @author dpark
  *
@@ -26,13 +28,19 @@ public class PathBiz
 		this.gridPath = gridPath;
 	}
 
+	/**
+	 * Returns the grid path
+	 */
 	public String getGridPath()
 	{
 		return this.gridPath;
 	}
 
 	/**
-	 * Puts the specified (key, value) pair in the grid path.
+	 * Puts the specified (key, value) pair in the grid path. Note that unlike
+	 * other methods which execute only the data node data set this method
+	 * distributes the specified map data to all data nodes if the path is
+	 * partitioned.
 	 * 
 	 * @param key
 	 *            Key of string or numeric type.
@@ -54,7 +62,10 @@ public class PathBiz
 	}
 
 	/**
-	 * Puts the entries on the specified map the grid path.
+	 * Puts the entries on the specified map the grid path. Note that unlike
+	 * other methods which execute only the data node data set this method
+	 * distributes the specified map data to all data nodes if the path is
+	 * partitioned.
 	 * 
 	 * @param entryMap
 	 *            (key, value) entries.
@@ -145,7 +156,7 @@ public class PathBiz
 	 * 
 	 * @return Execution results in JSON.
 	 */
-	public JsonLite dump()
+	public JsonLite dumpGridPath()
 	{
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
@@ -153,7 +164,7 @@ public class PathBiz
 	}
 
 	// Not implemented yet in the server
-	public JsonLite dump(String queryPredicate, String filePath)
+	public JsonLite dumpGridPath(String queryPredicate, String filePath)
 	{
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);

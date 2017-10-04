@@ -726,16 +726,19 @@ public class GemfireTemporalList implements ITemporalList
 	 *            The valid-at time
 	 */
 	@Override
-	public Map<ITemporalKey, ITemporalData> getAllValidAt(long validAt)
+	public Map<ITemporalKey, ITemporalData> getAllValidAt(long validAtTime)
 	{
 		if (removedKey != null) {
 			return null;
 		}
 		// startValidTime <= validAt < endValidTime
+		if (validAtTime < 0) {
+			validAtTime = System.currentTimeMillis();
+		}
 		ArrayList<ITemporalKey> currentList = this.keyList;
 		HashMap<ITemporalKey, ITemporalData> map = new HashMap<ITemporalKey, ITemporalData>(currentList.size());
 		for (ITemporalKey key : currentList) {
-			if (key.getStartValidTime() <= validAt && validAt < key.getEndValidTime()) {
+			if (key.getStartValidTime() <= validAtTime && validAtTime < key.getEndValidTime()) {
 				map.put(key, region.get(key));
 			}
 		}
@@ -752,6 +755,12 @@ public class GemfireTemporalList implements ITemporalList
 			return null;
 		}
 		// startValidTime <= validAt < endValidTime
+		if (validAtTime < 0) {
+			validAtTime = System.currentTimeMillis();
+		}
+		if (asOfTime < 0) {
+			asOfTime = System.currentTimeMillis();
+		}
 		ArrayList<ITemporalKey> currentList = this.keyList;
 		TreeSet<TemporalEntry<ITemporalKey, ITemporalData>> set = new TreeSet();
 		for (ITemporalKey key : currentList) {

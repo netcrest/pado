@@ -36,13 +36,15 @@ public class RpcUtil
 
 	/**
 	 * Returns the agent request request topic.
-	 * @param serverName Unique server name
+	 * 
+	 * @param serverName
+	 *            Unique server name
 	 */
 	public final static String getAgentRequestTopic(String lang, String serverName)
 	{
 		return Constants.TOPIC_REQUEST_PREFIX + "/agent/" + lang + "/" + serverName;
 	}
-	
+
 	/**
 	 * Creates a request object for the specified function and parameters.
 	 * 
@@ -66,7 +68,8 @@ public class RpcUtil
 	 * @param methodName
 	 *            Method name. If className is null, then this argument is
 	 *            equivalent to a function name.
-	 * @param params Method or function parameters
+	 * @param params
+	 *            Method or function parameters
 	 */
 	public final static JsonLite createRequest(String className, String methodName, JsonLite params)
 	{
@@ -378,7 +381,7 @@ public class RpcUtil
 
 		return props;
 	}
-	
+
 	public final static void processRequest(String request, boolean isReply)
 	{
 		final JsonLite jrequest = new JsonLite(request);
@@ -400,21 +403,23 @@ public class RpcUtil
 
 				if (isDaemon) {
 					try {
-						JsonLite result = (JsonLite) method.invoke(obj, params);
+						Object result = (Object) method.invoke(obj, params);
 						JsonLite reply;
 						if (result != null) {
-							JsonLite error = (JsonLite) result.get(ReplyKey.__error.name());
-							if (error != null) {
-								reply = RpcUtil.createReplyError(jrequest, error);
+							if (result instanceof JsonLite) {
+								JsonLite error = (JsonLite) ((JsonLite) result).get(ReplyKey.__error.name());
+								if (error != null) {
+									reply = RpcUtil.createReplyError(jrequest, error);
+								} else {
+									reply = RpcUtil.createReplyResult(jrequest, result);
+								}
 							} else {
 								reply = RpcUtil.createReplyResult(jrequest, result);
 							}
 						} else {
 							reply = RpcUtil.createReplyResult(jrequest, null);
 						}
-						System.out.println("RpcMain.main(): before result call: size=" + result.size());
 						MqttJsonRpcClient.getRpcClient().sendResult(reply);
-						System.out.println("RpcMain.main(): after result call: size=" + result.size());
 						if (isReply) {
 							System.out.println(reply.toString());
 						}

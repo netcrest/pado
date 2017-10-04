@@ -2,7 +2,7 @@ Netcrest Pado Open Source Edition
 =================================
 https://github.com/netcrest/pado
 
-©2013-2015 Netcrest Technologies, LLC. All rights reserved.
+ï¿½2013-2015 Netcrest Technologies, LLC. All rights reserved.
 
 Introduction
 ------------
@@ -199,6 +199,14 @@ Running Pado Demo
 The Pado distribution includes a pre-configured demo that launches and manages multiple grids on localhost. To run it on a Unix platform, you must first set ssh auto-login. Please see the "Configuring SSH Auto Login" section at the bottom of this file.
 
 Please see bin_sh/grids/README_GRIDS.txt for more examples and details.
+
+Pado includes Microsoft's sample Northwind data. The default "mygrid" grid has been configured to ingest the "nw" data located in ${PADO_HOME}/data/nw. Follow the steps below to ingest the "nw" data.
+
+1. Start the "mygrid" grid.
+2. Copy ${PADO_HOME}/data/nw/import/* to ${PADO_HOME}/import/
+3. Copy ${PADO_HOME}/data/nw/schema/* to ${PADO_HOME}/schema/
+4. cd ${PADO_HOME}/bin_sh/tools
+5. ./import_csv
 
 Unix:
 
@@ -672,4 +680,4 @@ You can now login without getting asked for a password. For example,
 
    ssh -l remoteuser remoteserver.com or ssh remoteuser@remoteserver.com
 
-©2013-2015 Netcrest Technologies, LLC. All rights reserved.
+ï¿½2013-2015 Netcrest Technologies, LLC. All rights reserved.

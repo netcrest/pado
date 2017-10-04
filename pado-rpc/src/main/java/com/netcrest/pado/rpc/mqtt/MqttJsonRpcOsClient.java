@@ -92,10 +92,14 @@ public class MqttJsonRpcOsClient implements ClientConstants
 		}
 		JsonLite reply = null;
 
-		String id = request.getString(RequestKey.id.name(), null);
-		if (id != null) {
+		String idOriginal = request.getString(RequestKey.id.name(), null);
+		if (idOriginal != null) {
+			
+			// A new id specific to this server must be used in case multiple servers are running in the same machine.
+			String idTarget = idOriginal + PadoServerManager.getPadoServerManager().getServerName();
+			request.put(RequestKey.id.name(), idTarget);
 			ThreadReply threadReply = new ThreadReply(Thread.currentThread());
-			idThreadMap.put(id, threadReply);
+			idThreadMap.put(idTarget, threadReply);
 			boolean isAgent = request.getBoolean(RequestKey.agent.name(), true);
 
 			try {
@@ -142,13 +146,13 @@ public class MqttJsonRpcOsClient implements ClientConstants
 				reply = RpcUtil.createReply(request, -1010,
 						"Error occourred while executing JSON RPC request in data node: " + e.getMessage(), null);
 			} finally {
-				idThreadMap.remove(id);
+				idThreadMap.remove(idTarget);
 			}
 		}
 
 		if (reply == null) {
 			reply = new JsonLite();
-			reply.put(ReplyKey.id.name(), id);
+			reply.put(ReplyKey.id.name(), idOriginal);
 		}
 		reply.put(ReplyKey.gid.name(), PadoServerManager.getPadoServerManager().getGridId());
 		reply.put(ReplyKey.sid.name(), PadoServerManager.getPadoServerManager().getServerName());

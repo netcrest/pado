@@ -20,9 +20,9 @@
 
 if [ "$HELP" == "true" ]; then
    echo "Usage:"
-   echo "   rpc_client <Pado extended JSON RPC request> [-?]"
+   echo "   rpc_client <server-id> <Pado extended JSON RPC request> [-?]"
    echo ""
-   echo "   Default: rpc_client <request mandatory>"
+   echo "   Default: rpc_client <server-id mandatory> <request mandatory>"
    echo ""
    exit
 fi
@@ -58,6 +58,9 @@ DIR=$RUN_DIR
 # Set RPC_PROPERTY_FILE
 RPC_PROPERTY_FILE=$ETC_DIR/rpc.properties
 
+# Server name
+SERVER_NAME=$1
+
 # 
 # Application specifics 
 #
@@ -83,5 +86,6 @@ fi
 
 
 pushd $BASE_DIR > /dev/null 2>&1
-$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcMain -reply $* > log/rpc_client.log
+echo "$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcMain $*" >> log/rpc_client-${SERVER_NAME}.log
+$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcMain $* >> log/rpc_client-${SERVER_NAME}.log 2>&1
 popd  > /dev/null 2>&1

@@ -69,7 +69,7 @@ public class MqttJsonRpcListenerImpl implements QueueDispatcherListener, Constan
 		String id = jl.getString(RequestKey.id.name(), null);
 		if (isRequest) {
 			// Request
-			JsonLite reply = RpcManager.getDeviceManager().invoke(jl);
+			JsonLite reply = RpcManager.getRpcManager().invoke(jl);
 			if (reply != null) {
 				if (id != null) {
 					try {

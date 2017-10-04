@@ -66,7 +66,7 @@ public class MqttJsonRpcInitializer implements IBeanInitializable, DeploymentLis
 				if (Modifier.isAbstract(clazz.getModifiers())) {
 					continue;
 				}
-				RpcManager.getDeviceManager().addRpcClass(clazz);
+				RpcManager.getRpcManager().addRpcClass(clazz);
 				if (buffer.length() > 0) {
 					buffer.append(", ");
 				}

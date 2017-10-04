@@ -467,8 +467,8 @@ public class MqttJsonRpcClient implements ClientConstants
 				if (id != null) {
 					ThreadReply threadReply = idThreadMap.get(id);
 					if (threadReply != null) {
+						threadReply.reply = reply;
 						synchronized (threadReply) {
-							threadReply.reply = reply;
 							threadReply.notify();
 						}
 					}

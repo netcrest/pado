@@ -31,9 +31,9 @@ public class RpcManager
 	}
 
 	/**
-	 * Returns the singleton DeviceWrapperManager object.
+	 * Returns the singleton RpcManager object.
 	 */
-	public final static RpcManager getDeviceManager()
+	public final static RpcManager getRpcManager()
 	{
 		return manager;
 	}

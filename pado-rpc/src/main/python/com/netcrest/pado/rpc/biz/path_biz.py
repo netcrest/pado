@@ -125,7 +125,7 @@ class PathBiz(RpcShared):
         return self.rpc.execute(jrequest, 10)
     
     def size(self):
-        '''Get the size of the grid path in the data node.
+        '''Gets the size of the grid path in the data node.
         
         Returns: Size in JSON RPC reply form.
         '''
@@ -135,7 +135,7 @@ class PathBiz(RpcShared):
         return self.rpc.execute(jrequest, 10)
     
     def addListener(self, listener_name, listener):
-        '''Add a listener to listen on data changes made in the grid path
+        '''Adds a listener to listen on data changes made in the grid path
         
         Args:
             listener_name: Unique name of the listener.
@@ -162,7 +162,7 @@ class PathBiz(RpcShared):
         
         Args:
             listener_name: Unique name of the listener.
-            listener: previously added Listener function or class method.
+            listener: Previously added Listener function or class method.
          
         Returns:
             Removal results in JSON RPC reply form.

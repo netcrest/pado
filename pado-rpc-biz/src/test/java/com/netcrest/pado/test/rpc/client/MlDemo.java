@@ -18,7 +18,7 @@ public class MlDemo
 		Object[] list = (Object[]) queryResult.get("result");
 
 		// Let's also dump the grid path
-		JsonLite dumpResult = pathBiz.dump();
+		JsonLite dumpResult = pathBiz.dumpGridPath();
 		String filePath = (String) dumpResult.get(ReplyKey.result.name());
 		
 		// Get the path size

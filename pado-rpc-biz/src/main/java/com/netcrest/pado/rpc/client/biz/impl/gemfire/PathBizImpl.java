@@ -12,8 +12,10 @@ import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.CacheListener;
 import com.gemstone.gemfire.cache.EntryEvent;
 import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.partition.PartitionRegionHelper;
 import com.gemstone.gemfire.cache.query.SelectResults;
 import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
+import com.gemstone.gemfire.internal.cache.PartitionedRegion;
 import com.netcrest.pado.biz.IPqlBiz;
 import com.netcrest.pado.biz.IUtilBiz;
 import com.netcrest.pado.data.jsonlite.JsonLite;
@@ -71,7 +73,8 @@ public class PathBizImpl implements IRpc
 		if (region == null) {
 			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
 		}
-		region.putAll(entryMap);
+		Map map = new HashMap(entryMap);
+		region.putAll(map);
 	}
 	
 	public JsonLite remove(JsonLite params) throws Exception
@@ -131,7 +134,14 @@ public class PathBizImpl implements IRpc
 		if (region == null) {
 			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
 		}
-		Map<String, JsonLite> map = region.getAll(Arrays.asList(keyArray));
+		Region r;
+		if (region instanceof PartitionedRegion) {
+			r = PartitionRegionHelper.getLocalPrimaryData(region);
+		} else {
+			r = region;
+		}
+		
+		Map<String, JsonLite> map = r.getAll(Arrays.asList(keyArray));
 		return new JsonLite<>(map);
 	}
 	

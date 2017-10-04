@@ -2,6 +2,9 @@
 
 . ./setenv.sh > /dev/null 2>&1
 
+# Server name
+SERVER_NAME=$1
+
 # Exit if it is already running
 START_RPC_AGENT="com.netcrest.pado.rpc.rpc_agent $*"
 pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep python | awk '{print $1}'`
@@ -16,7 +19,15 @@ if [ "$agents" != "" ]; then
    echo "python: rpc agent already running [$agents]"
 else
    pushd .. > /dev/null 2>&1
-   $PYTHON -m com.netcrest.pado.rpc.rpc_agent $* > log/rpc_agent.log 2>&1 &
+   echo "" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "================================================================" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "Pado RPC Agent" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "Data Node: ${SERVER_NAME}" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "Lang: python" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "Started: `date`" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "================================================================" >> log/rpc_agent-${SERVER_NAME}.log
+   echo "$PYTHON -m com.netcrest.pado.rpc.rpc_agent $*" >> log/rpc_agent-${SERVER_NAME}.log
+   $PYTHON -m com.netcrest.pado.rpc.rpc_agent $* >> log/rpc_agent-${SERVER_NAME}.log 2>&1 &
    popd > /dev/null 2>&1
    pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep python | awk '{print $1}'`
    for i in $pids; do
