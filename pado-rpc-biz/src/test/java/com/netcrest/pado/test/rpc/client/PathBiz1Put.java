@@ -10,7 +10,7 @@ import com.netcrest.pado.rpc.client.dna.RpcInvoker;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 
 /**
- * PathBiz1PutTest tests the RPC {@link PathBiz} methods via {@link RpcInvoker}. This
+ * PathBiz1Put tests the RPC {@link PathBiz} methods via {@link RpcInvoker}. This
  * test case requires the "nw" data distributed with Pado. Make sure to first
  * load that set of data in the "mygrid" environment.
  * 
@@ -18,16 +18,20 @@ import com.netcrest.pado.rpc.mqtt.RequestKey;
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class PathBiz1PutTest extends AbstractTest
+public class PathBiz1Put extends AbstractTest
 {
 	private final String gridPath = "test1";
-
-	@Test
+	
+	public PathBiz1Put(String lang)
+	{
+		super(lang);
+	}
+	
 	public void testPut()
 	{
 		System.out.println("PathBiz1PutTest.testPut()");
 		System.out.println("-------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "put");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "put");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite value1 = new JsonLite();
 		value1.put("Name", "Joe Smith");
@@ -47,7 +51,7 @@ public class PathBiz1PutTest extends AbstractTest
 	{
 		System.out.println("PathBiz1PutTest.testPutAll()");
 		System.out.println("----------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "putAll");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "putAll");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite value2 = new JsonLite();
 		value2.put("Name", "Foo Yong");

@@ -86,6 +86,7 @@ fi
 
 
 pushd $BASE_DIR > /dev/null 2>&1
+echo "Date: `date`" >> log/rpc_client-${SERVER_NAME}.log
 echo "$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcMain $*" >> log/rpc_client-${SERVER_NAME}.log
 $PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcMain $* >> log/rpc_client-${SERVER_NAME}.log 2>&1
 popd  > /dev/null 2>&1

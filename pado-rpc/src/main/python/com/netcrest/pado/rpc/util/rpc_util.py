@@ -77,10 +77,16 @@ def process_request(jrequest):
     
     if is_daemon:
         jresult = invoke(jrequest)
-        if 'error' in jresult:
-            error = jresult['__error']
-            jreply = create_reply(jrequest)
-            jreply['error'] = error
+        if jresult != None:
+            if type(jresult) is dict:
+                if 'error' in jresult:
+                    error = jresult['__error']
+                    jreply = create_reply(jrequest)
+                    jreply['error'] = error
+                else:
+                    jreply = create_reply(jrequest, jresult)
+            else:
+                jreply = create_reply(jrequest, jresult)   
         else:
             jreply = create_reply(jrequest, jresult)
         rpc.send_result(jreply)
@@ -92,7 +98,18 @@ def process_request(jrequest):
             thread.start()
             thread.join()
             jresult = thread.jresult
-            jreply = create_reply(jrequest, jresult)
+            if type(jresult) is dict:
+                if jresult != None:
+                    if 'error' in jresult:
+                        error = jresult['__error']
+                        jreply = create_reply(jrequest)
+                        jreply['error'] = error
+                    else:
+                        jreply = create_reply(jrequest, jresult)
+                else:
+                    jreply = create_reply(jrequest, jresult)
+            else:
+                jreply = create_reply(jrequest, jresult)
         except:
             sys.stderr.write('Unexpected error: ' + str(sys.exc_info()[0]))
             sys.stderr.flush()

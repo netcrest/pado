@@ -10,28 +10,33 @@ import com.netcrest.pado.rpc.client.dna.RpcInvoker;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 
 /**
- * PathBiz3RemovalTest tests the RPC {@link PathBiz} "remove" methods via
- * {@link RpcInvoker}. You must run {@link PathBiz1PutTest} first to insert data
+ * PathBiz3Remove tests the RPC {@link PathBiz} "remove" methods via
+ * {@link RpcInvoker}. You must run {@link PathBiz1Put} first to insert data
  * into the grid.
  * 
  * @author dpark
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class PathBiz3RemovalTest extends AbstractTest
+public class PathBiz3Remove extends AbstractTest
 {
 	private final String gridPath = "test1";
+	
+	public PathBiz3Remove(String lang)
+	{
+		super(lang);
+	}
 
 	/**
 	 * Tests removal of all keys inserted by the test case
-	 * {@link PathBiz1PutTest}.
+	 * {@link PathBiz1Put}.
 	 */
 	@Test
 	public void testRemove()
 	{
 		System.out.println("PathBiz3RemovalTest.testRemove()");
 		System.out.println("--------------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "remove");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "remove");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 
 		for (int i = 1; i <= 3; i++) {

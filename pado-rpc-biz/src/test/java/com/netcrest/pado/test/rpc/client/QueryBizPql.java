@@ -18,12 +18,19 @@ import com.netcrest.pado.rpc.mqtt.RequestKey;
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class QueryBizTest extends AbstractTest
+public class QueryBizPql extends AbstractTest
 {
+	public QueryBizPql(String lang)
+	{
+		super(lang);
+	}
+	
 	@Test
 	public void testExecutePql()
 	{
-		JsonLite request = createBizRequest("java", QueryBiz.class.getName(), "executePql");
+		System.out.println("QueryBizTest.testExecutePql()");
+		System.out.println("-----------------------------");
+		JsonLite request = createBizRequest(QueryBiz.class.getName(), "executePql");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite rpcParams = createRpcParams("nw/orders?VICTE", 1000);
 		params.put(RequestKey.params.name(), rpcParams);

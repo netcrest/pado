@@ -14,7 +14,7 @@ class PathBiz(RpcShared):
     PathBiz provides grid path methods
     '''
     _grid_path = None
-    _biz_class_name = 'com.netcrest.pado.rpc.client.biz.PathRpcBiz';
+    _biz_class_name = 'com.netcrest.pado.rpc.client.biz.PathBiz';
     
     def __init__(self, grid_path):
         '''

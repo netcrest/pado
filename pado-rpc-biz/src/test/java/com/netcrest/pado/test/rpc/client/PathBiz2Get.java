@@ -10,7 +10,7 @@ import com.netcrest.pado.rpc.client.dna.RpcInvoker;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 
 /**
- * PathBiz2GetTest tests the RPC {@link PathBiz} "get", "query", "size", and "dump"
+ * PathBiz2Get tests the RPC {@link PathBiz} "get", "query", "size", and "dump"
  * methods via {@link RpcInvoker}. This test case requires the "nw" data
  * distributed with Pado. Make sure to first load that set of data in the
  * "mygrid" environment.
@@ -19,17 +19,22 @@ import com.netcrest.pado.rpc.mqtt.RequestKey;
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class PathBiz2GetTest extends AbstractTest
+public class PathBiz2Get extends AbstractTest
 {
 	private final String gridPath = "test1";
 	private final String gridPath2 = "nw/orders";
+		
+	public PathBiz2Get(String lang)
+	{
+		super(lang);
+	}
 
 	@Test
 	public void testGet()
 	{
 		System.out.println("PathBiz2GetTest.testGet()");
 		System.out.println("-------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "get");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "get");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite rpcParams = createRpcParams(gridPath, "key1");
 		params.put(RequestKey.params.name(), rpcParams);
@@ -46,7 +51,7 @@ public class PathBiz2GetTest extends AbstractTest
 	{
 		System.out.println("PathBiz2GetTest.testGetAll()");
 		System.out.println("----------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "getAll");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "getAll");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite rpcParams = createRpcParamsKeys(gridPath, "key1", "key2", "key3");
 		params.put(RequestKey.params.name(), rpcParams);
@@ -63,7 +68,7 @@ public class PathBiz2GetTest extends AbstractTest
 	{
 		System.out.println("PathBiz2GetTest.testQuery()");
 		System.out.println("---------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "query");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "query");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite rpcParams = createRpcParamsQuery(gridPath2, "value['CustomerId']='VICTE'");
 		params.put(RequestKey.params.name(), rpcParams);
@@ -80,7 +85,7 @@ public class PathBiz2GetTest extends AbstractTest
 	{
 		System.out.println("PathBiz2GetTest.testDump()");
 		System.out.println("--------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "dumpGridPath");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "dumpGridPath");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite rpcParams = createRpcParams(gridPath2);
 		params.put(RequestKey.params.name(), rpcParams);
@@ -97,7 +102,7 @@ public class PathBiz2GetTest extends AbstractTest
 	{
 		System.out.println("PathBiz2GetTest.testGetAll()");
 		System.out.println("----------------------------");
-		JsonLite request = createBizRequest("java", PathBiz.class.getName(), "size");
+		JsonLite request = createBizRequest(PathBiz.class.getName(), "size");
 		JsonLite params = (JsonLite) request.get(RequestKey.params.name());
 		JsonLite rpcParams = createRpcParams(gridPath2);
 		params.put(RequestKey.params.name(), rpcParams);

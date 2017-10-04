@@ -19,7 +19,12 @@ public class AbstractTest
 
 	protected static IPado pado;
 	protected static String locators = "ubuntu1:20000";
-
+	protected String lang;
+	
+	public AbstractTest(String lang)
+	{
+		this.lang = lang;
+	}
 	
 	@BeforeClass
 	public static void beforeStart()
@@ -38,9 +43,14 @@ public class AbstractTest
 		Pado.close();
 	}
 
-	protected JsonLite createBizRequest(String lang, String className, String methodName)
+	protected JsonLite createBizRequest(String className, String methodName)
 	{
-		JsonLite request = createRequest(lang, RpcInvoker.class.getName(), "invoke");
+		JsonLite request;
+		if (lang.equals("java")) {
+			request = createRequest(RpcInvoker.class.getName(), "invoke");
+		} else {
+			request = createRequest("com.netcrest.pado.rpc.client.dna.rpc_invoker.RpcInvoker", "invoke");
+		}
 		JsonLite params = new JsonLite();
 		params.put(RequestKey.classname.name(), className);
 		params.put(RequestKey.method.name(), methodName);
@@ -48,14 +58,14 @@ public class AbstractTest
 		return request;
 	}
 	
-	protected JsonLite createRequest(String lang, String className, String methodName)
+	protected JsonLite createRequest(String className, String methodName)
 	{
 		JsonLite request = new JsonLite();
 		request.put(RequestKey.lang.name(), lang);
 		request.put(RequestKey.classname.name(), className);
 		request.put(RequestKey.method.name(), methodName);
 		request.put(RequestKey.id.name(), System.nanoTime() + "");
-		request.put(RequestKey.agent.name(), true);
+		request.put(RequestKey.agent.name(), false);
 		request.put(RequestKey.jsonrpc.name(), "2.0");
 		return request;
 	}
