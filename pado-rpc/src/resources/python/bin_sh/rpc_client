@@ -5,9 +5,9 @@
 # Server name
 SERVER_NAME=$1
 
-pushd .. > /dev/null 2>&1
+pushd $RUN_DIR > /dev/null 2>&1
 
-echo "Date: `date`" >> log/rpc_client-${SERVER_NAME}.log
-echo "$PYTHON -m com.netcrest.pado.rpc.rpc $*" >> log/rpc_client-${SERVER_NAME}.log
-$PYTHON -m com.netcrest.pado.rpc.rpc $* >> log/rpc_client-${SERVER_NAME}.log 2>&1
+echo "Date: `date`" >> $LOG_DIR/rpc_client-${SERVER_NAME}.log
+echo "$PYTHON -m com.netcrest.pado.rpc.rpc $*" >> $LOG_DIR/rpc_client-${SERVER_NAME}.log
+$PYTHON -m com.netcrest.pado.rpc.rpc $* >> $LOG_DIR/rpc_client-${SERVER_NAME}.log 2>&1
 popd > /dev/null 2>&1

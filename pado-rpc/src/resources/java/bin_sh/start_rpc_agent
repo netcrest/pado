@@ -28,7 +28,10 @@ if [ "$HELP" == "true" ]; then
 fi
 
 if [ "$RUN_DIR" == "" ]; then
-   RUN_DIR=$BASE_DIR
+   RUN_DIR=$BASE_DIR/run
+fi
+if [ ! -d $RUN_DIR ]; then
+  mkdir -p $RUN_DIR
 fi
 
 # log directory
@@ -97,17 +100,17 @@ done
 if [ "$agents" != "" ]; then
    echo "$LANG: rpc agent already running [$agents]"
 else
-   pushd $BASE_DIR > /dev/null 2>&1
-   echo "" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "================================================================" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Pado RPC Agent" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Data Node: ${SERVER_NAME}" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Lang: java" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Started: `date`" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "================================================================" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcAgent $*" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "" >> log/rpc_agent-${SERVER_NAME}.log
-   $PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcAgent $* >> log/rpc_agent-${SERVER_NAME}.log 2>&1 &
+   pushd $RUN_DIR > /dev/null 2>&1
+   echo "" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "================================================================" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Pado RPC Agent" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Data Node: ${SERVER_NAME}" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Lang: java" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Started: `date`" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "================================================================" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "$PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcAgent $*" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   $PADO_JAVA -DrpcPropertyFile=$RPC_PROPERTY_FILE $HEAP_SiZE com.netcrest.pado.rpc.client.RpcAgent $* >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log 2>&1 &
    popd  > /dev/null 2>&1
    pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep java | awk '{print $1}'`
    for i in $pids; do

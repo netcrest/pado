@@ -16,10 +16,14 @@ import java.util.concurrent.Future;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.log.Logger;
+import com.netcrest.pado.rpc.IDna;
+import com.netcrest.pado.rpc.client.IRpcContext;
+import com.netcrest.pado.rpc.client.impl.RpcContextImpl;
 import com.netcrest.pado.rpc.mqtt.Constants;
 import com.netcrest.pado.rpc.mqtt.ReplyKey;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
+import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * RpcUtil provides convenience methods for handling Pado-extended JSON RPC 2.0
@@ -48,21 +52,25 @@ public class RpcUtil
 	/**
 	 * Creates a request object for the specified function and parameters.
 	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param functionName
 	 *            Function name
 	 * @param params
 	 *            Function parameters
 	 * @return Request object
 	 */
-	public final static JsonLite createRequest(String functionName, JsonLite params)
+	public final static JsonLite createRequest(IRpcContext rpcContext, String functionName, JsonLite params)
 	{
-		return createRequest(null, functionName, params);
+		return createRequest(rpcContext, null, functionName, params);
 	}
 
 	/**
 	 * Creates a request object for the specified class' method with the
 	 * specified parameters.
 	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param className
 	 *            Class name.
 	 * @param methodName
@@ -71,7 +79,7 @@ public class RpcUtil
 	 * @param params
 	 *            Method or function parameters
 	 */
-	public final static JsonLite createRequest(String className, String methodName, JsonLite params)
+	public final static JsonLite createRequest(IRpcContext rpcContext, String className, String methodName, JsonLite params)
 	{
 		JsonLite request = new JsonLite();
 		request.put(RequestKey.id.name(), Long.toString(System.nanoTime()));
@@ -82,6 +90,10 @@ public class RpcUtil
 		request.put(RequestKey.method.name(), methodName);
 		if (params != null) {
 			request.put(RequestKey.params.name(), params);
+		}
+		if (rpcContext != null) {
+			request.put(RequestKey.token.name(), rpcContext.getToken());
+			request.put(RequestKey.username.name(), rpcContext.getUsername());
 		}
 		return request;
 	}
@@ -234,6 +246,84 @@ public class RpcUtil
 	}
 
 	/**
+	 * Returns the result or error wrap from the specified reply. If the error
+	 * parameter exists then it returns the error wrap (see
+	 * {@link RpcUtil#createErrorWrap(JsonLite)}.
+	 * 
+	 * @param reply
+	 *            JSON RPC 2.0 reply object
+	 * @return null if the specified reply is null or neither result or error
+	 *         exist.
+	 */
+	public final static Object getResultOrErrorWrap(JsonLite reply)
+	{
+		return getResult(reply, null);
+	}
+
+	/**
+	 * Returns the result or error wrap from the specified reply. If the error
+	 * parameter exists then it returns the error wrap (see
+	 * {@link RpcUtil#createErrorWrap(JsonLite)}.
+	 * 
+	 * @param reply
+	 *            JSON RPC 2.0 reply object
+	 * @param defaultValue
+	 *            Default value to return if neither result or error exist
+	 * @return null if the specified reply is null or the specified default
+	 *         value if neither result or error exist.
+	 */
+	public final static Object getResultOrErrorWrap(JsonLite reply, Object defaultValue)
+	{
+		if (reply == null) {
+			return null;
+		}
+		if (reply.containsKey(ReplyKey.error.name())) {
+			return createErrorWrap((JsonLite) reply.get(ReplyKey.error.name()));
+		} else if (reply.containsKey(ReplyKey.result.name())) {
+			return reply.get(ReplyKey.result.name());
+		} else {
+			return defaultValue;
+		}
+	}
+
+	/**
+	 * Returns the result the specified reply. Note that unlike
+	 * {@link #getResultOrErrorWrap(JsonLite)}, it does not check for error.
+	 * 
+	 * @param reply
+	 *            JSON RPC 2.0 reply object
+	 * @return null if the specified reply is null or the result does not exist.
+	 */
+	public final static Object getResult(JsonLite reply)
+	{
+		return getResult(reply, null);
+	}
+
+	/**
+	 * Returns the result the specified reply. Note that unlike
+	 * {@link #getResultOrErrorWrap(JsonLite, Object))}, it does not check for
+	 * error.
+	 * 
+	 * @param reply
+	 *            JSON RPC 2.0 reply object
+	 * @param defaultValue
+	 *            Default value to return if the result does not exist
+	 * @return null if the specified reply is null or the specified default
+	 *         value if the result does not exist.
+	 */
+	public final static Object getResult(JsonLite reply, Object defaultValue)
+	{
+		if (reply == null) {
+			return null;
+		}
+		if (reply.containsKey(ReplyKey.result.name())) {
+			return reply.get(ReplyKey.result.name());
+		} else {
+			return defaultValue;
+		}
+	}
+
+	/**
 	 * Invokes the method specified in the specified request. If the method is
 	 * not found in the request then it returns null.
 	 * 
@@ -271,7 +361,7 @@ public class RpcUtil
 	}
 
 	/**
-	 * Returns the RPC businesss object implementation class name for the
+	 * Returns the RPC business object implementation class name for the
 	 * specified client object class name.
 	 * 
 	 * @param bizClassName
@@ -390,20 +480,35 @@ public class RpcUtil
 		System.out.println(jrequest.toString(4, false, false));
 
 		String className = jrequest.getString(RequestKey.classname.name(), null);
+		final int timeout = jrequest.getInt(RequestKey.timeout.name(), 10000);
 		try {
 			Class clazz = Class.forName(className);
-			final Object obj = clazz.newInstance();
+			final IDna dna = (IDna)clazz.newInstance();
+			Object token = jrequest.get(RequestKey.token.name());
+			String username = jrequest.getString(RequestKey.username.name(), PadoServerManager.getPadoServerManager().getUsername(token));
+			dna.init(new RpcContextImpl(token, username));
 			String methodName = jrequest.getString(RequestKey.method.name(), null);
-			final Method method = clazz.getMethod(methodName, JsonLite.class);
+			Method methodToCall = clazz.getMethod(methodName, JsonLite.class, int.class);
+			final boolean isTimeout = methodToCall != null;
+			if (methodToCall == null) {
+				methodToCall = clazz.getMethod(methodName, JsonLite.class);
+			}
+			final Method method = methodToCall;
 			if (method != null) {
 				final JsonLite params = (JsonLite) jrequest.get(RequestKey.params.name());
-				System.out.println("method=" + method + ", obj=" + obj + ", params=" + params);
+				System.out.println("method=" + method + ", obj=" + dna + ", params=" + params);
 
 				boolean isDaemon = jrequest.getBoolean(RequestKey.daemon.name(), true);
 
 				if (isDaemon) {
 					try {
-						Object result = (Object) method.invoke(obj, params);
+						Object result;
+						if (isTimeout) {
+							result = (Object) method.invoke(dna, params, timeout);
+						} else {
+							result = (Object) method.invoke(dna, params);
+						}
+
 						JsonLite reply;
 						if (result != null) {
 							if (result instanceof JsonLite) {
@@ -431,9 +536,13 @@ public class RpcUtil
 						@Override
 						public Object call()
 						{
-							JsonLite result = null;
+							Object result = null;
 							try {
-								result = (JsonLite) method.invoke(obj, params);
+								if (isTimeout) {
+									result = (Object) method.invoke(dna, params, timeout);
+								} else {
+									result = (Object) method.invoke(dna, params);
+								}
 							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 								Logger.error(e);
 							}
@@ -458,9 +567,8 @@ public class RpcUtil
 					}
 				}
 			}
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException
-				| SecurityException | IllegalArgumentException e) {
-			Logger.error(e);
+		} catch (Throwable th) {
+			Logger.error(th);
 		}
 	}
 

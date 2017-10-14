@@ -1,11 +1,19 @@
 package com.netcrest.pado.rpc.client.biz;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class QueryBiz
 {	
+	private IRpcContext rpcContext;
+	
+	public QueryBiz(IRpcContext rpcContext)
+	{
+		this.rpcContext = rpcContext;
+	}
+	
 	public JsonLite executePql(String pql)
 	{
 		return executePql(pql, -1);
@@ -18,7 +26,7 @@ public class QueryBiz
 		if (fetchSize > 0) {
 			params.put("fetchSize", fetchSize);
 		}
-		return MqttJsonRpcClient.getRpcClient().execute(this, "executePql", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "executePql", params, 0);
 	}
 	
 	public JsonLite nextResultSet(JsonLite result)
@@ -52,7 +60,7 @@ public class QueryBiz
 			params.put("fetchSize", fetchSize);
 		}
 		System.out.println("QueryBiz.nextResultSet(): params=" + params.toJsonString());
-		return MqttJsonRpcClient.getRpcClient().execute(this, "executePql", params, 0);	
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "executePql", params, 0);	
 	}
 	
 	public JsonLite prevResultSet(JsonLite result)
@@ -79,6 +87,6 @@ public class QueryBiz
 		params.put("pql", pql);
 		params.put("startIndex", startIndex);
 		params.put("fetchSize", fetchSize);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "executePql", params, 0);	
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "executePql", params, 0);	
 	}
 }

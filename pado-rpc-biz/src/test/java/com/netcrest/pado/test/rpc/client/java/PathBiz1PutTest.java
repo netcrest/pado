@@ -3,11 +3,11 @@ package com.netcrest.pado.test.rpc.client.java;
 import org.junit.Test;
 
 import com.netcrest.pado.rpc.client.biz.PathBiz;
-import com.netcrest.pado.rpc.client.dna.RpcInvoker;
+import com.netcrest.pado.rpc.client.dna.RpcInvokerDna;
 import com.netcrest.pado.test.rpc.client.PathBiz1Put;
 
 /**
- * PathBiz1PutTest tests the RPC {@link PathBiz} methods via {@link RpcInvoker}. This
+ * PathBiz1PutTest tests the RPC {@link PathBiz} methods via {@link RpcInvokerDna}. This
  * test case requires the "nw" data distributed with Pado. Make sure to first
  * load that set of data in the "mygrid" environment.
  * 

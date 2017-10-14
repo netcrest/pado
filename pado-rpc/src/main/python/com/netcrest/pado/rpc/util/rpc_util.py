@@ -9,8 +9,7 @@ import sys
 import threading
 import time
 
-from com.netcrest.pado.rpc.rpc_shared import RpcShared
-
+from com.netcrest.pado.rpc.rpc_shared import RpcShared, RpcContext
 
 def create_request(class_name, method_name, params):
     request = json.loads('{"jsonrpc":"2.0"}')
@@ -26,6 +25,8 @@ def create_request(class_name, method_name, params):
 def create_reply(jrequest, jresult = None, error_code = None, error_message = None, error_data = None):
     jreply = json.loads('{"jsonrpc":"2.0"}')
     jreply['id'] = jrequest['id']
+    if 'token' in jrequest:
+        jreply['token'] = jrequest['token']
     if jresult != None:
         jreply['result'] = jresult
     if error_code != None:
@@ -53,7 +54,15 @@ def create_error_wrap(jerror = None, error_code = -1, error_message = None, erro
  
 def invoke(jrequest):
     if jrequest == None:
-        return None    
+        return None  
+    if 'token' in jrequest:
+        token = jrequest['token']
+    else:
+        token = None
+    if 'username' in jrequest:
+        username = jrequest['username']
+    else:
+        username = None
     class_name = jrequest['classname']
     method_name = jrequest['method']
     jparams = jrequest['params']
@@ -63,6 +72,7 @@ def invoke(jrequest):
     module = importlib.import_module(module_name)
     clazz = getattr(module, class_name)
     obj = clazz()
+    obj.rpc_context = RpcContext(token, username)
     jresult = getattr(obj, method_name)(jparams)
     return jresult
 

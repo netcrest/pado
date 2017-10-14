@@ -4,8 +4,9 @@ import java.util.List;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.exception.PadoException;
-import com.netcrest.pado.rpc.mqtt.ReplyKey;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
+import com.netcrest.pado.rpc.util.RpcUtil;
 
 /**
  * TemporalBiz provides methods to access temporal data.
@@ -16,21 +17,26 @@ import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class TemporalBiz
 {
+	private IRpcContext rpcContext;
 	private String gridPath;
 
 	/**
 	 * Constructs a new instance of TemporalBiz.
 	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param gridPath
 	 *            Grid path (not full path)
 	 */
-	public TemporalBiz(String gridPath)
+	public TemporalBiz(IRpcContext rpcContext, String gridPath)
 	{
+		this.rpcContext = rpcContext;
 		this.gridPath = gridPath;
 	}
 
 	/**
 	 * Returns the grid path.
+	 * 
 	 * @return
 	 */
 	public String getGridPath()
@@ -90,13 +96,10 @@ public class TemporalBiz
 		params.put("identityKey", identityKey);
 		params.put("validAtTime", validAtTime);
 		params.put("asOfTime", asOfTime);
-		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(this, "get", params, 0);
-		if (retJl == null) {
-			return null;
-		}
-		return (JsonLite)retJl.get(ReplyKey.result.name());
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "get", params, 0);
+		return (JsonLite) RpcUtil.getResult(retJl);
 	}
-	
+
 	/**
 	 * Returns the latest temporal entry as of now mapped by the specified
 	 * identity key. It returns null if the value is not found.
@@ -137,8 +140,8 @@ public class TemporalBiz
 	 *            The time at which the value is valid. If -1, then current
 	 *            time.
 	 * @param asOfTime
-	 *            The as-of time compared against the written times. If -1, then current
-	 *            time.
+	 *            The as-of time compared against the written times. If -1, then
+	 *            current time.
 	 * 
 	 */
 	public JsonLite getEntry(Object identityKey, long validAtTime, long asOfTime)
@@ -151,11 +154,8 @@ public class TemporalBiz
 		params.put("identityKey", identityKey);
 		params.put("validAtTime", validAtTime);
 		params.put("asOfTime", asOfTime);
-		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(this, "getEntry", params, 0);
-		if (retJl == null) {
-			return null;
-		}
-		return (JsonLite)retJl.get(ReplyKey.result.name());
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "getEntry", params, 0);
+		return (JsonLite) RpcUtil.getResult(retJl);
 	}
 
 	/**
@@ -217,11 +217,8 @@ public class TemporalBiz
 		params.put("identityKey", identityKey);
 		params.put("validAtTime", validAtTime);
 		params.put("asOfTime", asOfTime);
-		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(this, "getAllEntries", params, 0);
-		if (retJl == null) {
-			return null;
-		}
-		return retJl.getList(ReplyKey.result.name());
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "getAllEntries", params, 0);
+		return (List<JsonLite>) RpcUtil.getResult(retJl);
 	}
 
 	/**
@@ -253,11 +250,9 @@ public class TemporalBiz
 		params.put("validAtTime", validAtTime);
 		params.put("fromWrittenTime", fromWrittenTime);
 		params.put("toWrittenTime", toWrittenTime);
-		JsonLite retJl =  MqttJsonRpcClient.getRpcClient().execute(this, "getEntryHistoryWrittenTimeRangeList", params, 0);
-		if (retJl == null) {
-			return null;
-		}
-		return retJl.getList(ReplyKey.result.name());
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "getEntryHistoryWrittenTimeRangeList", params,
+				0);
+		return (List<JsonLite>) RpcUtil.getResult(retJl);
 	}
 
 	/**
@@ -283,11 +278,8 @@ public class TemporalBiz
 		params.put("gridPath", gridPath);
 		params.put("validAtTime", validAtTime);
 		params.put("asOfTime", asOfTime);
-		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(this, "size", params, 0);
-		if (retJl == null) {
-			return 0;
-		}
-		return retJl.getInt(ReplyKey.result.name(), 0);
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "size", params, 0);
+		return (Integer) RpcUtil.getResult(retJl);
 	}
 
 	/**
@@ -298,10 +290,94 @@ public class TemporalBiz
 	{
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
-		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(this, "getTemporalListCount", params, 0);
-		if (retJl == null) {
-			return 0;
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "getTemporalListCount", params, 0);
+		return (Integer) RpcUtil.getResult(retJl);
+	}
+
+	/**
+	 * Returns the temporal list of the specified identity key. A temporal list
+	 * reflects a history of a given identity key.
+	 * 
+	 * @param identityKey
+	 *            Identity key
+	 * @return null if the specified identity key is not found.
+	 */
+	public List<JsonLite> getTemporalList(String identityKey)
+	{
+		JsonLite params = new JsonLite();
+		params.put("gridPath", gridPath);
+		params.put("identityKey", identityKey);
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "getTemporalList", params, 0);
+		return (List<JsonLite>) RpcUtil.getResult(retJl);
+	}
+
+	/**
+	 * Dumps the temporal lists of the the specified identity keys in the
+	 * specified directory.
+	 * 
+	 * @param dumpDir
+	 *            Directory in which the temporal lists are dumped. If null,
+	 *            then the server specified default directory is used. If
+	 *            directory does not exist, it is created.
+	 * @param identityKeys
+	 *            Identity keys
+	 * @return null if the identity keys are not specified or JSON object
+	 *         containing "dumpDir" and "fileMap". "fileMap" contains
+	 *         ("identityKey", "fileName") entries.
+	 */
+	public JsonLite dumpTemporalLists(String dumpDir, String... identityKeys)
+	{
+		if (identityKeys == null) {
+			return null;
 		}
-		return retJl.getInt(ReplyKey.result.name(), 0);
+		JsonLite params = new JsonLite();
+		params.put("gridPath", gridPath);
+		params.put("dumpDir", dumpDir);
+		params.put("identityKeys", identityKeys);
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "dumpTemporalLists", params, 0);
+		return (JsonLite) RpcUtil.getResult(retJl);
+	}
+
+	/**
+	 * Dumps all of the temporal lists in the data node.
+	 * <p>
+	 * <b>IMPORTANT</b>: This method may take a significant amount of time to
+	 * complete if there are many identity keys. It is recommended to inovoke
+	 * dump_temporal_lists() instead for faster execution and put less load on
+	 * the grid.
+	 * 
+	 * @param dumpDir
+	 *            Directory in which the temporal lists are dumped. If null,
+	 *            then the server specified default directory is used. If
+	 *            directory does not exist, it is created.
+	 * @return null if the identity keys are not specified or JSON object
+	 *         containing "dumpDir" and "fileMap". "fileMap" contains
+	 *         ("identityKey", "fileName") entries.
+	 */
+	public JsonLite dumpAllTemporalLists(String dumpDir)
+	{
+		JsonLite params = new JsonLite();
+		params.put("gridPath", gridPath);
+		params.put("dumpDir", dumpDir);
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "dumpAllTemporalLists", params, 0);
+		return (JsonLite) RpcUtil.getResult(retJl);
+	}
+	
+	/**
+	 * Puts the specified (key, value) pair in the grid path.
+	 * @param key Key
+	 * @param value Value
+	 */
+	public JsonLite put(Object identityKey, JsonLite value, long startValidTime, long endValidTime, long writtenTime)
+	{
+		JsonLite params = new JsonLite();
+		params.put("gridPath", gridPath);
+		params.put("identityKey", identityKey);
+		params.put("value", value);
+		params.put("startValidTime", startValidTime);
+		params.put("endValidTime", endValidTime);
+		params.put("writtenTime", writtenTime);
+		JsonLite retJl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "put", params, 0);
+		return (JsonLite) RpcUtil.getResult(retJl);
 	}
 }

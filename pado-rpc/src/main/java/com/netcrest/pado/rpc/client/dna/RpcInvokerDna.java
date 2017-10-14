@@ -1,13 +1,15 @@
 package com.netcrest.pado.rpc.client.dna;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
+import com.netcrest.pado.rpc.IDna;
 import com.netcrest.pado.rpc.IRpc;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.ReplyKey;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 
 /**
- * RpcInvoker directly invokes {@link IRpc} implementation class methods.
+ * RpcInvokerDna directly invokes {@link IRpc} implementation class methods.
  * Typically, a biz wrapper class that hides the RPC details is used to invoke
  * {@link IRpc} objects, instead. Although this class can directly be used by
  * applications, it is more appropriate for remotely testing {@link IRpc}
@@ -16,8 +18,15 @@ import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
  * @author dpark
  *
  */
-public class RpcInvoker
-{
+public class RpcInvokerDna implements IDna
+{	
+	protected IRpcContext rpcContext;
+
+	public void init(IRpcContext rpcContext)
+	{
+		this.rpcContext = rpcContext;
+	}
+	
 	/**
 	 * Invokes the IRpc method included in the specified parameters.
 	 * 
@@ -34,13 +43,12 @@ public class RpcInvoker
 	 *         the return type of void.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Object invoke(JsonLite params)
+	public Object invoke(JsonLite params, int timeout)
 	{
 		System.out.println("RpcInvoker.invoke() entered");
 		String bizImplClassName = params.getString(RequestKey.classname.name(), null);
 		String method = params.getString(RequestKey.method.name(), null);
 		JsonLite bizImplParams = (JsonLite) params.get(RequestKey.params.name());
-		int timeout = params.getInt(RequestKey.timeout.name(), 1000);
 		if (bizImplClassName == null) {
 			return null;
 		}
@@ -50,7 +58,7 @@ public class RpcInvoker
 		
 		System.out.println("RpcInvoker.invoke() invoking RPC...");
 
-		JsonLite jl = MqttJsonRpcClient.getRpcClient().execute(bizImplClassName, method, bizImplParams, timeout);
+		JsonLite jl = MqttJsonRpcClient.getRpcClient().execute(rpcContext, bizImplClassName, method, bizImplParams, timeout);
 		System.out.println("RpcInvoker.invoke(): reply=" + jl);
 		if (jl == null) {
 			return null;

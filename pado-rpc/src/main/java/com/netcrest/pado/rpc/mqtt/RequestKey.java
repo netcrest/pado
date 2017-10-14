@@ -8,8 +8,10 @@ import com.netcrest.pado.data.jsonlite.JsonLite;
  * @author dpark
  *
  */
-public enum RequestKey {
-	jsonrpc, method, params(JsonLite.class), id, classname, replytopic, lang, daemon(boolean.class), agent(boolean.class), timeout(int.class);
+public enum RequestKey
+{
+	jsonrpc, method, params(JsonLite.class), id, classname, replytopic, lang, daemon(boolean.class), agent(
+			boolean.class), timeout(int.class), token(Object.class), username(String.class);
 
 	private RequestKey()
 	{

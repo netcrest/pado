@@ -114,6 +114,5 @@ public class RpcMain
 		// Close MQTT
 		MqttJsonRpcClient.getRpcClient().close();
 		System.exit(0);
-	
 	}
 }

@@ -46,7 +46,7 @@ public class RpcBizListenerTest
 		arg = "\"" + arg + "\"";
 		System.out.println(arg);
 		System.out.println(request.toJsonString());
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		System.out.println("Reply:");
 		System.out.println(reply);
 		System.out.println();
@@ -61,7 +61,7 @@ public class RpcBizListenerTest
 		request.put(RequestKey.lang.name(), "java");
 		System.out.println("Request:");
 		System.out.println(request.toString(4, false, false));
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		System.out.println("Reply:");
 		System.out.println(reply);
 		System.out.println();

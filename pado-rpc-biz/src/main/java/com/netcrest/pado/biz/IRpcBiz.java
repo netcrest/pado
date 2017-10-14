@@ -7,6 +7,7 @@ import com.netcrest.pado.annotation.BizClass;
 import com.netcrest.pado.annotation.BizMethod;
 import com.netcrest.pado.annotation.OnPath;
 import com.netcrest.pado.annotation.OnServer;
+import com.netcrest.pado.annotation.WithGridCollector;
 import com.netcrest.pado.data.jsonlite.JsonLite;
 
 /**
@@ -134,21 +135,23 @@ public interface IRpcBiz extends IBiz
 	 * 
 	 * @param request
 	 *            Request JSON object
-	 * @return List of reply JSON objects from all servers
+	 * @return Aggregated list of replies from all servers mapped by grid IDs.
 	 */
 	@BizMethod
 	@OnServer(broadcast = true)
-	List<JsonLite> broadcast(JsonLite request);
+	@WithGridCollector(gridCollectorClass="com.netcrest.pado.biz.collector.JsonLiteGridCollector")
+	JsonLite broadcast(JsonLite request);
 
 	/**
 	 * Executes the specified request on one of the servers in the grid.
 	 * 
 	 * @param request
 	 *            Request JSON object
-	 * @return RPC method call reply
+	 * @return RPC method call reply mapped by grid IDs.
 	 */
 	@BizMethod
 	@OnServer
+	@WithGridCollector(gridCollectorClass="com.netcrest.pado.biz.collector.JsonLiteGridCollector")
 	JsonLite executeOnServer(JsonLite request);
 	
 	/**
@@ -156,9 +159,10 @@ public interface IRpcBiz extends IBiz
 	 * 
 	 * @param request
 	 *            Request JSON object
-	 * @return RPC method call reply
+	 * @return Aggregated list of replies from one or more servers mapped by grid IDs.
 	 */
 	@BizMethod
 	@OnPath
-	List<JsonLite> executeOnPath(JsonLite request);
+	@WithGridCollector(gridCollectorClass="com.netcrest.pado.biz.collector.JsonLiteGridCollector")
+	JsonLite executeOnPath(JsonLite request);
 }

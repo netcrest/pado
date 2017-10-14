@@ -14,6 +14,7 @@ import com.netcrest.pado.index.result.IMemberResults;
 import com.netcrest.pado.index.result.ValueInfo;
 import com.netcrest.pado.index.service.GridQuery;
 import com.netcrest.pado.rpc.IRpc;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.TemporalEntry;
@@ -21,6 +22,13 @@ import com.netcrest.pado.temporal.TemporalEntry;
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class QueryBizImpl implements IRpc
 {
+	protected IRpcContext rpcContext;
+
+	public void init(IRpcContext rpcContext)
+	{
+		this.rpcContext = rpcContext;
+	}
+
 	public JsonLite executePql(JsonLite params) throws Exception
 	{
 		String pql = params.getString("pql", null);

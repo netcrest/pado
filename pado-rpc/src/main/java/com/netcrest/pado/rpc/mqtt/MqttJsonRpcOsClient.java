@@ -53,7 +53,7 @@ public class MqttJsonRpcOsClient implements ClientConstants
 	public String[] getLangCommand(JsonLite request)
 	{
 		return new String[] { RPC_CLIENT_COMMAND, PadoServerManager.getPadoServerManager().getServerName(),
-			 request.toString() };
+				request.toString() };
 	}
 
 	/**
@@ -79,13 +79,15 @@ public class MqttJsonRpcOsClient implements ClientConstants
 	 * in msec, if not specified then {@link Constants#DEFAULT_TIMEOUT_IN_MSEC}.
 	 * </ul>
 	 * 
+	 * @param token
+	 *            User session token
 	 * @param request
 	 *            Request conforming to the Pado-extended JSON RPC 2.0 spec.
 	 * 
 	 * @return Reply of request execution
 	 */
 	@SuppressWarnings("unchecked")
-	public JsonLite execute(JsonLite request)
+	public JsonLite execute(Object token, JsonLite request)
 	{
 		if (request == null) {
 			return null;
@@ -94,20 +96,26 @@ public class MqttJsonRpcOsClient implements ClientConstants
 
 		String idOriginal = request.getString(RequestKey.id.name(), null);
 		if (idOriginal != null) {
-			
-			// A new id specific to this server must be used in case multiple servers are running in the same machine.
+
+			// A new id specific to this server must be used in case multiple
+			// servers are running in the same machine.
 			String idTarget = idOriginal + PadoServerManager.getPadoServerManager().getServerName();
 			request.put(RequestKey.id.name(), idTarget);
 			ThreadReply threadReply = new ThreadReply(Thread.currentThread());
 			idThreadMap.put(idTarget, threadReply);
 			boolean isAgent = request.getBoolean(RequestKey.agent.name(), true);
 
+			// Add the token/username in the request
+			request.put(RequestKey.token.name(), token);
+			request.put(RequestKey.username.name(), PadoServerManager.getPadoServerManager().getUsername(token));
+
 			try {
 				if (isAgent) {
 					// Agent requests go directly on the MQTT agent request
 					// topic (from server to rpc_agent)
 					String lang = request.getString(RequestKey.lang.name(), "java");
-					String agentRequestTopic = RpcUtil.getAgentRequestTopic(lang, PadoServerManager.getPadoServerManager().getServerName());
+					String agentRequestTopic = RpcUtil.getAgentRequestTopic(lang,
+							PadoServerManager.getPadoServerManager().getServerName());
 					MqttJsonRpcListenerImpl.getMqttJsonRpcListenerImpl().publish(agentRequestTopic, request);
 
 				} else {
@@ -122,8 +130,7 @@ public class MqttJsonRpcOsClient implements ClientConstants
 						Logger.error("Error occured while executing an OS command: request=" + request);
 					}
 					// Note that output is always null if the isOutput argument
-					// of
-					// OsUtil.executeCommand() is false.
+					// of OsUtil.executeCommand() is false.
 					if (output != null) {
 						String result = output.getOutput();
 						Logger.info(result);

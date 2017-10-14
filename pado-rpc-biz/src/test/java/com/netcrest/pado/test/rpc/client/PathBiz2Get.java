@@ -6,12 +6,12 @@ import org.junit.Test;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.rpc.client.biz.PathBiz;
-import com.netcrest.pado.rpc.client.dna.RpcInvoker;
+import com.netcrest.pado.rpc.client.dna.RpcInvokerDna;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 
 /**
  * PathBiz2Get tests the RPC {@link PathBiz} "get", "query", "size", and "dump"
- * methods via {@link RpcInvoker}. This test case requires the "nw" data
+ * methods via {@link RpcInvokerDna}. This test case requires the "nw" data
  * distributed with Pado. Make sure to first load that set of data in the
  * "mygrid" environment.
  * 
@@ -42,7 +42,7 @@ public class PathBiz2Get extends AbstractTest
 		printRequest(request);
 
 		System.out.println("Reply:");
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		printReply(reply);
 	}
 
@@ -59,7 +59,7 @@ public class PathBiz2Get extends AbstractTest
 		printRequest(request);
 
 		System.out.println("Reply:");
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		printReply(reply);
 	}
 
@@ -76,7 +76,7 @@ public class PathBiz2Get extends AbstractTest
 		printRequest(request);
 
 		System.out.println("Reply:");
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		printReply(reply);
 	}
 
@@ -93,7 +93,7 @@ public class PathBiz2Get extends AbstractTest
 		printRequest(request);
 
 		System.out.println("Reply:");
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		printReply(reply);
 	}
 
@@ -110,7 +110,7 @@ public class PathBiz2Get extends AbstractTest
 		printRequest(request);
 
 		System.out.println("Reply:");
-		List<JsonLite> reply = rpcBiz.broadcast(request);
+		JsonLite reply = rpcBiz.broadcast(request);
 		printReply(reply);
 	}
 

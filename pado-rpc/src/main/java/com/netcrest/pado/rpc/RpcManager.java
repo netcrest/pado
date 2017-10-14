@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
+import com.netcrest.pado.rpc.client.impl.RpcContextImpl;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 import com.netcrest.pado.rpc.util.RpcUtil;
+import com.netcrest.pado.server.PadoServerManager;
 
 /**
  * RpcManager manages {@link IRpc} classes by providing static methods to add a
@@ -22,7 +24,7 @@ public class RpcManager
 {
 	private final static RpcManager manager = new RpcManager();
 
-	private Map<String, IRpc> rpcMap = Collections.synchronizedMap(new HashMap<String, IRpc>(20));
+//	private Map<String, IRpc> rpcMap = Collections.synchronizedMap(new HashMap<String, IRpc>(20));
 
 	private Map<String, Class<?>> rpcClassMap = Collections.synchronizedMap(new HashMap<String, Class<?>>(20));
 
@@ -44,7 +46,7 @@ public class RpcManager
 			String rpcBizClassName = RpcUtil.getBizClassName(clazz.getName());
 			rpcClassMap.put(rpcBizClassName, clazz);
 			IRpc rpc = (IRpc) clazz.newInstance();
-			rpcMap.put(rpcBizClassName, rpc);
+//			rpcMap.put(rpcBizClassName, rpc);
 		}
 	}
 
@@ -79,7 +81,7 @@ public class RpcManager
 	 * @return Pado-extended JSON RPC 2.0 reply that contains the "result"
 	 *         parameter assigned to the method returned value. A reply may
 	 *         contain the "error" parameter instead if the class instantiation
-	 *         or method invokation fails.
+	 *         or method invocation fails.
 	 */
 	@SuppressWarnings("rawtypes")
 	public JsonLite invoke(JsonLite request)
@@ -89,6 +91,9 @@ public class RpcManager
 		IRpc rpc = null;
 		try {
 			rpc = newInstance(className);
+			Object token = request.get(RequestKey.token.name());
+			String username = PadoServerManager.getPadoServerManager().getUsername(token);
+			rpc.init(new RpcContextImpl(token, username));
 		} catch (Exception ex) {
 			reply = RpcUtil.createReply(request, -1000, ex.getClass().getName() + ": " + ex.getMessage(), null);
 		}

@@ -3,21 +3,21 @@ package com.netcrest.pado.test.rpc.client.python;
 import org.junit.Test;
 
 import com.netcrest.pado.rpc.client.biz.PathBiz;
-import com.netcrest.pado.rpc.client.dna.RpcInvoker;
+import com.netcrest.pado.rpc.client.dna.RpcInvokerDna;
 import com.netcrest.pado.test.rpc.client.PathBiz1Put;
 import com.netcrest.pado.test.rpc.client.PathBiz3Remove;
 
 /**
  * PathBiz3RemovalTest tests the RPC {@link PathBiz} "remove" methods via
- * {@link RpcInvoker}. You must run {@link PathBiz1Put} first to insert data
+ * {@link RpcInvokerDna}. You must run {@link PathBiz1Put} first to insert data
  * into the grid.
  * 
  * @author dpark
  *
  */
-public class PathBiz3RemovalTest extends PathBiz3Remove
+public class PathBiz3RemoveTest extends PathBiz3Remove
 {
-	public PathBiz3RemovalTest()
+	public PathBiz3RemoveTest()
 	{
 		super("python");
 	}

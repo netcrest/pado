@@ -8,11 +8,11 @@ from com.netcrest.pado.rpc.util import rpc_util
 from com.netcrest.pado.rpc.util.rpc_util import create_request
 
 
-class RpcInvoker(RpcShared):
+class RpcInvokerDna(RpcShared):
     '''
-    RpcInvoker invokes IRpc methods.
+    RpcInvokerDna invokes IRpc methods.
     
-    RpcInvoker directly invokes IRpc implementation class methods.
+    RpcInvokerDna directly invokes IRpc implementation class methods.
     Typically, a biz wrapper class that hides the RPC details is used to invoke
     IRpc objects, instead. Although this class can directly be used by
     applications, it is more appropriate for remotely testing IRpc
@@ -23,7 +23,7 @@ class RpcInvoker(RpcShared):
         pass
         
     def invoke(self, jparams):
-        print('rpc_invoker.invoker() entered')
+        print('rpc_invoker_dna.invoke() entered')
         if not 'classname' in jparams:
             return None
         rpc_class_name = jparams['classname']
@@ -40,10 +40,10 @@ class RpcInvoker(RpcShared):
             timeout = jparams['timeout']
         timeout_in_sec = timeout / 1000
         
-        print('rpc_invoker.invoker(): timeout=' + str(timeout_in_sec))
+        print('rpc_invoker_dna.invoke(): timeout=' + str(timeout))
         jrequest = create_request(rpc_class_name, method, rpc_params)
-        print('rpc_invoker.invoker(): jrequest=' + str(jrequest))
-        jresult = self.rpc.execute(jrequest, timeout_in_sec)
+        print('rpc_invoker_dna.invoke(): jrequest=' + str(jrequest))
+        jresult = self.rpc.execute(self.rpc_context, jrequest, timeout)
         if 'error' in jresult:
             error = jresult['error']
             return rpc_util.create_error_wrap(jerror=error)
@@ -52,5 +52,3 @@ class RpcInvoker(RpcShared):
                 return jresult['result']
             else:
                 return None
-        
-        

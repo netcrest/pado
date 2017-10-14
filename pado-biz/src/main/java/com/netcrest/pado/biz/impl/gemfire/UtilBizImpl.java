@@ -214,7 +214,8 @@ public class UtilBizImpl
 	 * @param gridPath
 	 *            Grid path. If nested, then CSV file is created in the parent
 	 *            directory.
-	 * @return
+	 * @return Dumped file path. Null if the local data set is empty or the grid
+	 *         path is not defined.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public synchronized String dumpServer(File topDir, String fileNamePostfix, String gridPath)
@@ -414,8 +415,8 @@ public class UtilBizImpl
 		whichInfo.setServerName(serverName);
 		whichInfo.setServerId(serverId);
 		whichInfo.setHost(member.getHost());
-		whichInfo.setRedundancyZone(CacheFactory
-						.getAnyInstance().getDistributedSystem().getProperties().getProperty("redundancy-zone"));
+		whichInfo.setRedundancyZone(
+				CacheFactory.getAnyInstance().getDistributedSystem().getProperties().getProperty("redundancy-zone"));
 
 		return whichInfo;
 	}
@@ -783,14 +784,14 @@ public class UtilBizImpl
 	// }
 	// return filePathList;
 	// }
-	
+
 	@BizMethod
 	public void setCompositeKeyInfo(String gridPath, CompositeKeyInfo compositeKeyInfo)
 	{
 		String fullPath = GridUtil.getFullPath(gridPath);
 		RegionUtil.setCompositeKeyInfoForIdentityKeyPartionResolver(fullPath, compositeKeyInfo);
 	}
-	
+
 	@BizMethod
 	public CompositeKeyInfo getCompositeKeyInfo(String gridPath)
 	{

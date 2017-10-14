@@ -22,6 +22,7 @@ import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.rpc.BizProxy;
 import com.netcrest.pado.rpc.IRpc;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.MqttJsonRpcListenerImpl;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.util.GridUtil;
@@ -31,11 +32,18 @@ public class PathBizImpl implements IRpc
 {
 	private static HashMap<String, CacheListener> cacheListenerMap = new HashMap<String, CacheListener>();
 
+	protected IRpcContext rpcContext;
+
+	public void init(IRpcContext rpcContext)
+	{
+		this.rpcContext = rpcContext;
+	}
+
 	public JsonLite put(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
 		String key = params.getString("key", null);
-		JsonLite value = (JsonLite)params.get("value", null);
+		JsonLite value = (JsonLite) params.get("value", null);
 
 		if (gridPath == null) {
 			throw new InvalidParameterException("gridPath undefined");
@@ -55,11 +63,11 @@ public class PathBizImpl implements IRpc
 		region.put(key, value);
 		return value;
 	}
-	
+
 	public void putAll(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
-		JsonLite entryMap = (JsonLite)params.get("entryMap", null);
+		JsonLite entryMap = (JsonLite) params.get("entryMap", null);
 
 		if (gridPath == null) {
 			throw new InvalidParameterException("gridPath undefined");
@@ -67,7 +75,7 @@ public class PathBizImpl implements IRpc
 		if (entryMap == null) {
 			throw new InvalidParameterException("entryMap undefined");
 		}
-	
+
 		String fullPath = GridUtil.getFullPath(gridPath);
 		Region region = CacheFactory.getAnyInstance().getRegion(fullPath);
 		if (region == null) {
@@ -76,7 +84,7 @@ public class PathBizImpl implements IRpc
 		Map map = new HashMap(entryMap);
 		region.putAll(map);
 	}
-	
+
 	public JsonLite remove(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
@@ -94,9 +102,9 @@ public class PathBizImpl implements IRpc
 		if (region == null) {
 			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
 		}
-		return (JsonLite)region.remove(key);
+		return (JsonLite) region.remove(key);
 	}
-	
+
 	public JsonLite get(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
@@ -114,13 +122,13 @@ public class PathBizImpl implements IRpc
 		if (region == null) {
 			throw new InvalidParameterException("Invalid grid path: " + gridPath + " [fullPath=" + fullPath);
 		}
-		return (JsonLite)region.get(key);
+		return (JsonLite) region.get(key);
 	}
-	
+
 	public JsonLite getAll(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
-		Object[] keyArray = (Object[])params.getArray("keyArray");
+		Object[] keyArray = (Object[]) params.getArray("keyArray");
 
 		if (gridPath == null) {
 			throw new InvalidParameterException("gridPath undefined");
@@ -140,11 +148,11 @@ public class PathBizImpl implements IRpc
 		} else {
 			r = region;
 		}
-		
+
 		Map<String, JsonLite> map = r.getAll(Arrays.asList(keyArray));
 		return new JsonLite<>(map);
 	}
-	
+
 	public List<JsonLite> query(JsonLite params) throws Exception
 	{
 		String gridPath = params.getString("gridPath", null);
@@ -166,12 +174,12 @@ public class PathBizImpl implements IRpc
 		List<JsonLite> list = sr.asList();
 		return list;
 	}
-	
+
 	public List<JsonLite> executePql(JsonLite params) throws Exception
 	{
 		String pql = params.getString("pql", null);
 		IPqlBiz pqlBiz = BizProxy.newInstance(IPqlBiz.class);
-		return (List<JsonLite>)pqlBiz.executePql(pql);
+		return (List<JsonLite>) pqlBiz.executePql(pql);
 	}
 
 	public String dumpGridPath(JsonLite params)

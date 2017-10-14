@@ -123,12 +123,13 @@ class RpcClient(object):
         return self.is_terminated
     
     # Returns JSON reply
-    def execute(self, jrequest, timeout = 0):
-        '''Execute the specified request
+    def execute(self, rpc_context, jrequest, timeout = 0):
+        '''Executes the specified request
         
         Args:
+            rpc_context: RPC context object
             jrequest: JSON RPC 2.0 request
-            timeout: Timeout in sec. Default is 0, i.e., no timeout
+            timeout: Timeout in msec. Default is 0, i.e., no timeout
             
         Returns:
             JSON RPC 2.0 reply
@@ -139,6 +140,8 @@ class RpcClient(object):
         if id_ != None:
             threadReply = self.ThreadReply(threading.currentThread())
             self.id_map[id_] = threadReply
+            jrequest['token'] = rpc_context.token
+            jrequest['username'] = rpc_context.username
             jrequest['replytopic'] = self.topic_reply
             request = json.dumps(jrequest)
             (result, mid) = self.client.publish(self.topic_request, request, 2, False)
@@ -148,9 +151,11 @@ class RpcClient(object):
                 
             if timeout < 0:
                 timeout = 0
+            # convert to seconds
+            timeout_in_sec = float(timeout/1000.0)
             threadReply.__condition__.acquire()
             while threadReply.jreply == None:
-                threadReply.__condition__.wait(timeout)
+                threadReply.__condition__.wait(timeout_in_sec)
             threadReply.__condition__.release()
             jreply = threadReply.jreply    
         return jreply

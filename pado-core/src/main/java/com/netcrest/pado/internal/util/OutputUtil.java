@@ -36,6 +36,7 @@ import com.netcrest.pado.index.service.IScrollableResultSet;
 import com.netcrest.pado.temporal.ITemporalData;
 import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.TemporalData;
+import com.netcrest.pado.temporal.TemporalEntry;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class OutputUtil
@@ -270,17 +271,24 @@ public class OutputUtil
 
 	/**
 	 * Prints the contents of the specified list to the specified writer.
-	 * IMPORTANT: Currently supports only Map objects.
+	 * IMPORTANT: Currently supports only temporal and Map objects.
 	 * 
 	 * @param writer
+	 *            Print writer.
 	 * @param list
+	 *            List containing the objects to print. An object can be Map or
+	 *            TemporalEntry.
 	 * @param fieldTerminator
+	 *            Field terminator or separator
 	 * @param printType
 	 *            If KEYS_VALUES then the specified list must contain keys and
-	 *            values in GemFire Struct form. Otherwise, the list must
-	 *            contain non-Struct types.
+	 *            values in GemFire {@link Struct} or {@link TemporalEntry}
+	 *            form.
 	 * @param dateFormat
+	 *            Date format used for all {@link Date} fields including
+	 *            temporal key time fields.
 	 * @param isPrintColumnHeader
+	 *            true to print the column header.
 	 */
 	public static void printList(PrintWriter writer, List list, String fieldTerminator, int printType,
 			SimpleDateFormat dateFormat, boolean isPrintColumnHeader)
@@ -291,6 +299,7 @@ public class OutputUtil
 		ResultMetaData rmd = null;
 
 		boolean isStructType = list.size() > 0 && list.get(0) instanceof Struct;
+		boolean isTemporalEntryType = list.size() > 0 && list.get(0) instanceof TemporalEntry;
 
 		switch (printType) {
 		case TYPE_KEYS:
@@ -395,6 +404,54 @@ public class OutputUtil
 						writer.println();
 					}
 				}
+			} else if (isTemporalEntryType) {
+
+				TemporalEntry<ITemporalKey, ITemporalData> te = (TemporalEntry) list.get(0);
+				Object key = te.getTemporalKey();
+				Object value = te.getTemporalData();
+				rmd = getMetaData(key, value);
+
+				// Print keys and values
+				// key (identity key) header
+				if (isPrintColumnHeader) {
+					printCsvHeader(writer, key, rmd.keyGetters, rmd.keyList, fieldTerminator, "Key");
+					writer.print(fieldTerminator);
+					printCsvHeader(writer, value, rmd.valueGetters, rmd.keyList, fieldTerminator, "Value");
+					writer.println();
+				}
+				if (rmd.keyList != null && rmd.temporalKey == null) {
+					for (Object object : list) {
+						te = (TemporalEntry<ITemporalKey, ITemporalData>) object;
+						key = te.getTemporalKey();
+						value = te.getTemporalData();
+						printObject(writer, rmd.keyGetters, key, fieldTerminator, dateFormat);
+						writer.print(fieldTerminator);
+						printMap(writer, rmd.keyList, (Map) value, fieldTerminator, dateFormat);
+						writer.println();
+					}
+				} else if (rmd.temporalKey == null) {
+					for (Object object : list) {
+						te = (TemporalEntry<ITemporalKey, ITemporalData>) object;
+						key = te.getTemporalKey();
+						value = te.getTemporalData();
+						printObject(writer, rmd.keyGetters, key, fieldTerminator, dateFormat);
+						writer.print(fieldTerminator);
+						printObject(writer, rmd.valueGetters, value, fieldTerminator, dateFormat);
+						writer.println();
+					}
+				} else {
+					for (Object object : list) {
+						te = (TemporalEntry<ITemporalKey, ITemporalData>) object;
+						ITemporalKey temporalKey = te.getTemporalKey();
+						ITemporalData temporalData = te.getTemporalData();
+						printTemporalKey(writer, rmd.keyGetters, temporalKey, fieldTerminator, dateFormat);
+						writer.print(fieldTerminator);
+						printTemporalData(writer, rmd.keyType, rmd.keyList, rmd.valueGetters, temporalData,
+								fieldTerminator, dateFormat);
+						writer.println();
+					}
+				}
+
 			}
 
 			break;
@@ -671,11 +728,11 @@ public class OutputUtil
 				writer.print(value);
 			}
 
-		} else
-			if (object.getClass().isPrimitive() || object.getClass() == Boolean.class || object.getClass() == Byte.class
-					|| object.getClass() == Character.class || object.getClass() == Short.class
-					|| object.getClass() == Integer.class || object.getClass() == Long.class
-					|| object.getClass() == Float.class || object.getClass() == Double.class) {
+		} else if (object.getClass().isPrimitive() || object.getClass() == Boolean.class
+				|| object.getClass() == Byte.class || object.getClass() == Character.class
+				|| object.getClass() == Short.class || object.getClass() == Integer.class
+				|| object.getClass() == Long.class || object.getClass() == Float.class
+				|| object.getClass() == Double.class) {
 			writer.print(object.toString());
 
 		} else if (object instanceof Date) {

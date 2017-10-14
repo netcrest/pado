@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -21,6 +20,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.internal.util.QueueDispatcherListener;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.Constants;
 import com.netcrest.pado.rpc.mqtt.MqttClientThread;
 import com.netcrest.pado.rpc.mqtt.ReplyKey;
@@ -58,7 +58,7 @@ public class MqttJsonRpcClient implements ClientConstants
 	private String agentRequestTopic;
 	private boolean isAgent;
 	private boolean isDebug;
-	
+
 	// agentExecutorService is created only if the isAgent is true
 	private ExecutorService agentExecutorService;
 
@@ -121,6 +121,7 @@ public class MqttJsonRpcClient implements ClientConstants
 		replyTopic = TOPIC_REPLY_PREFIX + "/" + uuid.toString();
 		String topics[];
 		if (isAgent) {
+			clientId = "rpc-agent-" + hostName + "-" + serverId;
 			agentRequestTopic = RpcUtil.getAgentRequestTopic("java", serverId);
 			topics = new String[] { agentRequestTopic, replyTopic };
 			val = rpcProps.getProperty(PROP_RPC_AGENT_THREAD_POOL_SIZE, Integer.toString(DEFAULT_RPC_AGENT_POOL_SIZE));
@@ -132,6 +133,7 @@ public class MqttJsonRpcClient implements ClientConstants
 			}
 			agentExecutorService = Executors.newFixedThreadPool(agentThreadPoolSize);
 		} else {
+			clientId = "rpc-client-" + hostName + "-" + uuid.toString();
 			topics = new String[] { replyTopic };
 		}
 		mqttClientThread = new MqttClientThread("MqttJsonRpcThread", clientId, urlArray, topics,
@@ -233,6 +235,8 @@ public class MqttJsonRpcClient implements ClientConstants
 	 * Executes the specified function with the specified function parameters.
 	 * The function name must be one of the built-in functions.
 	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param functionName
 	 *            Function name
 	 * @param params
@@ -242,15 +246,17 @@ public class MqttJsonRpcClient implements ClientConstants
 	 *            msec.
 	 * @return Function return value
 	 */
-	public JsonLite execute(String functionName, JsonLite params, int timeout)
+	public JsonLite execute(IRpcContext rpcContext, String functionName, JsonLite params, int timeout)
 	{
-		return execute(null, functionName, params, timeout);
+		return execute(rpcContext, null, functionName, params, timeout);
 	}
 
 	/**
 	 * Executes the specified class' method with the specified method
 	 * parameters.
 	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param className
 	 *            Class name.
 	 * @param methodName
@@ -264,9 +270,9 @@ public class MqttJsonRpcClient implements ClientConstants
 	 *            msec.
 	 * @return Method (or function) return value
 	 */
-	public JsonLite execute(String className, String methodName, JsonLite params, int timeout)
+	public JsonLite execute(IRpcContext rpcContext, String className, String methodName, JsonLite params, int timeout)
 	{
-		JsonLite request = RpcUtil.createRequest(className, methodName, params);
+		JsonLite request = RpcUtil.createRequest(rpcContext, className, methodName, params);
 		return execute(request, timeout);
 	}
 
@@ -295,7 +301,8 @@ public class MqttJsonRpcClient implements ClientConstants
 	 * <b>impl</b> com.netcrest.pado.rpc.client.biz.impl.gemfire.PathBizImpl
 	 * </ul>
 	 * 
-	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param biz
 	 *            Business object.
 	 * @param methodName
@@ -309,7 +316,7 @@ public class MqttJsonRpcClient implements ClientConstants
 	 *            msec.
 	 * @return Method (or function) return value
 	 */
-	public JsonLite execute(Object biz, String methodName, JsonLite params, int timeout)
+	public JsonLite execute(IRpcContext rpcContext, Object biz, String methodName, JsonLite params, int timeout)
 	{
 		String className;
 		if (biz == null) {
@@ -317,7 +324,7 @@ public class MqttJsonRpcClient implements ClientConstants
 		} else {
 			className = biz.getClass().getName();
 		}
-		JsonLite request = RpcUtil.createRequest(className, methodName, params);
+		JsonLite request = RpcUtil.createRequest(rpcContext, className, methodName, params);
 		return execute(request, timeout);
 	}
 
@@ -329,7 +336,8 @@ public class MqttJsonRpcClient implements ClientConstants
 	 * @param timeout
 	 *            0 or less for no timeout, a positive value for timeout in
 	 *            msec.
-	 * @return
+	 * @return Results from executing the request. It returns null if the method
+	 *         has the void type.
 	 */
 	public JsonLite execute(JsonLite request, int timeout)
 	{

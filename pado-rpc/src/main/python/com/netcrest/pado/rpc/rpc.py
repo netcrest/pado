@@ -45,6 +45,7 @@ def main(server_id, request):
     
     '''
     logger = logging.getLogger('main')
+    print('request='+request)
     jrequest = json.loads(request)
    
     if 'mqtthost' in request:    
@@ -65,12 +66,6 @@ def main(server_id, request):
     
     while rpc.is_closed() == False:
         sleep(5)
- 
-   
-# def __thread_invoke(jrequest):
-# #     global rpc
-#     jresult = invoke(jrequest)
-#     return jresult
 
 if __name__ == '__main__':
 #     logging.basicConfig(filename='log/rpc_client.log', filemode='w')
@@ -82,5 +77,8 @@ if __name__ == '__main__':
         sys.exit(-1)
     server_id = sys.argv[1]
     request = sys.argv[2]
+    # Append all remaining arguments to request if any.
+    for arg in sys.argv[3:]:
+        request += arg
     main(server_id, request)
     

@@ -16,8 +16,14 @@ class QueryBiz(RpcShared):
     
     _biz_class_name = 'com.netcrest.pado.rpc.client.biz.QueryBiz';
     
-    def __init__(self):
-        pass
+    def __init__(self, rpc_context):
+        '''
+        Constructs a new instance of QueryBiz.
+        
+        Args:
+            rpc_context: RPC context object
+        '''
+        self.rpc_context = rpc_context
             
     def execute_pql(self, pql, fetch_size=None):
         '''Execute the specified PQL (Pado Query Language.
@@ -34,7 +40,7 @@ class QueryBiz(RpcShared):
         if fetch_size != None:
             jparams['fetchSize'] = fetch_size
         jrequest = create_request(self._biz_class_name, 'executePql', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def next_result_set(self, jresult):
         '''Return the next result set of the query result.
@@ -75,7 +81,7 @@ class QueryBiz(RpcShared):
             fetchSize = result['fetchSize']
             jparams['fetchSize'] = fetchSize
         jrequest2 = create_request(self._biz_class_name, 'executePql', jparams)
-        return self.rpc.execute(jrequest2, 10)
+        return self.rpc.execute(self.rpc_context, jrequest2, 0)
         
         
         

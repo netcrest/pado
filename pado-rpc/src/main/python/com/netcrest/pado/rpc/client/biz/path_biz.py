@@ -16,13 +16,15 @@ class PathBiz(RpcShared):
     _grid_path = None
     _biz_class_name = 'com.netcrest.pado.rpc.client.biz.PathBiz';
     
-    def __init__(self, grid_path):
+    def __init__(self, rpc_context, grid_path):
         '''
         Constructs a new instance of PathBiz.
         
         Args:
+            rpc_context: RPC context object
             grid_path: Grid path (not full path)
         '''
+        self.rpc_context = rpc_context
         self._grid_path = grid_path
         
     def put(self, key, value):
@@ -39,7 +41,7 @@ class PathBiz(RpcShared):
         jparams['key'] = key
         jparams['value'] = value
         jrequest = create_request(self._biz_class_name, 'put', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def put_all(self, entry_map):
         '''Puts the entries on the specified map the grid path.
@@ -53,7 +55,7 @@ class PathBiz(RpcShared):
         jparams['gridPath'] = self._grid_path
         jparams['entryMap'] = entry_map
         jrequest = create_request(self._biz_class_name, 'putAll', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def remove(self, key):
         '''Removes the specified key from the grid path.
@@ -67,7 +69,7 @@ class PathBiz(RpcShared):
         jparams['gridPath'] = self._grid_path
         jparams['key'] = key
         jrequest = create_request(self._biz_class_name, 'remove', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def get(self, key):
         '''Gets the value of the specified key from the grid path.
@@ -81,7 +83,7 @@ class PathBiz(RpcShared):
         jparams['gridPath'] = self._grid_path
         jparams['key'] = key
         jrequest = create_request(self._biz_class_name, 'get', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def get_all(self, key_array):
         '''Gets the values of the specified keys from the grid path.
@@ -95,7 +97,7 @@ class PathBiz(RpcShared):
         jparams['gridPath'] = self._grid_path
         jparams['keyArray'] = key_array
         jrequest = create_request(self._biz_class_name, 'getAll', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def query(self, queryPredicate):
         '''Execute the specified query predicate on the grid path.
@@ -112,7 +114,7 @@ class PathBiz(RpcShared):
         jparams['gridPath'] = self._grid_path
         jparams['queryPredicate'] = queryPredicate
         jrequest = create_request(self._biz_class_name, 'query', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def dump_grid_path(self):
         '''Dump the grid path contents in the default data node dump directory.
@@ -122,7 +124,7 @@ class PathBiz(RpcShared):
         jparams = json.loads('{}')
         jparams['gridPath'] = self._grid_path
         jrequest = create_request(self._biz_class_name, 'dumpGridPath', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def size(self):
         '''Gets the size of the grid path in the data node.
@@ -132,7 +134,7 @@ class PathBiz(RpcShared):
         jparams = json.loads('{}')
         jparams['gridPath'] = self._grid_path
         jrequest = create_request(self._biz_class_name, 'size', jparams)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def add_listener(self, listener_name, listener):
         '''Adds a listener to listen on data changes made in the grid path
@@ -145,7 +147,7 @@ class PathBiz(RpcShared):
             Addition results in JSON RPC reply form.
             
         Example:
-            path_biz = PathBiz('company/sales')
+            path_biz = PathBiz(rpc_context, 'company/sales')
             path_biz.addListener('some_grid_path', some_grid_path_rpc_listener)
             def some_grid_path_rpc_listener(message):
                 print('message=' + str(message))
@@ -155,7 +157,7 @@ class PathBiz(RpcShared):
         jparams['name'] = listener_name
         jrequest = create_request(self._biz_class_name, 'addListener', jparams)
         self.rpc.add_rpc_listener(listener_name, listener)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)
     
     def remove_listener(self, listener_name, listener):
         '''Remove the specified listener
@@ -168,7 +170,7 @@ class PathBiz(RpcShared):
             Removal results in JSON RPC reply form.
             
         Example:
-            path_biz = PathBiz('company/sales')
+            path_biz = PathBiz(rpc_context, 'company/sales')
             path_biz.addListener('some_grid_path', some_grid_path_rpc_listener)
             path_biz.removeListener('some_grid_path', some_grid_path_rpc_listener)
             
@@ -180,4 +182,4 @@ class PathBiz(RpcShared):
         jparams['name'] = listener_name
         jrequest = create_request(self._biz_class_name, 'removeListener', jparams)
         self.rpc.remove_rpc_listener(listener_name, listener)
-        return self.rpc.execute(jrequest, 10)
+        return self.rpc.execute(self.rpc_context, jrequest, 0)

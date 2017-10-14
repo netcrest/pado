@@ -6,12 +6,12 @@ import org.junit.Test;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.rpc.client.biz.PathBiz;
-import com.netcrest.pado.rpc.client.dna.RpcInvoker;
+import com.netcrest.pado.rpc.client.dna.RpcInvokerDna;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 
 /**
  * PathBiz3Remove tests the RPC {@link PathBiz} "remove" methods via
- * {@link RpcInvoker}. You must run {@link PathBiz1Put} first to insert data
+ * {@link RpcInvokerDna}. You must run {@link PathBiz1Put} first to insert data
  * into the grid.
  * 
  * @author dpark
@@ -44,7 +44,7 @@ public class PathBiz3Remove extends AbstractTest
 			JsonLite rpcParams = createRpcParams(gridPath, key);
 			params.put(RequestKey.params.name(), rpcParams);
 			printRequest(request);
-			List<JsonLite> reply = rpcBiz.broadcast(request);
+			JsonLite reply = rpcBiz.broadcast(request);
 			System.out.println("Reply:");
 			printReply(reply);
 		}

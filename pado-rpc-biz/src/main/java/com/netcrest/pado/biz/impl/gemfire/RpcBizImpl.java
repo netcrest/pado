@@ -20,7 +20,7 @@ public class RpcBizImpl
 			return null;
 		}
 
-		return MqttJsonRpcOsClient.getRpcClient().execute(request);
+		return MqttJsonRpcOsClient.getRpcClient().execute(bizContext.getUserContext().getToken(), request);
 	}
 	
 	@BizMethod
@@ -30,7 +30,7 @@ public class RpcBizImpl
 			return null;
 		}
 
-		return MqttJsonRpcOsClient.getRpcClient().execute(request);
+		return MqttJsonRpcOsClient.getRpcClient().execute(bizContext.getUserContext().getToken(), request);
 	}
 	
 	@BizMethod
@@ -40,6 +40,6 @@ public class RpcBizImpl
 			return null;
 		}
 
-		return MqttJsonRpcOsClient.getRpcClient().execute(request);
+		return MqttJsonRpcOsClient.getRpcClient().execute(bizContext.getUserContext().getToken(), request);
 	}
 }

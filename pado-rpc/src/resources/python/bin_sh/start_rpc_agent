@@ -2,6 +2,7 @@
 
 . ./setenv.sh > /dev/null 2>&1
 
+
 # Server name
 SERVER_NAME=$1
 
@@ -18,16 +19,16 @@ done
 if [ "$agents" != "" ]; then
    echo "python: rpc agent already running [$agents]"
 else
-   pushd .. > /dev/null 2>&1
-   echo "" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "================================================================" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Pado RPC Agent" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Data Node: ${SERVER_NAME}" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Lang: python" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "Started: `date`" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "================================================================" >> log/rpc_agent-${SERVER_NAME}.log
-   echo "$PYTHON -m com.netcrest.pado.rpc.rpc_agent $*" >> log/rpc_agent-${SERVER_NAME}.log
-   $PYTHON -m com.netcrest.pado.rpc.rpc_agent $* >> log/rpc_agent-${SERVER_NAME}.log 2>&1 &
+   pushd $RUN_DIR > /dev/null 2>&1
+   echo "" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "================================================================" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Pado RPC Agent" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Data Node: ${SERVER_NAME}" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Lang: python" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "Started: `date`" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "================================================================" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   echo "$PYTHON -m com.netcrest.pado.rpc.rpc_agent $*" >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log
+   $PYTHON -m com.netcrest.pado.rpc.rpc_agent $* >> $LOG_DIR/rpc_agent-${SERVER_NAME}.log 2>&1 &
    popd > /dev/null 2>&1
    pids=`ps -ewwwo pid,comm,args | grep "$START_RPC_AGENT" | grep python | awk '{print $1}'`
    for i in $pids; do

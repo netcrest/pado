@@ -81,7 +81,7 @@ public abstract class TemporalDataList<K, V>
 	}
 
 	/**
-	 * Constructs a TemporalDataList object witht the specified parameters.
+	 * Constructs a TemporalDataList object with the specified parameters.
 	 * 
 	 * @param identityKey
 	 *            Identity key

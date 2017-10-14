@@ -9,7 +9,7 @@ import com.netcrest.pado.IPado;
 import com.netcrest.pado.Pado;
 import com.netcrest.pado.biz.IRpcBiz;
 import com.netcrest.pado.data.jsonlite.JsonLite;
-import com.netcrest.pado.rpc.client.dna.RpcInvoker;
+import com.netcrest.pado.rpc.client.dna.RpcInvokerDna;
 import com.netcrest.pado.rpc.mqtt.RequestKey;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -47,7 +47,7 @@ public class AbstractTest
 	{
 		JsonLite request;
 		if (lang.equals("java")) {
-			request = createRequest(RpcInvoker.class.getName(), "invoke");
+			request = createRequest(RpcInvokerDna.class.getName(), "invoke");
 		} else {
 			request = createRequest("com.netcrest.pado.rpc.client.dna.rpc_invoker.RpcInvoker", "invoke");
 		}
@@ -67,6 +67,7 @@ public class AbstractTest
 		request.put(RequestKey.id.name(), System.nanoTime() + "");
 		request.put(RequestKey.agent.name(), true);
 		request.put(RequestKey.jsonrpc.name(), "2.0");
+		request.put(RequestKey.timeout.name(),  30000);
 		return request;
 	}
 	

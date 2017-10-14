@@ -1,6 +1,7 @@
 package com.netcrest.pado.rpc.client.biz;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
+import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.client.IRpcListener;
 import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 
@@ -15,16 +16,20 @@ import com.netcrest.pado.rpc.mqtt.client.MqttJsonRpcClient;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PathBiz
 {
+	private IRpcContext rpcContext;
 	private String gridPath;
 
 	/**
 	 * Constructs a new instance of PathBiz.
 	 * 
+	 * @param rpcContext
+	 *            IRpcContext object
 	 * @param gridPath
 	 *            Grid path (not full path)
 	 */
-	public PathBiz(String gridPath)
+	public PathBiz(IRpcContext rpcContext, String gridPath)
 	{
+		this.rpcContext = rpcContext;
 		this.gridPath = gridPath;
 	}
 
@@ -58,7 +63,7 @@ public class PathBiz
 		params.put("gridPath", gridPath);
 		params.put("key", key);
 		params.put("value", value);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "put", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "put", params, 0);
 	}
 
 	/**
@@ -78,7 +83,7 @@ public class PathBiz
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
 		params.put("entryMap", entryMap);
-		MqttJsonRpcClient.getRpcClient().execute(this, "putAll", params, 0);
+		MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "putAll", params, 0);
 	}
 
 	/**
@@ -96,7 +101,7 @@ public class PathBiz
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
 		params.put("key", key);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "remove", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "remove", params, 0);
 	}
 
 	/**
@@ -114,7 +119,7 @@ public class PathBiz
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
 		params.put("key", key);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "get", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "get", params, 0);
 	}
 
 	/**
@@ -132,7 +137,7 @@ public class PathBiz
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
 		params.put("keyArray", keyArray);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "getAll", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "getAll", params, 0);
 	}
 
 	/**
@@ -148,7 +153,7 @@ public class PathBiz
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
 		params.put("queryPredicate", queryPredicate);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "query", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "query", params, 0);
 	}
 
 	/**
@@ -160,7 +165,7 @@ public class PathBiz
 	{
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "dumpGridPath", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "dumpGridPath", params, 0);
 	}
 
 	// Not implemented yet in the server
@@ -170,7 +175,7 @@ public class PathBiz
 		params.put("gridPath", gridPath);
 		params.put("queryPredicate", queryPredicate);
 		params.put("filePath", filePath);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "dump", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "dump", params, 0);
 	}
 
 	/**
@@ -182,7 +187,7 @@ public class PathBiz
 	{
 		JsonLite params = new JsonLite();
 		params.put("gridPath", gridPath);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "size", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "size", params, 0);
 	}
 
 	/**
@@ -202,7 +207,7 @@ public class PathBiz
 		params.put("name", listenerName);
 
 		MqttJsonRpcClient.getRpcClient().addRpcListener(listenerName, listener);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "addListener", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "addListener", params, 0);
 	}
 
 	/**
@@ -221,6 +226,6 @@ public class PathBiz
 		params.put("name", listenerName);
 
 		MqttJsonRpcClient.getRpcClient().removeRpcListener(listenerName, listener);
-		return MqttJsonRpcClient.getRpcClient().execute(this, "removeListener", params, 0);
+		return MqttJsonRpcClient.getRpcClient().execute(rpcContext, this, "removeListener", params, 0);
 	}
 }
