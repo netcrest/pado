@@ -34,10 +34,15 @@ class RpcShared(object):
             provides methods send requests and the final result. 
         rpc_context: Non-static RpcContext that provides session information required
             to communicate with the data node.
+        pado: Pado object. This instance is for the local application use only. It
+            is typically set by DNAs that are executed locally. It has no use in
+            the data node.
     '''
     rpc = None
     
     rpc_context = RpcContext()
+    
+    pado = None
     
     def __init__(self):
         pass

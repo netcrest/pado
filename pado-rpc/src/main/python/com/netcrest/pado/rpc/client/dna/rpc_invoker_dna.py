@@ -3,8 +3,12 @@ Created on Oct 4, 2017
 
 @author: dpark
 '''
+
+from com.netcrest.pado.rpc.client.rest.pado import PadoRpc
 from com.netcrest.pado.rpc.rpc_shared import RpcShared
 from com.netcrest.pado.rpc.util import rpc_util
+from com.netcrest.pado.rpc.util.class_util import get_class_method_names, \
+    get_class_name_introspect
 from com.netcrest.pado.rpc.util.rpc_util import create_request
 
 
@@ -19,8 +23,8 @@ class RpcInvokerDna(RpcShared):
     classes.
     '''
     
-    def __init__(self):
-        pass
+    def __init__(self, pado=None):
+        self.pado = pado
         
     def invoke(self, jparams):
         print('rpc_invoker_dna.invoke() entered')

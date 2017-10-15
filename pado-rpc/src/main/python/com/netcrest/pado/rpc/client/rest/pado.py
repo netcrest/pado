@@ -2,7 +2,10 @@ import json
 import uuid
 
 import requests
-from _ast import arg
+
+from com.netcrest.pado.rpc.util.class_util import get_class_method_names, \
+    get_class_name_introspect
+
 
 class Pado:
     '''
@@ -44,19 +47,19 @@ class Pado:
         self.username = username
         return jresponse
     
-    def catalog(self, filter=None):
+    def catalog(self, filter_regex=None):
         '''Returns the IBiz catalog information. The IBiz catalog contains IBiz objects that
         you can remotely invoke. 
         
         Args:
-            filter: Regular expression to filter the list of IBiz objects in the catalog.
+            filter_regex: Regular expression to filter the list of IBiz objects in the catalog.
             
         Returns:
             The response from the REST call in the form of JSON object.
         '''
         url = self.url + '/pado-web/pado?token=' + self.token + "&method=catalog"
-        if filter != None:
-            url += '&filter=' + filter
+        if filter_regex != None:
+            url += '&filter=' + filter_regex
         response = requests.post(url, headers={"Content-Type": "application/json"})
         return response.json()
         
@@ -115,6 +118,51 @@ class Pado:
                 url += carg_list
         response = requests.post(url, headers={"Content-Type": "application/json"})
         return response.json()
+    
+    def invoke_dna(self, dna_method, timeout=5000, exec_type='broadcast', **kwargs):
+        '''
+        Remotely invokes the specified dna method.
+        
+        This method remotely activates the specified DNA. Depending on computations and logic
+        in the DNA, it may return immediately or last a very long period of time to complete.
+        For a long running DNAs, it is recommended that the timeout to be set to a small value
+        and asynchronously check the status of your DNA results in the 'report/<user-name> grid
+        path.
+        
+        Args:
+            dna_method: DNA class method or fully-qualified DNA class method name.
+                Note that all DNA classes must follow the DNA specs. At a mimimum,
+                it must inherit RpcShared and the method must has a single JSON 
+                object argument.
+            timeout: Timeout in milliseconds. If the DNA call takes a long time to complete, then
+                this should be set to a small value, i.e., 1000 msec, to immediately return
+                and check the DNA status in the 'report/<user-name>' grid path.
+            exec_type: Grid execution type.
+                'broadcast': Broadcast to (or execute on) all data nodes.
+                'server': Execute on only one server. A server is chosen by the grid.
+                'path': Execute on path.
+                Default: 'broadcast'. If exec_type is not supported then it defaults to 'broadcast'.
+            kwargs:
+                Parameters to the method. Each DNA has their own required parameters.
+        '''
+        if type(dna_method) == str:
+            classname, method_name = get_class_method_names(dna_method)
+        else:
+            classname = get_class_name_introspect(dna_method)
+            method_name = dna_method.__name__
+        if classname == None:
+            raise ValueError('Invalid dna_method. Must be method or fully qualified method name.')
+        rpc = PadoRpc(self)
+        jrequest = rpc.create_request(timeout=timeout, agent=False)
+        jrequest['classname'] = classname
+        jrequest['method'] = method_name
+        jrequest['params'] = kwargs
+        if exec_type == 'server':
+            return rpc.on_server(jrequest)
+        elif exec_type == 'path':
+            return rpc.on_path(jrequest)
+        else:
+            return rpc.broadcast(jrequest)
     
     def query(self, query_string, validat=None, asof=None, batch=None, ascend=True, orderby=None, refresh=False, cursor='next'):
         '''Executes the specified query statement in the grid.
