@@ -4,15 +4,11 @@ Created on Oct 4, 2017
 @author: dpark
 '''
 
-from com.netcrest.pado.rpc.client.rest.pado import PadoRpc
-from com.netcrest.pado.rpc.rpc_shared import RpcShared
+from com.netcrest.pado.rpc.client.dna_client import Dna
 from com.netcrest.pado.rpc.util import rpc_util
-from com.netcrest.pado.rpc.util.class_util import get_class_method_names, \
-    get_class_name_introspect
 from com.netcrest.pado.rpc.util.rpc_util import create_request
 
-
-class RpcInvokerDna(RpcShared):
+class RpcInvokerDna(Dna):
     '''
     RpcInvokerDna invokes IRpc methods.
     
@@ -42,7 +38,6 @@ class RpcInvokerDna(RpcShared):
             timeout = 10000
         else:
             timeout = jparams['timeout']
-        timeout_in_sec = timeout / 1000
         
         print('rpc_invoker_dna.invoke(): timeout=' + str(timeout))
         jrequest = create_request(rpc_class_name, method, rpc_params)

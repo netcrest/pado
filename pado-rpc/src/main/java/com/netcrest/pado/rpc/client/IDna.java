@@ -1,4 +1,4 @@
-package com.netcrest.pado.rpc;
+package com.netcrest.pado.rpc.client;
 
 import com.netcrest.pado.rpc.client.IRpcContext;
 

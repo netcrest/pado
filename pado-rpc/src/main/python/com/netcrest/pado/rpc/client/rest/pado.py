@@ -202,6 +202,19 @@ class Pado:
         url += '&cursor=' + cursor
         response = requests.post(url, headers={"Content-Type": "application/json"})
         return ScrollableResultSet(self, query_string, response.json())
+    
+    def get_dna_status(self, valid_at_time=-1, as_of_time=-1):
+        cargs = {'report/dna'}
+        jresponse = self.invoke_vargs('com.netcrest.pado.biz.ITemporalBiz', cargs, 'get', self.username, valid_at_time, as_of_time)
+        if 'result' in jresponse:
+            results = jresponse['result']
+            if 'Result' in results:
+                r = results['Result']
+                del results['Result']
+                if type(r) == dict:
+                    for k, v in r.items():
+                        results[k] = v 
+        return jresponse
  
 class ScrollableResultSet:
     '''
@@ -393,9 +406,9 @@ class PadoRpcInvoker(PadoRpc):
         jinvoker_params = self.__create_invoker_parms(irpc_classname, method, jparams)
         jrequest = self.create_request(timeout, id, lang, agent)
         if lang == 'python':
-            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna.rpc_invoker_dna.RpcInvokerDna'
+            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna_client.rpc_invoker_dna.RpcInvokerDna'
         elif lang == 'java':
-            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna.RpcInvokerDna'
+            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna_client.RpcInvokerDna'
         else:
             raise ValueError("Unsupported lang: " + lang)
         
