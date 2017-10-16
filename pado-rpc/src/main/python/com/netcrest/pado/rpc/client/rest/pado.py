@@ -3,8 +3,9 @@ import uuid
 
 import requests
 
+from com.netcrest.pado.rpc.client.dna.rpc_invoker_dna import RpcInvokerDna
 from com.netcrest.pado.rpc.util.class_util import get_class_method_names, \
-    get_class_name_introspect
+    get_class_name_introspect, get_class_name, get_class_name_from_class
 
 
 class Pado:
@@ -406,9 +407,9 @@ class PadoRpcInvoker(PadoRpc):
         jinvoker_params = self.__create_invoker_parms(irpc_classname, method, jparams)
         jrequest = self.create_request(timeout, id, lang, agent)
         if lang == 'python':
-            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna_client.rpc_invoker_dna.RpcInvokerDna'
+            jrequest['classname'] = get_class_name_from_class(RpcInvokerDna)
         elif lang == 'java':
-            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna_client.RpcInvokerDna'
+            jrequest['classname'] = 'com.netcrest.pado.rpc.client.dna.RpcInvokerDna'
         else:
             raise ValueError("Unsupported lang: " + lang)
         

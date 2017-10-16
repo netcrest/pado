@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
 import com.netcrest.pado.log.Logger;
-import com.netcrest.pado.rpc.IDna;
+import com.netcrest.pado.rpc.client.IDna;
 import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.client.impl.RpcContextImpl;
 import com.netcrest.pado.rpc.mqtt.Constants;

@@ -4,9 +4,12 @@ Created on Oct 4, 2017
 @author: dpark
 '''
 
+import sys
+
 from com.netcrest.pado.rpc.client.dna_client import Dna
 from com.netcrest.pado.rpc.util import rpc_util
 from com.netcrest.pado.rpc.util.rpc_util import create_request
+
 
 class RpcInvokerDna(Dna):
     '''
@@ -20,7 +23,10 @@ class RpcInvokerDna(Dna):
     '''
     
     def __init__(self, pado=None):
-        self.pado = pado
+        if sys.version_info.major >= 3:
+            super().__init__(pado)
+        else:
+            super(RpcInvokerDna, self).__init__(pado)
         
     def invoke(self, jparams):
         print('rpc_invoker_dna.invoke() entered')

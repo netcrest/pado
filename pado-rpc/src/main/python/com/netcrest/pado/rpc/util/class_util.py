@@ -5,6 +5,14 @@ Created on Oct 15, 2017
 '''
 import inspect
 
+def get_class_name_from_class(clazz):
+    '''Returns the fully-qualified class name of the specified class.
+    
+    Args:
+        clazz: Class
+    '''
+    return clazz.__module__ + "." + clazz.__name__
+
 def get_class_name(obj):
     '''Returns class name of the specified object.
     

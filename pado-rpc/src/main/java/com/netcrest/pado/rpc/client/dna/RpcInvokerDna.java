@@ -1,8 +1,8 @@
 package com.netcrest.pado.rpc.client.dna;
 
 import com.netcrest.pado.data.jsonlite.JsonLite;
-import com.netcrest.pado.rpc.IDna;
 import com.netcrest.pado.rpc.IRpc;
+import com.netcrest.pado.rpc.client.IDna;
 import com.netcrest.pado.rpc.client.IRpcContext;
 import com.netcrest.pado.rpc.mqtt.ReplyKey;
 import com.netcrest.pado.rpc.mqtt.RequestKey;

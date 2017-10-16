@@ -25,7 +25,6 @@ class Dna(RpcShared):
     
     def __init__(self, pado=None):
         self.pado = pado
-        pass
     
     def getCurrentTime(self):
         '''
