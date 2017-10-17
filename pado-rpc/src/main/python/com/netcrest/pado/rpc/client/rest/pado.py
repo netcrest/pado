@@ -5,7 +5,7 @@ import requests
 
 from com.netcrest.pado.rpc.client.dna.rpc_invoker_dna import RpcInvokerDna
 from com.netcrest.pado.rpc.util.class_util import get_class_method_names, \
-    get_class_name_introspect, get_class_name, get_class_name_from_class
+    get_class_name_introspect, get_class_name_from_class
 
 
 class Pado:
@@ -131,10 +131,14 @@ class Pado:
         path.
         
         Args:
-            dna_method: DNA class method or fully-qualified DNA class method name.
-                Note that all DNA classes must follow the DNA specs. At a mimimum,
-                it must inherit RpcShared and the method must has a single JSON 
+            dna_method: DNA class method function or fully-qualified DNA class method name.
+                Note that all DNA classes must conform to the DNA specs. At a mimimum,
+                it must inherit Dna and the method must have a single JSON 
                 object argument.
+                Note that due to a limitation in Python, a child class must override the parent method 
+                if that method is to be invoked by DNA via this method with the method function. If 
+                the fully-qualified method name (string) is passed in as the method argument, i.e.,
+                invoke_dna('method', ...), then overriding the parent method is not required.
             timeout: Timeout in milliseconds. If the DNA call takes a long time to complete, then
                 this should be set to a small value, i.e., 1000 msec, to immediately return
                 and check the DNA status in the 'report/<user-name>' grid path.
