@@ -7,22 +7,26 @@
 	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<pado.version>0.4.1-B4</pado.version>
+		<lucene.version>4.7.2</lucene.version>
+		<gemfire.version>8.2.0</gemfire.version>
+	</properties>
+
+
 	<groupId>com.netcrest.pado</groupId>
 	<artifactId>pado-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.4.1-B4</version>
+	<version>${pado.version}</version>
 	<name>pado-parent</name>
 	<description>Pado</description>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<pado.version>${project.version}</pado.version>
-		<lucene.version>4.7.2</lucene.version>
-	</properties>
 
 	<modules>
 		<module>gemfire-dqueue</module>
@@ -51,8 +55,13 @@
 			<id>freehep-releases</id>
 			<url>http://java.freehep.org/maven2/</url>
 		</repository>
+		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-beaninfo -->
+		<repository>
+			<id>mvn-repository</id>
+			<url>https://mvnrepository.com/artifact/</url>
+		</repository>
 	</repositories>
-	
+
 	<scm>
 		<developerConnection>scm:svn:https://svn.mycompany.com/repos/myapplication/trunk/mycomponent/</developerConnection>
 	</scm>
@@ -83,7 +92,7 @@
 		<dependency>
 			<groupId>com.gemstone.gemfire</groupId>
 			<artifactId>gemfire</artifactId>
-			<version>8.2.0</version>
+			<version>${gemfire.version}</version>
 		</dependency>
 
 		<!-- JUnit -->
@@ -161,6 +170,7 @@
 							<header>Pado</header>
 						</configuration>
 					</plugin>
+
 				</plugins>
 			</build>
 		</profile>

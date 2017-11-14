@@ -21,7 +21,7 @@ ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "gr
 ## Pado Features
 
 - Federate data grids into a single logical grid
-- Search millions of real-time data records across multiple grids
+- Search a vast amount of real-time data records across multiple grids
 - Search temporal data with ease 
 - Store anything in any form from any where 
 - Automatically version and merge data type changes 
@@ -36,6 +36,7 @@ ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "gr
 - Scale out linearly and indefinitely
 - Parallelize grid computing to 10’s and 100’s of grid farms with a single command
 - Manage all grid farms in a single centralized view
+- Run DNAs (Data Node Apps) alongside data nodes in Java or Python.
 
 ## How?
 
@@ -56,6 +57,7 @@ ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "gr
 - *User session management*: token-based session management security backed by RSA & AES 
 - *PadoDesktop*: All-in-one GUI (data browser, grid monitor, grid management - available from Netcrest)
 - *PadoShell*: Unix-like commands for managing and scripting grids
+- *DNA*: Data Node Apps for running out-of-process apps independently alongside individual data nodes (Java and Python supported)
 
 ## Supported JDK Versions
 
@@ -67,9 +69,20 @@ Pado requires JDK 1.7 to compile and runs on JDK 1.7 and 1.8.
 2. Install Apache Maven: https://maven.apache.org
 3. Run `mvn install` from the Pado root directory.
 
+```
+git clone http://github.com/netcrest/pado
+cd pado
+mvn install
+```
+
 The above Maven command (#3) compiles all of Pado Maven modules and creates zip and tar distribution files in the `pado-deployment/assembly` directory. It also inflates the tar distribution file in the `deploy/` directory for running and testing the Pado build. 
 
-IMPORTANT: Note that it does not overwrite the existing files in the `deploy/` directory, preserving the changes that you may have made from the previous build.
+**IMPORTANT**: Note that it does not overwrite the existing files in the `deploy/` directory, preserving the changes that you may have made from the previous build.
+
+## Building Pado-Web
+
+Pado-web is a web container that provides the Pado RESTful API for accessing IBiz objects. To build the `pado-web-<version>.war` file, follow the instructions in the pado-web repository:  http://github.com/netcrest/pado-web
+
 
 ## Installing Pivotal GemFire
 
