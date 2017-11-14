@@ -163,7 +163,7 @@ fi
 # Set COMMAND_PREFIX to add a prefix to each command. For example,
 # if it is set to "sudo", all commands will be executed with sudo allowing
 # Pado to execute as root.
-COMMAND_PREFIX=sudo
+COMMAND_PREFIX=
 
 
 #
