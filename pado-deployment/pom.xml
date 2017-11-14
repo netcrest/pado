@@ -105,13 +105,14 @@
 									<plugin>
 										<groupId>org.apache.maven.plugins</groupId>
 										<artifactId>maven-assembly-plugin</artifactId>
+										<version>2.5.5</version>
 									</plugin>
 									<configuration>
 										<descriptors>
 											<descriptor>${project.basedir}/src/main/assembly/${item}.xml</descriptor>
 										</descriptors>
 										<finalName>${item}</finalName>
-										<appendAssemblyId>true</appendAssemblyId>
+										<appendAssemblyId>false</appendAssemblyId>
 										<outputDirectory>target/assembly</outputDirectory>
 										<tarLongFileMode>gnu</tarLongFileMode>
 									</configuration>
@@ -125,6 +126,7 @@
 			<!--  Pado distribution -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.5.5</version>
 				<executions>
 					<execution>
 						<id>package shared config</id>
@@ -137,6 +139,7 @@
 								<descriptor>src/main/assembly/assembly-descriptor.xml</descriptor>
 							</descriptors>
 							<finalName>pado_${project.version}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
 							<outputDirectory>target/assembly</outputDirectory>
 							<tarLongFileMode>gnu</tarLongFileMode>
 						</configuration>
