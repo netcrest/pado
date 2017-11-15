@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ if "%RUN_DIR%" == "" (
 @set STATS_FILE=%STATS_DIR%/%SERVER_ID%.gfs
 
 ::SERVER_PROPERTIES=-server-port=%CACHE_SERVER_PORT
-@set SERVER_PROPERTIES=-disable-default-server -J-Dgfinit.cacheserver.1.port=%CACHE_SERVER_PORT% -J-Dgfinit.cacheserver.1.notify-by-subscription=true -J-Dgfinit.cacheserver.1.socket-buffer-size=131072
+@set SERVER_PROPERTIES=--disable-default-server --J=-Dgfinit.cacheserver.1.port=%SERVER_PORT% --J=-Dgfinit.cacheserver.1.notify-by-subscription=true --J=-Dgfinit.cacheserver.1.socket-buffer-size=131072
 :: The following environment variables are defined in the scripts 
 :: and may be used in server.xml.
 ::    GRID - Grid ID.
@@ -126,8 +126,12 @@ if "%RUN_DIR%" == "" (
 ::           <disk-dir>%DISK_STORE_DIR%</disk-dir>
 ::       </disk-dirs>
 ::    </disk-store>
+@set SYSTEM_ID=1
+@set GEMFIRE_PROPERTIES=--name=%SERVER_NAME% --J=-Dgemfire.log-file=%LOG_FILE% --statistic-archive-file=%STATS_FILE% --cache-xml-file=%SERVER_XML_FILE% --locators=%LOCATORS% --J=-Dgemfire.distributed-system-id=%SYSTEM_ID% --J=-DSITE=%SITE% --J=-DDISK_STORE_DIR=%DISK_STORE_DIR% --J=-DREMOTE_SYSTEM_ID_1=%REMOTE_SYSTEM_ID_1% --J=-DREMOTE_SYSTEM_ID_2=%REMOTE_SYSTEM_ID_2% --J=-Dgemfire.PREFER_SERIALIZED=false --J=-Dgemfire.BucketRegion.alwaysFireLocalListeners=false
 
-@set GEMFIRE_PROPERTIES=name=%SERVER_NAME% log-file=%LOG_FILE% statistic-archive-file=%STATS_FILE% cache-xml-file=%CACHE_XML_FILE% locators=%LOCATORS% -J-Dgemfire.PREFER_DESERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false
+REM @set GEMFIRE_PROPERTIES=name=%SERVER_NAME% log-file=%LOG_FILE% statistic-archive-file=%STATS_FILE% cache-xml-file=%CACHE_XML_FILE% locators=%LOCATORS% -J-Dgemfire.PREFER_DESERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false -J-Dgemfire.start-dev-rest-api=true -J-Dgemfire.http-service-bindaddress=localhost -J-Dgemfire.jmx-manager=true -J-Dgemfire.jmx-manager-start=true
+
+REM @set GEMFIRE_PROPERTIES=name=%SERVER_NAME% log-file=%LOG_FILE% statistic-archive-file=%STATS_FILE% cache-xml-file=%CACHE_XML_FILE% locators=%LOCATORS% -J-Dgemfire.PREFER_DESERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false -J-Dgemfire.start-dev-rest-api=true
 
 if "%GEMFIRE_PROPERTY_FILE%" == "" (
    @set GEMFIRE_PROPERTY_FILE=%ETC_GRID_DIR%\server.properties
@@ -172,22 +176,39 @@ if "%SITE_NAME%" == "" (
 :: Application specifics
 ::
 :: List all application specific properties here. Make sure to
-:: use the prefix "-J-D", e.g., APP_PROPERTIES=-J-Dfoo.test=true
+:: use the prefix "--J=-D", e.g., APP_PROPERTIES=--J=-Dfoo.test=true
 :: APP_PROPERTIES should be set in setenv.sh.
 ::
 @set APP_PROPERTIES=%APP_PROPERTIES%
 
-@set PADO_PROPERTIES=-J-Dpado.grid.id=%GRID_ID% -J-Dpado.grid.name=%GRID_NAME% -J-Dpado.site.id=%SITE_ID% -J-Dpado.site.name=%SITE_NAME% -J-Dpado.home.dir=%PADO_HOME% -J-Dpado.plugins.dir=%PADO_PLUGINS_DIR% -J-Dpado.etc.dir=%ETC_DIR% -J-Dpado.etc.grid.dir=%ETC_GRID_DIR% -J-Dpado.padoPropertyFile=%PADO_PROPERTY_FILE% -J-Dpado.appConfigDir=%PADO_APP_CONFIG_DIR% -J-Dpado.security.encryption.enabled=true -J-Djavax.xml.accessExternalDTD=all
+::
+:: PADO_PROPERTIES - Pado specific properties
+::
+@set PADO_PROPERTIES=--J=-Dpado.grid.id=%GRID_ID% --J=-Dpado.grid.name=%GRID_NAME% --J=-Dpado.site.id=%SITE_ID% --J=-Dpado.site.name=%SITE_NAME% --J=-Dpado.home.dir=%PADO_HOME% --J=-Dpado.plugins.dir=%PADO_PLUGINS_DIR% --J=-Dpado.etc.dir=%ETC_DIR% --J=-Dpado.etc.grid.dir=%ETC_GRID_DIR% --J=-Dpado.padoPropertyFile=%PADO_PROPERTY_FILE% --J=-Dpado.db.dir=%PADO_DB_DIR% --J=-Dpado.properties=%PADO_PROPERTY_FILE% --J=-Dpado.appConfigDir=%PADO_APP_CONFIG_DIR% --J=-Dpado.security.encryption.enabled=true --J=-Dpado.server=true --J=-Dpado.config-file=%PADO_XML_FILE% --J=-Dpado.log.gridInfo=false --J=-Djavax.xml.accessExternalDTD=all
 
-:: @set PADO_PROPERTIES=-J-Dpado.grid.id=%GRID_ID% -J-Dpado.grid.name=%GRID_NAME% -J-Dpado.site.id=%SITE_ID% -J-Dpado.site.name=%SITE_NAME% -J-Dpado.server.num=%SERVER_NUM% -J-Dpado.plugins.dir=%PADO_PLUGINS_DIR% -J-Dpado.etc.dir=%ETC_DIR% -J-Dpado.etc.grid.dir=%ETC_GRID_DIR% -J-Dpado.db.dir=%PADO_DB_DIR% -J-Dpado.properties=%PADO_PROPERTY_FILE% -J-Dpado.appConfigDir=%PADO_APP_CONFIG_DIR% -J-Dpado.server=true -J-Dpado.config-file=%PADO_XML_FILE% -J-Dpado.log.gridInfo=false -J-Djavax.xml.accessExternalDTD=all
-@set HEAPSIZE=-J-Xms%HEAP_MAX% -J-Xmx%HEAP_MAX%
+:: 
+:: HEAPSIZE for min and max
+::
+@set HEAPSIZE=--initial-heap=%HEAP_MAX% --max-heap=%HEAP_MAX%
 
-:: @set GC_PARAMETERS=-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:+DisableExplicitGC -J-XX:NewSize=256m -J-XX:CMSInitiatingOccupancyFraction=50
-@set GC_PARAMETERS=-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:+DisableExplicitGC -J-XX:CMSInitiatingOccupancyFraction=50
+::
+:: GC_PARAMETERS - GC specifics
+@set GC_PARAMETERS=--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:+DisableExplicitGC --J=-XX:CMSInitiatingOccupancyFraction=50
+:: @set GC_PARAMETERS=--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:+DisableExplicitGC --J=-XX:NewSize=256m --J=-XX:CMSInitiatingOccupancyFraction=50
 
+::
+:: JMX_PARAMETERS - JMX specifics
+::
+if "%JMX_PREFIX%" neq "" (
+   @set JMX_PARAMETERS=--J=-Dcom.sun.management.jmxremote.port=%JMX_PREFIX%%SERVER_NUM% --J=-Dcom.sun.management.jmxremote.ssl=false --J=-Dcom.sun.management.jmxremote.authenticate=false
+)
+
+::
+:: DEBUG_ENABLED - If true open debug port
+::
 if "%DEBUG_ENABLED%" == "true" (
    if not "%DEBUG_PREFIX%" == "" (
-      @set DEBUG=-J-Xdebug -J-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=%DEBUG_PREFIX%%SERVER_NUM%
+      @set DEBUG=--J=-Xdebug --J='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%DEBUG_PREFIX%%SERVER_NUM%'
    )
 ) else (
    @set DEBUG=
@@ -201,7 +222,15 @@ if "%GATEWAY%" == "" (
 )
 echo *****************************************************
 
-echo cacheserver start -dir=%DIR% -J-Dpado.vm.id=%SERVER_ID% -J-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %DEBUG% -J-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE%
-cacheserver start -dir=%DIR% -J-Dpado.vm.id=%SERVER_ID% -J-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %DEBUG% -J-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE%
+REM echo cacheserver start -dir=%DIR% -J-Dpado.vm.id=%SERVER_ID% -J-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %DEBUG% -J-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE%
+REM cacheserver start -dir=%DIR% -J-Dpado.vm.id=%SERVER_ID% -J-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %DEBUG% -J-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE%
+
+
+:: ------------------
+:: gfsh specifics
+:: ------------------
+
+echo gfsh start server --dir=%DIR% --J=-Dpado.vm.id=%SERVER_ID% --J=-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %JMX_PARAMETERS% %DEBUG% --J=-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE% --classpath=%CLASSPATH%
+gfsh start server --dir=%DIR% --J=-Dpado.vm.id=%SERVER_ID% --J=-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %JMX_PARAMETERS% %DEBUG% --J=-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE% --classpath=%CLASSPATH%
 
 :stop

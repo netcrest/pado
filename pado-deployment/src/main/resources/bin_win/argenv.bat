@@ -183,6 +183,11 @@ if "%PADO_PROPERTY_FILE%" == "" (
   @set PADO_PROPERTY_FILE=%ETC_GRID_DIR%\pado.properties
 )
 
+:: Set PADO_XML_FILE if not defined
+if "%PADO_XML_FILE%" == "" (
+  @set PADO_XML_FILE=%ETC_GRID_DIR%\pado.xml
+)
+
 :: Set GEMFIRE_PROPERTY_FILE if not defined
 if "%GEMFIRE_PROPERTY_FILE%" == "" (
   @set GEMFIRE_PROPERTY_FILE=%ETC_GRID_DIR%\server.properties

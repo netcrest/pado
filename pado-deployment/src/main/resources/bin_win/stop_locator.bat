@@ -49,7 +49,9 @@ if "%RUN_DIR%" == "" (
 )
 
 echo stop_locator -num %SERVER_NUM% -grid %GRID% -site %SITE% on port %LOCATOR_PORT%
-echo gemfire stop-locator -port=%LOCATOR_PORT% -dir=%DIR%
-gemfire stop-locator -port=%LOCATOR_PORT% -dir=%DIR%
+REM gemfire stop-locator -port=%LOCATOR_PORT% -dir=%DIR%
+
+echo gfsh stop locator --dir=%DIR%
+gfsh stop locator --dir=%DIR%
 
 :stop

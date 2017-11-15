@@ -23,6 +23,11 @@
 :: and this script sets locator=20000, agent rmi=20050, agent http=20051
 @set CACHE_SERVER_PORT_PREFIX=220
 
+:: JVM port prefix. Server number is appended to this prefix.
+:: For example, if it is set to 300, './start_server -num 1' assigns 30001.
+:: To disable JMX, set JMX_PREFIX with no value.
+@set JMX_PREFIX=320
+
 :: JVM debug mode. Set DEBUG_ENABLED to true to enable the debug mode.
 @set DEBUG_ENABLED=true
 

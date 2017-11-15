@@ -61,7 +61,7 @@ if "%RUN_DIR" == "" (
 echo *****************************************************
 echo Starting %LOCATOR_ID% on host %MY_ADDRESS%:%LOCATOR_PORT%
 echo *****************************************************
-echo gemfire start-locator -Dpado.vm.id=%LOCATOR_ID% -port=%LOCATOR_PORT% -dir=%DIR% -Djava.awt.headless=true -Dgemfire.locators=%LOCATORS%
-gemfire start-locator -Dpado.vm.id=%LOCATOR_ID% -port=%LOCATOR_PORT% -dir=%DIR% -Djava.awt.headless=true -Dgemfire.locators=%LOCATORS%
+echo gfsh start locator --name=%LOCATOR_ID% --J=-Dpado.vm.id=%LOCATOR_ID% --port=%LOCATOR_PORT% --dir=%DIR% --J=-Djava.awt.headless=true --locators=%LOCATORS%
+gfsh start locator --name=%LOCATOR_ID% --J=-Dpado.vm.id=%LOCATOR_ID% --port=%LOCATOR_PORT% --dir=%DIR% --J=-Djava.awt.headless=true --locators=%LOCATORS%
 
 :stop

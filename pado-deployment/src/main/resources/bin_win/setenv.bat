@@ -77,13 +77,13 @@
 :: 
 :: Set JAVA_HOME to the Java home (root) directory
 ::
-@set JAVA_HOME=C:\Program Files\Java\jdk1.7.0_79
+@set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_144
 
 ::
 :: Gemfire root direcoty path
 ::
 @set GEMFIRE_V7=Y:\GemStone\Pivotal_GemFire_70211_b48040
-@set GEMFIRE_V8=Y:\GemStone\Pivotal_GemFire_810_b50625_Windows
+@set GEMFIRE_V8=C:\Users\dpark\Work\products\Pivotal_GemFire_827_b18_Windows
 @set GEMFIRE=%GEMFIRE_V8%
 
 ::
@@ -95,9 +95,9 @@
 :: Application specifics
 ::
 :: List all application specific properties here. Make sure to
-:: use the prefix "-J-D", e.g., APP_PROPERTIES=-J-Dfoo.test=true
+:: use the prefix "--J=-D", e.g., APP_PROPERTIES=--J=-Dfoo.test=true
 ::
-@set APP_PROPERTIES=
+@set APP_PROPERTIES=--J=-Djavax.net.ssl.trustStore=../../ldap/example/ssl/trusted.keystore
 
 ::
 :: GF_JAVA executable
