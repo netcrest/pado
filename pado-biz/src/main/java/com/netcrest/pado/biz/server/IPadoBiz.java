@@ -37,7 +37,7 @@ import com.netcrest.pado.link.IPadoBizLink;
  * @author dpark
  * 
  */
-@BizClass(bizType = BizType.PADO, name="IPadoBiz")
+@BizClass(bizType = BizType.PADO, name = "IPadoBiz")
 public interface IPadoBiz extends IPadoBizLink
 {
 	/**
@@ -69,7 +69,8 @@ public interface IPadoBiz extends IPadoBizLink
 	 *            suited for a client hosting multiple applications (app Ids)
 	 *            such as app servers. If false then ConfigInfo includes XML
 	 *            configuration content for a client hosting a single
-	 *            application, i.e., a single app ID.
+	 *            application, i.e., a single app ID. This means the client will
+	 *            be configured with a single configuration file for all logins.
 	 * @param includeCacheXmlContent
 	 *            If true then includes XML configuration content. If false then
 	 *            it is analogous to {@link #getAppInfo(String)}.
@@ -97,7 +98,7 @@ public interface IPadoBiz extends IPadoBizLink
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	GridInfo getGridInfo();
-	
+
 	/**
 	 * Returns a list of ServerInfo objects from all servers in the grid.
 	 */
@@ -114,18 +115,23 @@ public interface IPadoBiz extends IPadoBizLink
 	@BizMethod
 	@OnServer
 	List<ServerInfo> getServerInfoList(String gridId);
-	
+
 	/**
 	 * Returns the number of running servers in the specified grid.
-	 * @param gridId Grid ID
+	 * 
+	 * @param gridId
+	 *            Grid ID
 	 */
 	@BizMethod
 	@OnServer
 	int getServerCount(String gridId);
-	
+
 	/**
-	 * Returns all server IDs that uniquely identify the servers in the specified grid.
-	 * @param gridId Grid ID
+	 * Returns all server IDs that uniquely identify the servers in the
+	 * specified grid.
+	 * 
+	 * @param gridId
+	 *            Grid ID
 	 */
 	@BizMethod
 	@OnServer
@@ -142,14 +148,16 @@ public interface IPadoBiz extends IPadoBizLink
 	AppInfo getAppInfo(String appId);
 
 	/**
-	 * Returns physical PathInfo of the root of the grid containing all of its children.
+	 * Returns physical PathInfo of the root of the grid containing all of its
+	 * children.
 	 */
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")
 	PathInfo getPathInfo();
-	
+
 	/**
-	 * Returns virtual PathInfo of the root of the grid containing all of its children.
+	 * Returns virtual PathInfo of the root of the grid containing all of its
+	 * children.
 	 */
 	@BizMethod
 	@OnServer(broadcast = false, connectionName = "pado")

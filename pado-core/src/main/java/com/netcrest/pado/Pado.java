@@ -470,7 +470,9 @@ public abstract class Pado implements IPado
 	 *            If true then the client is expected to host multiple
 	 *            applications, i.e., multiple app IDs. Clients such as app
 	 *            servers that host many applications typically set this to true
-	 *            to allow multiple applications to connect to Pado.
+	 *            to allow multiple applications to connect to Pado. This means
+	 *            the client will be configured with a single configuration file
+	 *            for all logins.
 	 */
 	public static void connect(String locators, boolean multiuserAuthenticationEnabled, boolean multiAppsEnabled)
 	{
