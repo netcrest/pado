@@ -68,4 +68,6 @@ if "%SECURITY_ENABLED%" == "true" (
 )
 @set SECURITY_PROPERTIES=%SECURITY_PROPERTIES% %GEMFIRE_SECURITY_PROPERTY_SYSTEM%
 
+@set PADO_PROPERTIES=-Dpado.home.dir=%PADO_HOME% -Dpado.server=false -Dpado.properties=%ETC_DIR%\client\pado.properties -Dpado.command.jar.path=%BASE_DIR%\lib\pado-tools.jar -Dpado.security.aes.userCertificate=%SECURITY_DIR%\user.cer -Dpado.security.keystore.path=%SECURITY_DIR%\client\client-user.keystore
+
 :stop

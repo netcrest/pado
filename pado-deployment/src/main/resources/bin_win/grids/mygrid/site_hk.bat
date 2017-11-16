@@ -14,6 +14,10 @@
 :: display purposes. Any characters including spaces are allowed.
 @set SITE_NAME=%SITE%
 
+:: SYSTEM_ID is a number that uniquely identifies this cluster for
+:: site-to-site (WAN) replication. GemFire specific.
+@set SYSTEM_ID=1
+
 :: List of locator hosts - only 1 locator per host is allowed
 @set LOCATOR_HOSTS=localhost
 
@@ -51,12 +55,7 @@
 @set GATEWAY_SERVERS=
 
 :: min/max cache server heap size.
-@set HEAP_MAX=128m
-
-:: Agent port number.
-@set AGENT_SERVERS=localhost
-@set AGENT_PORT=%CACHE_SERVER_PORT_PREFIX%50
-@set AGENT_HTTP_PORT=%CACHE_SERVER_PORT_PREFIX%51
+@set HEAP_MAX=512m
 
 :: Pado app directory that contains client app config files
 @set PADO_APP_CONFIG_DIR=%ETC_GRID_DIR%\app

@@ -23,7 +23,7 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    kill_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-agents] [-?]
+   echo    kill_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-?]
    echo.
    echo    Kills servers in the specified site in the specified grid.
    echo    The kill command is faster than the stop command
@@ -33,7 +33,6 @@ if "%1" == "-?" (
    echo       -grid      Kills the specified grid. Default: %GRID_DEFAULT
    echo       -site      Kills the specified site. Default: %SITE_DEFAULT
    echo       -locators  Kills locators in addition to servers.
-   echo       -agents    Kills agents in addition to servers.
    echo.
    echo    Default: kill_site -grid %GRID_DEFAULT% -site %SITE_DEFAULT%
    echo.
@@ -43,7 +42,6 @@ if "%1" == "-?" (
 @call %GRIDS_DIR%\%GRID%\site_%SITE%.bat
 
 @set LOCATOR_ID_PREFIX=locator-%GRID$-%SITE%
-@set AGENT_ID_PREFIX=agent-%GRID%-%SITE%
 @set SERVER_ID_PREFIX=server-%GRID%-%SITE%
 
 @set SERVER_HOSTS=localhost
@@ -78,15 +76,4 @@ if "%LOCATORS%" == "true" (
    )
 )
 
-if "%AGENTS%" == "true" (
-   @set /a NUM=1
-   for %%i in (%AGENT_SERVERS%) do (
-      echo -----------------------------------------------------
-      echo Kill host: %%i, grid: %GRID%, site: %SITE%
-      echo -----------------------------------------------------
-      @call kill_agent -grid %GRID% -site %SITE%
-      @set /a NUM="!NUM!+1"
-   )
-)
-                              
 :stop

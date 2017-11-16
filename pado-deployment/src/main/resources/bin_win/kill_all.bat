@@ -23,7 +23,7 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    kill_all [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-agents] [-?]
+   echo    kill_all [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-?]
    echo.
    echo    Kills all servers in all sites and all grids.
    echo    The kill command is faster than the stop command
@@ -33,7 +33,6 @@ if "%1" == "-?" (
    echo       -grid      Kills the specified grid only. Default: all grids
    echo       -site      Kills the specified site only. Default: all sites
    echo       -locators  Kills locators in addition to servers.
-   echo       -agents    Kills agents in addition to servers.
    echo.
    echo    Default: kill_all -grid %GRID_DEFAULT%
    echo.

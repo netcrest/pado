@@ -23,14 +23,13 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    stop_grid [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-agents] [-parallel] [-?]
+   echo    stop_grid [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-parallel] [-?]
    echo.
    echo    Stop all sites in the specified grid.
    echo.
    echo       -grid      Stops the specified grid only. Default: all grids
    echo       -site      Stops the specified site only. Default: all sites
    echo       -locators  Stops locators in addition to servers.
-   echo       -agents    Stops agents in addition to servers.
    echo       -parallel  Stops servers in parallel
    echo.
    echo    Default: stop_grid -grid %GRID_DEFAULT%

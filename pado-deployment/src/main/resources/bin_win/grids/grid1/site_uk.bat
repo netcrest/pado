@@ -14,6 +14,10 @@
 :: display purposes. Any characters including spaces are allowed.
 @set SITE_NAME=%SITE%
 
+:: SYSTEM_ID is a number that uniquely identifies this cluster for
+:: site-to-site (WAN) replication. GemFire specific.
+@set SYSTEM_ID=1
+
 :: List of locator hosts - only 1 locator per host is allowed
 @set LOCATOR_HOSTS=localhost
 

@@ -23,14 +23,13 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    start_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-agents] [-?]
+   echo    start_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-?]
    echo.
    echo   Starts servers in the specified site.
    echo.
    echo       -grid      Starts servers in the specified grid. Default: %GRID_DEFAULT%
    echo       -site      Starts servers in the specified site. Default: %SITE_DEFAULT%
    echo       -locators  Restarts locators in addition to servers.
-   echo       -agents    Restarts agents in addition to servers.
    echo.
    echo    Default: start_site -grid %GRID_DEFAULT% -site %SITE_DEFAULT%
    echo.
@@ -48,14 +47,6 @@ if "%LOCATORS%" == "true" (
       @set /a "NUM=!NUM!+1"
       echo.
    )
-)
-
-::
-:: start agents
-::
-if "%AGENTS%" == "true" (
-   @call start_agent -grid %GRID% -site %SITE%
-   echo.
 )
 
 @set SERVER_HOSTS=localhost

@@ -25,7 +25,7 @@ if "%1" == "-?" (
    echo Usage:
    echo    check_grid [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-prompt] [-?]
    echo.
-   echo        Displays running status of all locators, agents and servers of all sites
+   echo        Displays running status of all locators and servers of all sites
    echo        in the specified grid.
    echo.
    echo       -grid      Displays servers in the specified grid. Default: %GRID_DEFAULT%

@@ -51,7 +51,7 @@ for %%i in (%LOCATOR_HOSTS%) do (
 if "%RUN_DIR" == "" (
    @set RUN_DIR=%BASE_DIR%\run
 )
-:: directory in which the agent is to be run
+:: directory in which the locator is to be run
 @set DIR=%RUN_DIR%\%LOCATOR_ID%
 @if not exist "%DIR%" (
    @mkdir %DIR%

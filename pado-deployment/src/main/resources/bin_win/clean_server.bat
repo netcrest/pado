@@ -55,13 +55,10 @@ if "%STATS_DIR%" == "" (
    @set STATS_DIR=%BASE_DIR%\stats
 )
 
-# locators and agents
+# locators
 
 if "%LOCATORS%" == "true" (
   rmdir /s /q %RUN_DIR%/%LOCATOR_ID%
-)
-if "%AGENTS%" == "true" (
-   rmdir /s /q %RUN_DIR%\%AGENT_ID%
 )
 if "%CLIENTS%" == "true" (
    erase /f /q %LOG_DIR%\clien*.log

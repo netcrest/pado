@@ -23,7 +23,7 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    restart_all [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-agents] [-parallel] [-kill] [-?]
+   echo    restart_all [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-parallel] [-kill] [-?]
    echo. 
    echo    Restarts all grids and sites by first stopping all servers in
    echo    all grids and all sites.
@@ -31,7 +31,6 @@ if "%1" == "-?" (
    echo       -grid      Restarts the specified grid only. Default: all grids
    echo       -site      Restarts the specified site only. Default: all sites
    echo       -locators  Restarts locators in addition to servers.
-   echo       -agents    Restarts agents in addition to servers.
    echo       -parallel  Restarts servers in parallel
    echo       -kill      Kills servers/locators before restarting them.
    echo                  The kill command is faster than the stop command

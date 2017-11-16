@@ -106,8 +106,10 @@ if "%RUN_DIR%" == "" (
 @set LOG_FILE=%LOG_DIR%/%SERVER_ID%.log
 @set STATS_FILE=%STATS_DIR%/%SERVER_ID%.gfs
 
-::SERVER_PROPERTIES=-server-port=%CACHE_SERVER_PORT
-@set SERVER_PROPERTIES=--disable-default-server --J=-Dgfinit.cacheserver.1.port=%SERVER_PORT% --J=-Dgfinit.cacheserver.1.notify-by-subscription=true --J=-Dgfinit.cacheserver.1.socket-buffer-size=131072
+::
+:: SERVER_PROPERTIES - Cache server properties required by the plugin
+@set SERVER_PROPERTIES=--disable-default-server --J=-Dgfinit.cacheserver.1.port=%CACHE_SERVER_PORT% --J=-Dgfinit.cacheserver.1.notify-by-subscription=true --J=-Dgfinit.cacheserver.1.socket-buffer-size=131072
+
 :: The following environment variables are defined in the scripts 
 :: and may be used in server.xml.
 ::    GRID - Grid ID.
@@ -126,7 +128,7 @@ if "%RUN_DIR%" == "" (
 ::           <disk-dir>%DISK_STORE_DIR%</disk-dir>
 ::       </disk-dirs>
 ::    </disk-store>
-@set SYSTEM_ID=1
+
 @set GEMFIRE_PROPERTIES=--name=%SERVER_NAME% --J=-Dgemfire.log-file=%LOG_FILE% --statistic-archive-file=%STATS_FILE% --cache-xml-file=%SERVER_XML_FILE% --locators=%LOCATORS% --J=-Dgemfire.distributed-system-id=%SYSTEM_ID% --J=-DSITE=%SITE% --J=-DDISK_STORE_DIR=%DISK_STORE_DIR% --J=-DREMOTE_SYSTEM_ID_1=%REMOTE_SYSTEM_ID_1% --J=-DREMOTE_SYSTEM_ID_2=%REMOTE_SYSTEM_ID_2% --J=-Dgemfire.PREFER_SERIALIZED=false --J=-Dgemfire.BucketRegion.alwaysFireLocalListeners=false
 
 REM @set GEMFIRE_PROPERTIES=name=%SERVER_NAME% log-file=%LOG_FILE% statistic-archive-file=%STATS_FILE% cache-xml-file=%CACHE_XML_FILE% locators=%LOCATORS% -J-Dgemfire.PREFER_DESERIALIZED=false -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false -J-Dgemfire.start-dev-rest-api=true -J-Dgemfire.http-service-bindaddress=localhost -J-Dgemfire.jmx-manager=true -J-Dgemfire.jmx-manager-start=true

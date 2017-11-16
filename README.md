@@ -36,7 +36,7 @@ ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "gr
 - Scale out linearly and indefinitely
 - Parallelize grid computing to 10’s and 100’s of grid farms with a single command
 - Manage all grid farms in a single centralized view
-- Run DNAs (Data Node Apps) alongside data nodes in Java or Python.
+- Run DNAs (Data Node Apps) alongside data nodes in Java or Python
 
 ## How?
 

@@ -46,7 +46,7 @@ if "%1" == "-order" (
    echo Publishing Stock prices...
 )
 
-pushd %PADO_HOME%
+pushd %BASE_DIR%
 "%GF_JAVA%" -Xms128m -Xmx128m -Dpado.properties=%ETC_DIR%\client\pado.properties -DgemfirePropertyFile=%ETC_DIR%\client\client.properties %SECURITY_PROPERTIES% com.netcrest.pado.demo.bank.market.%CLASS_NAME% %*
 popd
 

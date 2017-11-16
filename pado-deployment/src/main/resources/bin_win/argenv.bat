@@ -33,7 +33,6 @@
 @set PARALLEL=
 @set ALL=
 @set LOCATORS=
-@set AGENTS=
 @set CLIENTS=
 @set LOCATORS_OPT=
 @set PERSIST=
@@ -72,8 +71,6 @@ IF "X%~1" == "X" GOTO DONE
    ) else if "%~1" == "-locators" (
       @set LOCATORS=true
       @set LOCATORS_OPT=%~1
-   ) else if "%~1" == "-agents" (
-      @set AGENTS=true
    ) else if "%~1" == "-clients" (
       @set CLIENTS=true
    ) else if "%~1" == "-kill" (
@@ -221,5 +218,4 @@ if "%SITE%" == "" (
 )
 
 @set LOCATOR_ID=locator-%GRID%-%SITE%%SERVER_NUM%
-@set AGENT_ID=agent-%GRID%-%SITE%
 @set SERVER_ID=server-%GRID%-%SITE%%SERVER_NUM%

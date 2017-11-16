@@ -23,8 +23,10 @@ if "%SECURITY_ERROR%" == "true" (
    goto stop
 )
 
-pushd %PADO_HOME%
-"%GF_JAVA%" -Xms128m -Xmx128m -Dpado.properties=%ETC_DIR%\client\pado.properties -DgemfirePropertyFile=%ETC_DIR%\client\client.properties %SECURITY_PROPERTIES% com.netcrest.pado.temporal.test.TemporalClient %*
+@set JSONLITE=-DkeyMapType=jsonlite
+
+pushd %BASE_DIR%
+"%GF_JAVA%" -Xms256m -Xmx256m -Djava.awt.headless=true %PADO_PROPERTIES% -DgemfirePropertyFile=%ETC_DIR%\client\client.properties %SECURITY_PROPERTIES% %JSONLITE% com.netcrest.pado.temporal.test.TemporalClient %*
 popd
 
 :stop

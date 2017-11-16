@@ -23,14 +23,13 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    stop_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-agents] [-parallel] [-?]
+   echo    stop_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-parallel] [-?]
    echo.
    echo   Stops servers in the specified site of the specified grid.
    echo.
    echo       -grid      Stops the specified grid. Default: %GRID_DEFAULT%
    echo       -site      Stops the specified site. Default: %SITE_DEFAULT%
    echo       -locators  Stops locators in addition to servers.
-   echo       -agents    Stops agents in addition to servers.
    echo       -parallel  Stops servers in parallel
    echo.
    echo    Default: stop_site -grid %GRID_DEFAULT% -site %SITE_DEFAULT%
@@ -83,17 +82,6 @@ if "%LOCATORS%" == "true" (
       echo Stop host: %%i, grid: %GRID%, site: %SITE%
       echo -----------------------------------------------------
       @call stop_locator -num !NUM! -grid %GRID% -site %SITE%
-      @set /a NUM="!NUM!+1"
-   )
-)
-
-if "%AGENTS%" == "true" (
-   @set /a NUM=1
-   for %%i in (%AGENT_SERVERS%) do (
-      echo -----------------------------------------------------
-      echo Stop host: %%i, grid: %GRID%, site: %SITE%
-      echo -----------------------------------------------------
-      @call stop_agent -grid %GRID% -site %SITE%
       @set /a NUM="!NUM!+1"
    )
 )
