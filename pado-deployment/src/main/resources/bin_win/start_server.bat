@@ -54,7 +54,11 @@ for %%i in (%LOCATOR_HOSTS%) do (
 :: server.xml and gateway.xml
 ::
 if "%GATEWAY%" == "" (
-   @set CACHE_XML_FILE=%SERVER_XML_FILE%
+   if "%GATEWAY_XML_FILE%" == "" (
+      @set CACHE_XML_FILE=%SERVER_XML_FILE%
+   ) else (
+      @set CACHE_XML_FILE=%GATEWAY_XML_FILE%
+   )
 ) else (
    if "%GATEWAY_XML_FILE%" == "" (
       @set CACHE_XML_FILE=%SERVER_GATEWAY_XML_FILE%
@@ -95,6 +99,23 @@ if "%RUN_DIR%" == "" (
 )
 @if not exist "%PADO_PLUGINS_DIR%" (
    @mkdir %PADO_PLUGINS_DIR%
+)
+
+:: disk-store directory
+if "%DISK_STORE_DIR%" == "" (
+   @set DISK_STORE_DIR=%DIR%\store
+) else (
+   @set DISK_STORE_DIR=%DISK_STORE_DIR%\%SERVER_ID%
+)
+
+if not exist %DISK_STORE_DIR% (
+  mkdir %DISK_STORE_DIR%
+)
+if not exist %DISK_STORE_DIR%\cache (
+  mkdir %DISK_STORE_DIR%\cache
+)
+if not exist %DISK_STORE_DIR%\gateway (
+  mkdir %DISK_STORE_DIR%\gateway
 )
 
 :: etc directorires env passed in to Pado
@@ -223,10 +244,6 @@ if "%GATEWAY%" == "" (
    echo Starting gateway %SERVER_ID% on host %MY_ADDRESS%
 )
 echo *****************************************************
-
-REM echo cacheserver start -dir=%DIR% -J-Dpado.vm.id=%SERVER_ID% -J-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %DEBUG% -J-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE%
-REM cacheserver start -dir=%DIR% -J-Dpado.vm.id=%SERVER_ID% -J-Djava.awt.headless=true %HEAPSIZE% %GC_PARAMETERS% %DEBUG% -J-DgemfirePropertyFile=%GEMFIRE_PROPERTY_FILE% %GEMFIRE_SECURITY_PROPERTY_SYSTEM% %SERVER_PROPERTIES% %GEMFIRE_PROPERTIES% %PADO_PROPERTIES% %APP_PROPERTIES% %REBALANCE%
-
 
 :: ------------------
 :: gfsh specifics

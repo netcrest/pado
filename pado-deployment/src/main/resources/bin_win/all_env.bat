@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@
 ::    site_<grid-id>.bat - Defines site-level parameters
 ::    bind_<grid-id>.bat - Defines server-bind IP addresses.
 @set GRIDS=mygrid
+:: @set GRIDS=wan
 ::@set GRIDS=grid0 grid1 grid2
 ::@set GRIDS=grid0 grid1 grid2 grid3 grid4 grid5
 

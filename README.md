@@ -121,3 +121,10 @@ cd ..
 /mygrid> less account
 /mygrid> quit
 ```
+
+## Running Demos
+The Pado distribution includes demos that can readily be run in your local environment. Each demo can be started or stopped with a single command which manages multiple grids and sites. See <pado-home>/README.txt for demo details.
+
+- **mygrid/mygrid_ssl**: Pado is preconfigured with the mygrid demo. You can ingest mock data and/or the bundled Microsoft's sample Northwind data. You can run in SSL or non-SSL.
+- **wan/wan_ssl**: This demo launches three sites with with same mygrid grid paths defined but WAN replication enabled. You can run in SSL or non-SSL.
+- **grid?**: This demo launches up to six grids federating five of them by the parent grid named grid0.

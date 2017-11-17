@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ if "%ALL%" == "true" (
 )
 
 if "%LOCATORS%" == "true" (
-  erase /f /q %RUN_DIR%\%LOCATOR_ID%* > NUL 2>&1
+  rmdir /s /q %RUN_DIR%\%LOCATOR_ID% > NUL 2>&1
 )
 if "%CLIENTS%" == "true" (
    erase /f /q %LOG_DIR%\clien*.log > NUL 2>&1
@@ -83,7 +83,7 @@ for /l %%i in (1,1,%NUM_SERVERS%) do (
    @set SERVER_ID=%SERVER_PREFIX%!SERVER_NUM!
    erase /f /q %LOG_DIR%\!SERVER_ID!.log %STATS_DIR%\!SERVER_ID!.gfs > NUL 2>&1
    if "%PERSIST%" == "true" (
-      erase /f /q %RUN_DIR%\!SERVER_ID! > NUL 2>&1
+      rmdir /s /q %RUN_DIR%\!SERVER_ID! > NUL 2>&1
    )
 )
 

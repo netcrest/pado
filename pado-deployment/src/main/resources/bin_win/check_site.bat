@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -38,22 +38,35 @@ if "%1" == "-?" (
 
 @call %GRIDS_DIR%\%GRID%\site_%SITE%.bat
 
+:: for /f "delims=" %%a in ('jps -v ^| findstr "%SERVER_ID%"') do @set LINE=%%a
+:: for %%i in (%LINE%) do (
+::   @set PID=%%i
+::   goto exit_for
+::)
+
 @set /a LOCATOR_INDEX=0
 @set /a SERVER_INDEX=0
 for /f "delims=" %%i in ('jps -v ^| findstr "pado.vm.id"') do (
    @set pid=
    @set id=
-   for /f "tokens=1,2,3 delims=/ " %%a in ("%%i") do (
+   for /f "tokens=1,2,3,4,5,6,7,8 delims=/ " %%a in ("%%i") do (
       @set pid=%%a
       @set name=%%b
-      @set prop=%%c
+      @set prop=%%f
+      if "!prop:~2,10!" == "pado.vm.id" (
+         @set prop=%%f
+      ) else (
+         @set prop=%%h
+      )
    )
    for /f "tokens=1,2 delims==" %%a in ("!prop!") do (
       @set id=%%b
    )
 
    @set GRID_MATCHED=
-   for /f "delims=" %%a in ('echo !id! ^| findstr "%GRID%"') do @set GRID_MATCHED=%%a
+   for /f "delims=" %%a in ('echo !id! ^| findstr "%GRID%"') do (
+	@set GRID_MATCHED=%%a
+   )
    if "!GRID_MATCHED!" neq "" (
       @set SITE_MATCHED=
       for /f "delims=" %%a in ('echo !id! ^| findstr "%SITE%"') do @set SITE_MATCHED=%%a
@@ -91,7 +104,7 @@ if !ALL_INDEXES! leq 0 (
    )
    @set /a END_INDEX="!SERVER_INDEX!-1"
    for /l %%i in (0,1,!END_INDEX!) do (
-      echo.   Server: !ARRAY_SERVER_ID[%%i]! !ARRAY_SERVER_PID[%%i]!
+      echo.   Server: !ARRAY_SERVER_ID[%%i]!  !ARRAY_SERVER_PID[%%i]!
    )
 )
 

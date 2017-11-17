@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -57,11 +57,28 @@ if "%RUN_DIR" == "" (
    @mkdir %DIR%
 )
 
+@set GEMFIRE_REMOTE_LOCATORS=
+if "%REMOTE_LOCATORS%" neq "" (
+   @set GEMFIRE_REMOTE_LOCATORS=--J='-Dgemfire.remote-locators=%REMOTE_LOCATORS%'
+)
+
+if "%JMX_MANAGER_ENABLED%" == "" (
+   @set JMX_MANAGER_ENABLED=false
+)
+if "%JMX_MANAGER_PORT%" == "" (
+   @set JMX_MANAGER_PORT=%CACHE_SERVER_PORT_PREFIX%50
+)
+if "%JMX_MANAGER_HTTP_PORT%" == "" (
+   @set JMX_MANAGER_HTTP_PORT=%CACHE_SERVER_PORT_PREFIX%51
+)
+
+@set GEMFIRE_PROPERTIES=--J=-Dgemfire.distributed-system-id=%SYSTEM_ID% %GEMFIRE_REMOTE_LOCATORS% --J=-Dgemfire.jmx-manager=%JMX_MANAGER_ENABLED% --J=-Dgemfire.jmx-manager-port=%JMX_MANAGER_PORT% --J=-Dgemfire.jmx-manager-http-port=%JMX_MANAGER_HTTP_PORT%
+
 ::echo start_locator %SERVER_NUM% grid: %GRID%, site: %SITE% on port %LOCATOR_PORT%
 echo *****************************************************
 echo Starting %LOCATOR_ID% on host %MY_ADDRESS%:%LOCATOR_PORT%
 echo *****************************************************
-echo gfsh start locator --name=%LOCATOR_ID% --J=-Dpado.vm.id=%LOCATOR_ID% --port=%LOCATOR_PORT% --dir=%DIR% --J=-Djava.awt.headless=true --locators=%LOCATORS%
-gfsh start locator --name=%LOCATOR_ID% --J=-Dpado.vm.id=%LOCATOR_ID% --port=%LOCATOR_PORT% --dir=%DIR% --J=-Djava.awt.headless=true --locators=%LOCATORS%
+echo gfsh start locator --name=%LOCATOR_ID% --J=-Dpado.vm.id=%LOCATOR_ID% --port=%LOCATOR_PORT% --dir=%DIR% --J=-Djava.awt.headless=true --locators=%LOCATORS% %GEMFIRE_PROPERTIES%
+gfsh start locator --name=%LOCATOR_ID% --J=-Dpado.vm.id=%LOCATOR_ID% --port=%LOCATOR_PORT% --dir=%DIR% --J=-Djava.awt.headless=true --locators=%LOCATORS% %GEMFIRE_PROPERTIES%
 
 :stop

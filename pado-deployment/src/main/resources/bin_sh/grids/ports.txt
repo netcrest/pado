@@ -7,8 +7,6 @@ Servers
 mygrid:      200 201 202
 mygrid_ssl:  200 201 202
 
-mock:        210 211 212
-
 grid0:       200 201 202
 grid1:       210 211 212
 grid2:       220 221 222
@@ -26,8 +24,6 @@ Debug
 mygrid:      100 101 102
 mygrid_ssl:  100 101 102
 
-mock:        110 111 112
-
 grid0:       100 101 102
 grid1:       110 111 112
 grid2:       120 121 122
@@ -44,8 +40,6 @@ JMX
              --- --- ---
 mygrid:      300 301 302
 mygrid_ssl:  300 301 302
-
-mock:        310 311 312
 
 grid0:       300 301 302
 grid1:       310 311 312

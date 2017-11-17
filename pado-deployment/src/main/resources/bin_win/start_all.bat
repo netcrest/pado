@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    start_all [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-parallel] [-?]
+   echo    start_all [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-?]
    echo    Starts all servers in all sites and all grids. Note that
    echo    locators must be running before starting servers.
    echo.
    echo       -grid      Starts the specified grid only. Default: all grids
    echo       -site      Starts the specified site only. Default: all sites
    echo       -locators  Starts locators in addition to servers.
-   echo       -parallel  Starts servers in parallel
    echo.
    echo    Default: start_all
    echo.

@@ -7,7 +7,7 @@ Example 1
 
 In this example, a single, child-less grid is configured with 3 sites and 2 servers per site.
 
-mygrid - This is an orphan grid that has neither parent nor child grids. It is a stand-alone data grid that can join another grid as a child grid if that grid provides access rights to this grid. Run bin_sh/client/temporal to bulk-load temporal data into the account, account_detail, bank, position, and portfolio paths as follows:
+mygrid - This is an orphan grid that has neither parent nor child grids. It is a stand-alone data grid that can join another grid as a child grid if that grid provides access rights to this grid. Run bin_sh/client/temporal to bulk-load temporal mock data into the account, account_detail, bank, position, and portfolio paths as follows:
 
    > cd bin_sh/client/temporal
    > ./temporal -all

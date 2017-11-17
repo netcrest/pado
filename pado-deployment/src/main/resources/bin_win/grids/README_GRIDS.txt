@@ -1,24 +1,29 @@
 The "bin_sh/grids" directory contains grid parameter definitions retrieved by the Pado management scripts in the "bin_sh" directory. 
 
-The Pado distribution includes the following example grid definitions which can be used to configure your grids:
+The Pado distribution includes the following example grid definitions which can be used to configure your grids (All of the examples are configured to run on localhost):
 
 Example 1
 ---------
 
 In this example, a single, child-less grid is configured with 3 sites and 2 servers per site.
 
-mygrid - This is an orphan grid that has neither parent nor child grids. It is a stand-alone data grid that can join another grid as a child grid if that grid provides access rights to this grid.
-
-Example 2
----------
-
-In this example, the automous grid called "mock" is configured with 3 sites and 2 servers per site. 
-
-mock - An automous grid for inserting mocked temporal data in the form of JsonLite. Run bin_sh/client/temporal to bulk-load temporal data into the account, account_detail, bank, position, and portfolio paths as follows:
+mygrid - This is an orphan grid that has neither parent nor child grids. It is a stand-alone data grid that can join another grid as a child grid if that grid provides access rights to this grid. Run bin_sh/client/temporal to bulk-load temporal mock data into the account, account_detail, bank, position, and portfolio paths as follows:
 
    > cd bin_sh/client/temporal
-   > ./temporal -locators localhost:21000
-   > ./temporal -locators localhost:21000 -buildlucene
+   > ./temporal -all
+
+Example 2 (WAN enabled)
+-----------------------
+
+This example is identical to "mygrid" in Example 1 except that it has WAN enabled and the "us" site has 3 servers. This example requires at least 3.5GB of memory to run all site on the same machine. Each server has been configured with the maximum heap size of 512MB. There are a total of 7 servers.
+
+wan - This is an orphan grid that has neither parent nor child grids. It is a stand-alone data grid that can join another grid as a child grid if that grid provides access rights to this grid. See Example 1 for loading moced data.
+
+WAN replications are bidirectional as follows:
+
+   us->uk+jp
+   uk->us+jp
+   jp->us+uk
 
 Example 3
 ---------
@@ -38,4 +43,3 @@ grid4 - A child grid with no other grid dependencies.
 grid5 - A child grid with no other grid dependencies.
 
 Please see etc/grid?/pado.xml for configuration details. Note that the parent grid defines all child grids in its configuratio nfile (etc/grid0/pado.xml).
-

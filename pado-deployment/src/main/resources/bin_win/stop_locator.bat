@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -49,8 +49,6 @@ if "%RUN_DIR%" == "" (
 )
 
 echo stop_locator -num %SERVER_NUM% -grid %GRID% -site %SITE% on port %LOCATOR_PORT%
-REM gemfire stop-locator -port=%LOCATOR_PORT% -dir=%DIR%
-
 echo gfsh stop locator --dir=%DIR%
 gfsh stop locator --dir=%DIR%
 

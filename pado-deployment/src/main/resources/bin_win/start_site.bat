@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ for %%i in (%SERVER_HOSTS%) do (
       )
    )
    for /l %%k in (1, 1, !NUM_NON_GATEWAY_SERVERS!) do (
-      @call start_server -num !NUM! -grid %GRID% -site %SITE%
+      @call start /i /b __start_server_exit -num !NUM! -grid %GRID% -site %SITE%
       @set /a NUM="!NUM!+1"
    )
    echo.

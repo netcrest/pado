@@ -31,6 +31,18 @@
 			</excludes>
 			<outputDirectory>lib/</outputDirectory>
 		</dependencySet>
+		
+		<!-- Workaround: pado-test jar is required for the system class loader due to its
+		     inclusion of permanent data classes needed by persistent grid paths
+		     during startup. This is a bug that needs to be fixed. -->
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<includes>
+				<include>com.netcrest.pado:pado-test</include>
+			</includes>
+			<outputDirectory>lib/app</outputDirectory>
+		</dependencySet>
+		
 		<dependencySet>
 			<useProjectArtifact>false</useProjectArtifact>
 			<includes>
@@ -39,7 +51,7 @@
 				<include>com.netcrest.pado:pado-test</include>
 				<include>com.netcrest.pado:pado-rpc-biz</include>
 			</includes>
-			<outputDirectory>/plugins</outputDirectory>
+			<outputDirectory>plugins</outputDirectory>
 		</dependencySet>
 	</dependencySets>
 	
@@ -106,7 +118,7 @@
 		</fileSet>
 		<fileSet>
 			<directory>src/main/resources/bin_sh</directory>
-			<outputDirectory>/bin_sh</outputDirectory>
+			<outputDirectory>bin_sh</outputDirectory>
 			<includes>
 				<include>**</include>
 			</includes>
@@ -129,21 +141,21 @@
 		<!-- Create the required empty directories -->
 		<fileSet>
 			<directory>./</directory>
-			<outputDirectory>/bundle</outputDirectory>
+			<outputDirectory>bundle</outputDirectory>
 			<excludes>
 				<exclude>*/**</exclude>
 			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>./</directory>
-			<outputDirectory>/log</outputDirectory>
+			<outputDirectory>log</outputDirectory>
 			<excludes>
 				<exclude>*/**</exclude>
 			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>./</directory>
-			<outputDirectory>/stats</outputDirectory>
+			<outputDirectory>stats</outputDirectory>
 			<excludes>
 				<exclude>*/**</exclude>
 			</excludes>

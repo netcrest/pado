@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ if  "%RUN_DIR%" == "" (
 )
 
 echo stop_server -num %SERVER_NUM% -grid %GRID% -site %SITE%
-echo cacheserver stop -dir=%DIR%
-cacheserver stop -dir=%DIR%
+echo gfsh stop server --dir=%DIR%
+gfsh stop server --dir=%DIR%
 
 :stop

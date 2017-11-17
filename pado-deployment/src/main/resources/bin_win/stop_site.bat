@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@
 
 if "%1" == "-?" (
    echo Usage:
-   echo    stop_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-parallel] [-?]
+   echo    stop_site [-grid %GRIDS_OPT%] [-site %SITES_OPT%] [-locators] [-?]
    echo.
    echo   Stops servers in the specified site of the specified grid.
    echo.
    echo       -grid      Stops the specified grid. Default: %GRID_DEFAULT%
    echo       -site      Stops the specified site. Default: %SITE_DEFAULT%
    echo       -locators  Stops locators in addition to servers.
-   echo       -parallel  Stops servers in parallel
    echo.
    echo    Default: stop_site -grid %GRID_DEFAULT% -site %SITE_DEFAULT%
    echo.

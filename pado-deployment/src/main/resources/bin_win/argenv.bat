@@ -1,5 +1,5 @@
 :: ========================================================================
-:: Copyright (c) 2013-2015 Netcrest Technologies, LLC. All rights reserved.
+:: Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@
 ::
 :: Determine arguments
 ::
+@set SITE=
 @set SERVER_NUM=1
 @set REBALANCE=
 @set GATEWAY=
 @set GATEWAY_XML_FILE=
 @set GRID_SPECIFIED=
 @set SITE_SPECIFIED=
-@set PARALLEL=
 @set ALL=
 @set LOCATORS=
 @set CLIENTS=
@@ -64,8 +64,6 @@ IF "X%~1" == "X" GOTO DONE
       @set GATEWAY=gateway
    ) else if "%~1" == "-rebalance" (
       @set REBALANCE=-rebalance
-   ) else if "%~1" == "-parallel" (
-      @set PARALLEL=true
    ) else if "%~1" == "-all" (
       @set ALL=true
    ) else if "%~1" == "-locators" (
