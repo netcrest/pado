@@ -32,17 +32,6 @@
 			<outputDirectory>lib/</outputDirectory>
 		</dependencySet>
 		
-		<!-- Workaround: pado-test jar is required for the system class loader due to its
-		     inclusion of permanent data classes needed by persistent grid paths
-		     during startup. This is a bug that needs to be fixed. -->
-		<dependencySet>
-			<useProjectArtifact>false</useProjectArtifact>
-			<includes>
-				<include>com.netcrest.pado:pado-test</include>
-			</includes>
-			<outputDirectory>lib/app</outputDirectory>
-		</dependencySet>
-		
 		<dependencySet>
 			<useProjectArtifact>false</useProjectArtifact>
 			<includes>
@@ -156,6 +145,13 @@
 		<fileSet>
 			<directory>./</directory>
 			<outputDirectory>stats</outputDirectory>
+			<excludes>
+				<exclude>*/**</exclude>
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>./</directory>
+			<outputDirectory>lib/app</outputDirectory>
 			<excludes>
 				<exclude>*/**</exclude>
 			</excludes>

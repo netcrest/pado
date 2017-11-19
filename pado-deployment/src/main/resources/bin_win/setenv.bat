@@ -57,13 +57,6 @@
 ::            You can change the order where USER_CLASSPATH is included in this
 ::            file.
 ::
-
-::
-:: OPTIONAL: The following environment varaialbes are optional.
-::
-::  %ANT_HOME% - The absolute path of the Apache ant root directory. Ant
-::              is required to build Pado.
-::
 :: Note that the class path constructed by this script is used by all executables,
 :: i.e., cacheserver, gfmon, databrower, vsd, and gfsh.
 ::
@@ -82,14 +75,9 @@
 ::
 :: Gemfire root direcoty path
 ::
-@set GEMFIRE_V7=Y:\GemStone\Pivotal_GemFire_70211_b48040
-@set GEMFIRE_V8=C:\Users\dpark\Work\products\Pivotal_GemFire_827_b18_Windows
+:: @set GEMFIRE_V7=C:\apps\products\Pivotal_GemFire_70211_b48040
+@set GEMFIRE_V8=C:\apps\products\Pivotal_GemFire_827_b18_Windows
 @set GEMFIRE=%GEMFIRE_V8%
-
-::
-:: ANT_HOME
-::
-@set ANT_HOME=Y:\Java\apache-ant-1.8.1
 
 ::
 :: Application specifics
@@ -103,11 +91,7 @@
 :: GF_JAVA executable
 ::
 @set GF_JAVA=%JAVA_HOME%\bin\java
-if  "%ANT_HOME%" == "" (
-   @set "PATH=%JAVA_HOME%\bin;%GEMFIRE%\bin;%GEMFIRE%\lib;%PATH%"
-) else (
-   @set "PATH=%JAVA_HOME%\bin;%GEMFIRE%\bin;%GEMFIRE%\lib;%ANT_HOME%\bin;%PATH%"
-)
+@set "PATH=%JAVA_HOME%\bin;%GEMFIRE%\bin;%GEMFIRE%\lib;%PATH%"
 
 ::
 :: -----------------------------------------------------------------
@@ -127,6 +111,7 @@ if  "%ANT_HOME%" == "" (
 ::
 @set PADO_HOME=%BASE_DIR:\=/%
 
+
 @set "PATH=%BASE_DIR%\bin_win;%BASE_DIR%\lib;%PATH%"
 
 ::
@@ -143,9 +128,28 @@ for /r %BASE_DIR%\lib %%i in (*.jar) do (
       @set APP_JARS=!APP_JARS!;%%i
    )
 )
-if not "%APP_JARS%" == "" (
-  @set CLASSPATH=%APP_JARS%;%CLASSPATH%
+
+:: 
+:: plugins jars
+::
+@set PLUGIN_JARS=
+@set PREV_FILE_HEAD=
+pushd %BASE_DIR%\plugins
+@setlocal enabledelayedexpansion
+REM for  %%i in (*.jar) do (
+for /f  "delims=" %%i in ('dir /b /o:-n *.jar') do (
+   call:parseFileName %%i 2
+   if "!FILE_HEAD!" neq "!PREV_FILE_HEAD!" ( 
+      @if not defined PLUGIN_JARS (
+         @set PLUGIN_JARS=%BASE_DIR%\plugins\%%i
+      ) else (
+         @set PLUGIN_JARS=!PLUGIN_JARS!;%BASE_DIR%\plugins\%%i
+      )
+   )
+   @set PREV_FILE_HEAD=!FILE_HEAD!
 )
+endlocal & set PLUGIN_JARS=%PLUGIN_JARS%
+popd
 
 ::
 :: If jar files need to be ordered, then list them in front of APP_JARS here.
@@ -156,9 +160,9 @@ if not "%APP_JARS%" == "" (
 :: class path
 ::
 if not "%APP_JARS%" == "" (
-   @set CLASSPATH=%BASE_DIR%\classes;%APP_JARS%;%GEMFIRE%\lib\gemfire.jar;%GEMFIRE%\lib\antlr.jar
+   @set CLASSPATH=%BASE_DIR%\classes;%APP_JARS%;%PLUGIN_JARS%;%GEMFIRE%\lib\gemfire.jar;%GEMFIRE%\lib\antlr.jar
 ) else (
-   @set CLASSPATH=%BASE_DIR%\classes;%GEMFIRE%\lib\gemfire.jar;%GEMFIRE%\lib\antlr.jar
+   @set CLASSPATH=%BASE_DIR%\classes;%PLUGIN_JARS%;%GEMFIRE%\lib\gemfire.jar;%GEMFIRE%\lib\antlr.jar
 )
 
 ::
@@ -167,3 +171,48 @@ if not "%APP_JARS%" == "" (
 if not "%USER_CLASSPATH%" == "" (
    @set CLASSPATH=%USER_CLASSPATH%;%CLASSPATH%
 )
+
+goto stop
+
+REM parseFileName parses file names found in the lib directory
+REM to drop the version postfix from the select files names.
+REM Input:
+REM    arg1 fileName - file name
+REM    arg2 delimiterCount - delimiter count of postfix for determining the index number
+REM Output:
+REM    FILE_HEAD - File header without the postfix.
+
+:parseFileName
+
+   @set FILE_NAME=%~1
+   @set DELIMITER_COUNT=%~2
+   set _myvar=%FILE_NAME%
+   set n=0
+:FORLOOP
+for /F "tokens=1* delims=." %%A IN ("%_myvar%") DO (
+    set vector[!n!]=%%A
+    set _myvar=%%B
+    @set /a n="!n!+1"
+    if NOT "%_myvar%"=="" goto FORLOOP
+)
+
+@set /a LAST_INDEX="!n!-1"
+@set /a FILE_HEAD_LAST_INDEX="!LAST_INDEX!-!DELIMITER_COUNT!"
+@set FILE_HEAD=
+for /l %%i in (0,1,%FILE_HEAD_LAST_INDEX%) do (
+   if %%i == 0 (
+      @set FILE_HEAD=!vector[%%i]!
+   ) else (
+      @set FILE_HEAD=!FILE_HEAD!-!vector[%%i]!
+   )
+)
+
+REM @set /a FILE_TAIL_START_INDEX="!FILE_HEAD_LAST_INDEX!+1"
+REM @set FILE_TAIL=
+REM for /l %%i in (%FILE_TAIL_START_INDEX%,1,%LAST_INDEX%) do (
+REM   @set FILE_TAIL=!FILE_TAIL!.!vector[%%i]!
+REM )
+
+goto:eof
+
+:stop

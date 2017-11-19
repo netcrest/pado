@@ -65,7 +65,7 @@ if "%CLIENTS%" == "true" (
    erase /f /q %STATS_DIR%\client*.gfs
 )
 
-rm -f %LOG_DIR/%GRID%_%SITE%%SERVER_NUM%.log %STATS_DIR%/%GRID%_%SITE%%SERVER_NUM%.gfs
+erase /f /q %LOG_DIR/%GRID%_%SITE%%SERVER_NUM%.log %STATS_DIR%/%GRID%_%SITE%%SERVER_NUM%.gfs
 if "%PERSIST" == "true" (
    rmdir /s /q %RUN_DIR%\%SERVER_ID%
 )

@@ -71,13 +71,6 @@
 #             You can change the order where USER_CLASSPATH is included in this
 #             file.
 #
-
-#
-# OPTIONAL: The following environment variables are optional.
-#
-#  $ANT_HOME - The absolute path of the Apache ant root directory. Ant
-#              is required to build Pado.
-#
 # Note that the class path constructed by this script is used by all executables,
 # i.e., cacheserver, gfmon, databrower, vsd, and gfsh.
 
@@ -100,28 +93,22 @@ JAVA_VERSION=8
 #
 if [ "`uname`" == "Darwin" ]; then
    # Mac
-#   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
+   #export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
    export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home
 elif [ "`uname`" == "Linux" ]; then
-#   export JAVA_HOME=/apps/adf/products/jdk1.8.0_121
-   export JAVA_HOME=/apps/adf/products/ejdk1.8.0_121/linux_armv6_vfp_hflt/jre
+   #export JAVA_HOME=/apps/products/ejdk1.8.0_121/linux_armv6_vfp_hflt/jre
+   export JAVA_HOME=/apps/products/jdk1.8.0_121
 else
-#   export JAVA_HOME=~/Work/Java/jdk/linux/jdk1.7.0_79
-   export JAVA_HOME="/cygdrive/c/Program Files/Java/jdk1.8.0_112"
+   #export JAVA_HOME=~/Work/Java/jdk/linux/jdk1.7.0_79
+   export JAVA_HOME="/cygdrive/c/Program Files/Java/jdk1.8.0_144"
 fi
 
 #
 # GEMFIRE   -- Gemfire root directory path
 #
-#export GEMFIRE_V7=~/Work/GemStone/Pivotal_GemFire_70211_b48040
-#export GEMFIRE_V8=~/Work/products/Pivotal_GemFire_822_b18324_Windows
-export GEMFIRE_V8=/apps/adf/products/Pivotal_GemFire_822_b18324_Linux
+#export GEMFIRE_V7=/apps/products/Pivotal_GemFire_70211_b48040
+export GEMFIRE_V8=/apps/products/Pivotal_GemFire_822_b18324_Linux
 export GEMFIRE=$GEMFIRE_V8
-
-#
-# ANT_HOME  -- Ant root directory path
-#
-export ANT_HOME=~/Work/Java/apache-ant-1.9.6
 
 # 
 # Application specifics 
@@ -135,11 +122,7 @@ APP_PROPERTIES="-J-Djavax.net.ssl.trustStore=../../security/pado.keystore"
 # GF_JAVA executable
 #
 export GF_JAVA=$JAVA_HOME/bin/java
-if [ "$ANT_HOME" == "" ]; then
-   export PATH=$JAVA_HOME/bin:$GEMFIRE/bin:$GEMFIRE/lib:$PATH
-else
-   export PATH=$JAVA_HOME/bin:$GEMFIRE/bin:$ANT_HOME/bin:$GEMFIRE/lib:$PATH
-fi
+export PATH=$JAVA_HOME/bin:$GEMFIRE/bin:$GEMFIRE/lib:$PATH
 
 # 
 # SSH user name 
@@ -203,6 +186,51 @@ do
   fi
 done
 
+# parseFileName parses file names found in the lib directory
+# to drop the version postfix from the select files names.
+# Input:
+#    arg1 fileName - file name
+#    arg2 delimiterCount - delimiter count of postfix for determining the index number
+# Output:
+#    FILE_HEAD - File header without the postfix.
+function parseFileName
+{
+   local FILE_NAME=$1
+   local DELIMITER_COUNT=$2
+   IFS='.'; vector=($FILE_NAME); unset IFS;
+   let LAST_INDEX=${#vector[@]}-1
+   let FILE_HEAD_LAST_INDEX=LAST_INDEX-DELIMITER_COUNT
+   FILE_HEAD=
+   for (( i = 0; i <= ${FILE_HEAD_LAST_INDEX}; i++ ))
+   do
+      if [ $i == 0 ]; then
+         FILE_HEAD=${vector[$i]}
+      else
+         FILE_HEAD=$FILE_HEAD-${vector[$i]}
+      fi
+   done
+}
+
+#
+# plugins jars
+#
+PLUGIN_JARS=
+PREV_FILE_HEAD=
+pushd $BASE_DIR/plugins > /dev/null 2>&1
+for file in `ls *.jar | sort -r`
+do
+   parseFileName $file 2
+   if [ "$FILE_HEAD" != "$PREV_FILE_HEAD" ]; then
+      if [ "$PLUGIN_JARS" == "" ]; then
+         PLUGIN_JARS=$BASE_DIR/plugins/$file
+      else
+         PLUGIN_JARS=$PLUGIN_JARS:$BASE_DIR/plugins/$file
+      fi
+   fi
+   PREV_FILE_HEAD=$FILE_HEAD
+done
+popd > /dev/null 2>&1
+
 #
 # If jar files in the Pado lib directory need to be ordered, 
 # then list them in front of APP_JARS here.
@@ -213,9 +241,9 @@ APP_JARS=$APP_JARS
 # class path
 #
 if [ "${APP_JARS}" ]; then
-   export CLASSPATH=$BASE_DIR/classes:$APP_JARS:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
+   export CLASSPATH=$BASE_DIR/classes:$APP_JARS:$PLUGIN_JARS:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
 else
-   export CLASSPATH=$BASE_DIR/classes:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
+   export CLASSPATH=$BASE_DIR/classes:$PLUGIN_JARS:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
 fi
 
 #
