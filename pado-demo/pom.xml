@@ -21,7 +21,7 @@
 	<parent>
 		<groupId>com.netcrest.pado</groupId>
 		<artifactId>pado-parent</artifactId>
-		<version>0.4.1-B4</version>
+		<version>0.4.2-B1</version>
 	</parent>
 
 	<artifactId>pado-demo</artifactId>

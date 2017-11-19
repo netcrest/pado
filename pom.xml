@@ -14,7 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<pado.version>0.4.1-B4</pado.version>
+		<pado.version>0.4.2-B1</pado.version>
 		<lucene.version>4.7.2</lucene.version>
 		<gemfire.version>8.2.0</gemfire.version>
 	</properties>
@@ -23,7 +23,7 @@
 	<groupId>com.netcrest.pado</groupId>
 	<artifactId>pado-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.4.1-B4</version>
+	<version>0.4.2-B1</version>
 	<name>pado-parent</name>
 	<description>Pado</description>
 
