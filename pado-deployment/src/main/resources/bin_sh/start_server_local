@@ -302,8 +302,7 @@ export SERVER_NAME=${GRID}-${SITE}-${SERVER_NUM}
 LOG_FILE=${LOG_DIR}/${SERVER_ID}.log
 STATS_FILE=${STATS_DIR}/${SERVER_ID}.gfs
 
-#SERVER_PROPERTIES=-server-port=$SERVER_PORT
-SERVER_PROPERTIES="-disable-default-server -J-Dgfinit.cacheserver.1.port=$SERVER_PORT -J-Dgfinit.cacheserver.1.notify-by-subscription=true -J-Dgfinit.cacheserver.1.socket-buffer-size=131072"
+SERVER_PROPERTIES="--disable-default-server --J=-Dgfinit.cacheserver.1.port=$SERVER_PORT --J=-Dgfinit.cacheserver.1.notify-by-subscription=true --J=-Dgfinit.cacheserver.1.socket-buffer-size=131072"
 
 # The following environment variables are defined in the scripts 
 # and may be used in server.xml.
@@ -313,9 +312,6 @@ SERVER_PROPERTIES="-disable-default-server -J-Dgfinit.cacheserver.1.port=$SERVER
 #    SERVER_BIND_ADDRESS - Cache server bind address
 #    CLIENT_BIND_ADDRESS - Hostname for clients
 #    DISK_STORE_DIR - Disk store directory path
-#
-# Example:
-#    <cache-server port="${SERVER_PORT}"
 #                  bind-address="${SERVER_BIND_ADDRESS}"
 #                  hostname-for-clients="${CLIENT_BIND_ADDRESS}" />
 #    <disk-store name="disk-store">
@@ -324,7 +320,7 @@ SERVER_PROPERTIES="-disable-default-server -J-Dgfinit.cacheserver.1.port=$SERVER
 #       </disk-dirs>
 #    </disk-store>
 
-GEMFIRE_PROPERTIES="name=$SERVER_NAME log-file=${LOG_FILE} statistic-archive-file=$STATS_FILE cache-xml-file=$SERVER_XML_FILE locators=${LOCATORS} -J-Dgemfire.distributed-system-id=${SYSTEM_ID} -J-DSITE=${SITE} -J-DDISK_STORE_DIR=${DISK_STORE_DIR} -J-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} -J-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} -J-Dgemfire.PREFER_SERIALIZED=true -J-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
+GEMFIRE_PROPERTIES="--name=$SERVER_NAME --J=-Dgemfire.log-file=${LOG_FILE} --statistic-archive-file=$STATS_FILE --cache-xml-file=$SERVER_XML_FILE --locators=${LOCATORS} --J=-Dgemfire.distributed-system-id=${SYSTEM_ID} --J=-DSITE=${SITE} --J=-DDISK_STORE_DIR=${DISK_STORE_DIR} --J=-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} --J=-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} --J=-Dgemfire.PREFER_SERIALIZED=true --J=-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
 
 if [ "$SERVER_SECURITY_PROPERTY_FILE" == "" ]; then
    SERVER_SECURITY_PROPERTY_FILE=$ETC_GRID_DIR/gfsecurity.properties
@@ -336,7 +332,7 @@ fi
 GEMFIRE_SECURITY_PROPERTY_SYSTEM=
 if [ -f $SERVER_SECURITY_PROPERTY_FILE ]; then
    if [ "$SECURITY_ENABLED" == "true" ]; then
-      GEMFIRE_SECURITY_PROPERTY_SYSTEM=-J-DgemfireSecurityPropertyFile=$SERVER_SECURITY_PROPERTY_FILE
+      GEMFIRE_SECURITY_PROPERTY_SYSTEM=--J=-DgemfireSecurityPropertyFile=$SERVER_SECURITY_PROPERTY_FILE
    fi
 else
    if [ "$SECURITY_ENABLED" == "true" ]; then
@@ -349,13 +345,13 @@ else
    fi
 fi
 if [ "$SECURITY_ENABLED" == "true" ]; then
-   SECURITY_PROPERTIES=-J-Dpado.security.enabled=true
+   SECURITY_PROPERTIES=--J=-Dpado.security.enabled=true
 else
-   SECURITY_PROPERTIES=-J-Dpado.security.enabled=false
+   SECURITY_PROPERTIES=--J=-Dpado.security.enabled=false
 fi
 
 if [ "$SECURITY_ENABLED" == "true" ]; then
-   GEMFIRE_SECURITY_PROPERTY_SYSTEM="$GEMFIRE_SECURITY_PROPERTY_SYSTEM -J-Dgemfire.security-client-authenticator=com.netcrest.pado.gemfire.security.PadoAuthenticator.create -J-Dgemfire.security-client-accessor=com.netcrest.pado.gemfire.security.PadoAuthorization.create -J-Dgemfire.security-client-auth-init=com.netcrest.pado.gemfire.security.PadoAuthInit.create"
+   GEMFIRE_SECURITY_PROPERTY_SYSTEM="$GEMFIRE_SECURITY_PROPERTY_SYSTEM --J=-Dgemfire.security-client-authenticator=com.netcrest.pado.gemfire.security.PadoAuthenticator.create --J=-Dgemfire.security-client-accessor=com.netcrest.pado.gemfire.security.PadoAuthorization.create --J=-Dgemfire.security-client-auth-init=com.netcrest.pado.gemfire.security.PadoAuthInit.create"
 fi
 
 SECURITY_PROPERTIES="$SECURITY_PROPERTIES $GEMFIRE_SECURITY_PROPERTY_SYSTEM"
@@ -377,7 +373,7 @@ fi
 # Application specifics 
 #
 # List all application specific properties here. Make sure to
-# use the prefix "-J-D", e.g., APP_PROPERTIES=-J-Dfoo.test=true
+# use the prefix "--J=-D", e.g., APP_PROPERTIES=--J=-Dfoo.test=true
 # APP_PROPERTIES should be set in setenv.sh.
 # 
 APP_PROPERTIES=$APP_PROPERTIES
@@ -385,26 +381,26 @@ APP_PROPERTIES=$APP_PROPERTIES
 # 
 # Pado specifics
 #
-PADO_PROPERTIES="-J-Dpado.grid.id=$GRID_ID -J-Dpado.grid.name=$GRID_NAME -J-Dpado.site.id=$SITE_ID -J-Dpado.site.name=$SITE_NAME -J-Dpado.server.num=$SERVER_NUM -J-Dpado.plugins.dir=$PADO_PLUGINS_DIR -J-Dpado.etc.dir=$ETC_DIR -J-Dpado.etc.grid.dir=$ETC_GRID_DIR -J-Dpado.db.dir=$PADO_DB_DIR -J-Dpado.properties=$PADO_PROPERTY_FILE -J-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR -J-Dpado.server=true -J-Dpado.config-file=$PADO_XML_FILE -J-Dpado.log.gridInfo=false -J-Djavax.xml.accessExternalDTD=all"
+PADO_PROPERTIES="--J=-Dpado.grid.id=$GRID_ID --J=-Dpado.grid.name=$GRID_NAME --J=-Dpado.site.id=$SITE_ID --J=-Dpado.site.name=$SITE_NAME --J=-Dpado.server.num=$SERVER_NUM --J=-Dpado.plugins.dir=$PADO_PLUGINS_DIR --J=-Dpado.etc.dir=$ETC_DIR --J=-Dpado.etc.grid.dir=$ETC_GRID_DIR --J=-Dpado.db.dir=$PADO_DB_DIR --J=-Dpado.properties=$PADO_PROPERTY_FILE --J=-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR --J=-Dpado.server=true --J=-Dpado.config-file=$PADO_XML_FILE --J=-Dpado.log.gridInfo=false --J=-Djavax.xml.accessExternalDTD=all"
 
 #
 # HEAP_MAX is set in grids/<grid-id>/site_<site-id>.sh
 #
-HEAPSIZE="-J-Xms${HEAP_MAX} -J-Xmx${HEAP_MAX}"
+HEAPSIZE="--initial-heap=${HEAP_MAX} --max-heap=${HEAP_MAX}"
 
 #
 # GC paramenters
 #
-# GC_PARAMETERS="-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:NewSize=256m -J-XX:CMSInitiatingOccupancyFraction=75"
-GC_PARAMETERS="-J-XX:+UseParNewGC -J-XX:+UseConcMarkSweepGC -J-XX:CMSInitiatingOccupancyFraction=75"
+# GC_PARAMETERS="--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:NewSize=256m --J=-XX:CMSInitiatingOccupancyFraction=75"
+GC_PARAMETERS="--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:CMSInitiatingOccupancyFraction=75"
 
-JMX_PARAMETERS="-J-Dcom.sun.management.jmxremote.port=${JMX_PORT} -J-Dcom.sun.management.jmxremote.ssl=false -J-Dcom.sun.management.jmxremote.authenticate=false"
+JMX_PARAMETERS="--J=-Dcom.sun.management.jmxremote.port=${JMX_PORT} --J=-Dcom.sun.management.jmxremote.ssl=false --J=-Dcom.sun.management.jmxremote.authenticate=false"
 
 #
 # Debug parameters.
 #
 if [ "$DEBUG_ENABLED" == "true" ]; then
-   DEBUG="-J-Xdebug -J-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}"
+   DEBUG="--J=-Xdebug --J='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}'"
 else
    DEBUG=
 fi
@@ -416,18 +412,5 @@ echo "*****************************************************"
 echo "Starting $SERVER_ID on host $MY_ADDRESS..."
 echo "*****************************************************"
 
-
-echo cacheserver start $JVM_EXTRA -dir=$DIR -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
-cacheserver start -dir=$DIR $JVM_EXTRA -J-Dpado.vm.id=${SERVER_ID} -J-Dpado.home.dir=$PADO_HOME -J-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG -J-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE
-
-# ------------------
-# gfsh specifics
-# ------------------
-HEAPSIZE="--J=-Xms${HEAP_MAX} --J=-Xmx${HEAP_MAX}"
-GC_PARAMETERS="--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:+DisableExplicitGC --J=-XX:CMSInitiatingOccupancyFraction=50"
-JMX_PARAMETERS="--J=-Dcom.sun.management.jmxremote.port=${JMX_PORT} --J=-Dcom.sun.management.jmxremote.ssl=false --J=-Dcom.sun.management.jmxremote.authenticate=false"
-DEBUG="--J=-Xdebug --J=\"-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}\""
-SERVER_PROPERTIES="--disable-default-server --J=-Dgfinit.cacheserver.1.port=$SERVER_PORT --J=-Dgfinit.cacheserver.1.notify-by-subscription=true --J=-Dgfinit.cacheserver.1.socket-buffer-size=131072"
-GEMFIRE_PROPERTIES="--name=$SERVER_NAME --J=-Dgemfire.log-file=${LOG_FILE} --statistic-archive-file=$STATS_FILE --cache-xml-file=$SERVER_XML_FILE --locators=${LOCATORS} --J=-Dgemfire.distributed-system-id=${SYSTEM_ID} --J=-DSITE=${SITE} --J=-DDISK_STORE_DIR=${DISK_STORE_DIR} --J=-DREMOTE_SYSTEM_ID_1=${REMOTE_SYSTEM_ID_1} --J=-DREMOTE_SYSTEM_ID_2=${REMOTE_SYSTEM_ID_2} --J=-Dgemfire.PREFER_SERIALIZED=false --J=-Dgemfire.BucketRegion.alwaysFireLocalListeners=false"
-APP_PROPERTIES="--J=--Djavax.net.ssl.trustStore=../../ldap/example/ssl/trusted.keystore"
-PADO_PROPERTIES="--J=-Dpado.grid.id=$GRID_ID --J=-Dpado.grid.name=$GRID_NAME --J=-Dpado.site.id=$SITE_ID --J=-Dpado.site.name=$SITE_NAME --J=-Dpado.plugins.dir=$PADO_PLUGINS_DIR --J=-Dpado.etc.dir=$ETC_DIR --J=-Dpado.etc.grid.dir=$ETC_GRID_DIR --J=-Dpado.db.dir=$PADO_DB_DIR --J=-Dpado.properties=$PADO_PROPERTY_FILE --J=-Dpado.appConfigDir=$PADO_APP_CONFIG_DIR --J=-Dpado.server=true --J=-Dpado.config-file=$PADO_XML_FILE --J=-Dpado.log.gridInfo=false"
+echo gfsh start server --dir=$DIR $JVM_EXTRA --J=-Dpado.vm.id=${SERVER_ID} --J=-Dpado.home.dir=$PADO_HOME --J=-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG --J=-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE --classpath=$CLASSPATH
+gfsh start server --dir=$DIR $JVM_EXTRA --J=-Dpado.vm.id=${SERVER_ID} --J=-Dpado.home.dir=$PADO_HOME --J=-Djava.awt.headless=true $HEAPSIZE $GC_PARAMETERS $JMX_PARAMETERS $DEBUG --J=-DgemfirePropertyFile=$SERVER_PROPERTY_FILE $SECURITY_PROPERTIES $SERVER_PROPERTIES $GEMFIRE_PROPERTIES $PADO_PROPERTIES $APP_PROPERTIES $REBALANCE --classpath=$CLASSPATH

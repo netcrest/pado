@@ -139,5 +139,5 @@ if [ ! -d $DIR ]; then
 fi
 
 echo stop_server -num $SERVER_NUM_NO_LEADING_ZERO -grid $GRID -site $SITE
-echo cacheserver stop -dir=$DIR
-cacheserver stop -dir=$DIR
+echo gfsh stop server --dir=$DIR
+gfsh stop server --dir=$DIR

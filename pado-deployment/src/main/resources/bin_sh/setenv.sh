@@ -97,7 +97,7 @@ if [ "`uname`" == "Darwin" ]; then
    export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home
 elif [ "`uname`" == "Linux" ]; then
    #export JAVA_HOME=/apps/products/ejdk1.8.0_121/linux_armv6_vfp_hflt/jre
-   export JAVA_HOME=/apps/products/jdk1.8.0_121
+   export JAVA_HOME=/apps/products/jdk1.8.0_131
 else
    #export JAVA_HOME=~/Work/Java/jdk/linux/jdk1.7.0_79
    export JAVA_HOME="/cygdrive/c/Program Files/Java/jdk1.8.0_144"
@@ -114,9 +114,9 @@ export GEMFIRE=$GEMFIRE_V8
 # Application specifics 
 #
 # List all application specific properties here. Make sure to
-# use the prefix "-J-D", e.g., APP_PROPERTIES=-J-Dfoo.test=true
+# use the prefix "--J=-D", e.g., APP_PROPERTIES=--J=-Dfoo.test=true
 # 
-APP_PROPERTIES="-J-Djavax.net.ssl.trustStore=../../security/pado.keystore"
+APP_PROPERTIES="--J=-Djavax.net.ssl.trustStore=../../security/pado.keystore"
 
 #
 # GF_JAVA executable

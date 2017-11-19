@@ -78,4 +78,14 @@ if [ "$LOCATORS" == "true" ]; then
    done
 fi
 
+# gfsh's connect takes only one locator. Use gemfire which takes multiple locators to shutdown for now.
+#echo "Shutting down all servers. Please wait..."
+#if [ "$LOCATORS" == "true" ]; then
+#   echo gfsh -e "connect --locator=$ALL_LOCATORS" -e "shutdown --time-out=30 --include-locators=true"
+#   gfsh -e "connect --locator=$ALL_LOCATORS" -e "shutdown --time-out=30 --include-locators=true"
+#else
+#   echo gfsh -e "connect --locator=$ALL_LOCATORS" -e "shutdown --time-out=30"
+#   gfsh -e "connect --locator=$ALL_LOCATORS" -e "shutdown --time-out=30"
+#fi
+
 disown -a -r
