@@ -55,5 +55,7 @@ archive
 /pado-mqtt
 /pado-python
 /pado-rpc_bak
+/pado-web
 /deploy_old2
 copyjar*
+/deploy_old
