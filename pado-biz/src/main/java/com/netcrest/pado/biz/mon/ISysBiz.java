@@ -263,6 +263,25 @@ public interface ISysBiz extends IBiz
 	void deployJars(String[] jarNames, byte[][] jarContents, Date timestamp) throws DeploymentFailedException;
 
 	/**
+	 * Deploys DNA distribution files to all of the grids.
+	 * 
+	 * @param dnaDistNames
+	 *            List of DNA distribution names.
+	 * @param dnaDistContents
+	 *            List of DNA distribution file contents. The list must match
+	 *            the DNA distribution name list.
+	 * @param timestamp
+	 *            Timestamp to be appended to the jar files in the server. The
+	 *            timestamp should be obtained from the server by invoking
+	 *            {@link #getCurrentTimeMillis()}.
+	 * @throws DeploymentFailedException
+	 *             Thrown if deployment fails
+	 */
+	@BizMethod
+	@OnServer(broadcast = true, broadcastGrids = true)
+	void deployDnas(String[] dnaDistNames, byte[][] dnaDistContents, Date timestamp) throws DeploymentFailedException;
+
+	/**
 	 * Updates the routing table for a single app. A routing table is dedicated
 	 * per app.
 	 * 

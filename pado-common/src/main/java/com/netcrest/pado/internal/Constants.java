@@ -124,6 +124,8 @@ public interface Constants
 	public final static String DEFAULT_SCHEDULER_DIR = "../../data/scheduler";
 	// Default data dump dir relative to the working directory of server.
 	public final static String DEFAULT_DUMP_DIR = "dump";
+	// Default DNA language dir relative to the working directory of server.
+	public final static String DEFAULT_LANG_DIR = "../../lang";
 	public final static String DEFAULT_PADO_PLUGINS_PROPERTY_FILE_NAME = "plugins.properties";
 	public final static String DEFAULT_PADO_PROPERTY_FILE_NAME = "pado.properties";
 	public final static String DEFAULT_SECURITY_AES_PUBLICKEY_FILEPATH = "../../security/publicKey.keystore";
@@ -148,6 +150,7 @@ public interface Constants
 	public final static String PROP_DUMP_DIR = "dump.dir";
 	public final static String PROP_DB_DIR = "db.dir";
 	public final static String PROP_SCHEDULER_DIR = "scheduler.dir";
+	public final static String PROP_LANG_DIR = "lang.dir";
 
 	// User session idle timeout in msec. Default: 900000 msec (15 min)
 	public final static String PROP_USER_IDLE_TIMEOUT = "user.idle.timeout";

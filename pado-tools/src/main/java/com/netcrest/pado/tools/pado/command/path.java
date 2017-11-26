@@ -74,7 +74,7 @@ public class path implements ICommand
 	public void run(CommandLine commandLine, String command) throws Exception
 	{
 		List<String> argList = commandLine.getArgList();
-		if (argList.size() < 1) {
+		if (argList.size() <= 1) {
 			PadoShell.printlnError(this, "Path(s) must be specified.");
 			return;
 		}

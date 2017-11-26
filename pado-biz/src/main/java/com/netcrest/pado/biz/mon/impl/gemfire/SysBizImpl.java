@@ -15,9 +15,19 @@
  */
 package com.netcrest.pado.biz.mon.impl.gemfire;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +35,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.annotation.Resource;
 
@@ -71,6 +84,20 @@ import com.netcrest.pado.util.GridUtil;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class SysBizImpl implements ISysBiz
 {
+
+	// unit in msec
+	private final static int FILE_LOCK_WAIT_TIME_IN_MSEC = Integer.getInteger("pado.delploy.fileLockWaitTimeInMsec",
+			10000);
+	// unit in msec
+	private final static int FILE_LOCK_READ_WAKEUP_INTERVAL_IN_MSEC = 100;
+
+	private final static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmm");
+
+	/**
+	 * Size of the buffer to read/write data
+	 */
+	private static final int BUFFER_SIZE = 4096;
+
 	@Resource
 	private IBizContextServer bizContext;
 
@@ -335,7 +362,7 @@ public class SysBizImpl implements ISysBiz
 
 		}
 	}
-	
+
 	@BizMethod
 	@Override
 	public Set<BizInfo> getAllSysBizInfos()
@@ -358,7 +385,7 @@ public class SysBizImpl implements ISysBiz
 		}
 		return PadoServerManager.getPadoServerManager().getSysBizInfos("sys", regex);
 	}
-	
+
 	@BizMethod
 	@Override
 	public Set<BizInfo> getAllAppBizInfos()
@@ -381,7 +408,7 @@ public class SysBizImpl implements ISysBiz
 		}
 		return PadoServerManager.getPadoServerManager().getAllAppBizInfos(appId, regex);
 	}
-	
+
 	@BizMethod
 	@Override
 	public Set<BizInfo> getAllBizInfos()
@@ -425,6 +452,309 @@ public class SysBizImpl implements ISysBiz
 	{
 		HotDeploymentBizClasses hotDeployment = new Deployment().save(jarNames, jarContents, timestamp);
 		PadoServerManager.getPadoServerManager().fireDeploymentEvent(hotDeployment);
+	}
+
+	@BizMethod
+	@Override
+	public void deployDnas(String[] dnaDistNames, byte[][] dnaDistContents, Date timestamp)
+			throws DeploymentFailedException
+	{
+		saveDnaFiles(dnaDistNames, dnaDistContents, timestamp);
+	}
+
+	/**
+	 * Saves the specified DNA distribution contents in the language specific
+	 * directories.
+	 * 
+	 * @param dnaDistNames
+	 *            DNA distribution names
+	 * @param dnaDistContents
+	 *            DNA distribution binary contents
+	 * @param timestamp
+	 *            Time stamp for versioning the file names
+	 * @throws DeploymentFailedException
+	 *             Thrown if encounters an IO error.
+	 */
+	private void saveDnaFiles(String[] dnaDistNames, byte[][] dnaDistContents, Date timestamp)
+			throws DeploymentFailedException
+	{
+		String codeMessage = null;
+
+		byte byteBuffers[][] = dnaDistContents;
+		Date dateSuffix = timestamp;
+
+		String langDir = PadoUtil.getProperty(com.netcrest.pado.internal.Constants.PROP_LANG_DIR,
+				com.netcrest.pado.internal.Constants.DEFAULT_LANG_DIR);
+		String tmpDir = langDir + "/tmp";
+		File tmpDirFile = new File(tmpDir);
+		File lock = new File(tmpDir + "/.lock");
+		boolean deadlockOccurred = false;
+
+		try {
+			tmpDirFile.mkdirs();
+			boolean lockCreated = lock.createNewFile();
+			boolean writeOK = lockCreated;
+			if (dateSuffix == null) {
+				writeOK = true;
+			}
+
+			if (writeOK == false) {
+				boolean lockExists = lock.exists();
+				int sleptTime = 0;
+				while (lockExists && sleptTime < FILE_LOCK_WAIT_TIME_IN_MSEC) {
+					Thread.sleep(FILE_LOCK_READ_WAKEUP_INTERVAL_IN_MSEC);
+					sleptTime += FILE_LOCK_READ_WAKEUP_INTERVAL_IN_MSEC;
+					lockExists = lock.exists();
+				}
+				if (lock.exists()) {
+					// something is not right. either another server is
+					// taking too long to write the jar files or
+					// it terminated without removing the lock file.
+					// Log it and let's just write the files.
+					Logger.warning("Potential jar write deadlock occurred. "
+							+ "The file lock has not been released by another server after "
+							+ (int) (FILE_LOCK_WAIT_TIME_IN_MSEC / 1000)
+							+ " sec. Releasing lock. Deployed jar files will be overwritten.");
+					// writeOK = true;
+					deadlockOccurred = true;
+				}
+			}
+
+			// Get dated file paths
+			File datedFiles[] = new File[byteBuffers.length];
+			URL datedUrls[] = new URL[datedFiles.length];
+			for (int i = 0; i < byteBuffers.length; i++) {
+				String filePath = tmpDir + "/" + getDatedZipName(dnaDistNames[i], dateSuffix);
+				datedFiles[i] = new File(filePath);
+				datedUrls[i] = datedFiles[i].toURI().toURL();
+			}
+
+			// Write all zip files to the file system (tmp dir) and unzip them.
+			if (writeOK) {
+				for (int i = 0; i < byteBuffers.length; i++) {
+					FileOutputStream fos = new FileOutputStream(datedFiles[i]);
+					fos.write(byteBuffers[i]);
+					fos.close();
+				}
+
+				// Unzip the dated files in the language specific directories
+				for (int i = 0; i < datedFiles.length; i++) {
+					String lang = getLang(datedFiles[i].getAbsolutePath());
+					String dir;
+					if (lang.equals("python")) {
+						dir = langDir + "/" + lang + "/local-packages";
+					} else if (lang.equals("java")) {
+						dir = langDir + "/" + lang + "/lib";
+					} else {
+						dir = langDir + "/" + lang;
+					}
+					unzip(datedFiles[i].getAbsolutePath(), dir);
+				}
+
+				// Delete old versioned files from the tmp dir
+				deleteOldVersionedFiles(tmpDirFile, ".zip");
+			}
+			codeMessage = "Deployed DNA file(s) to " + tmpDirFile.getCanonicalPath();
+			if (deadlockOccurred) {
+				codeMessage = codeMessage
+						+ " -- Deadlock occurred. DNA file(s) may have been overwritten in the same file system. Please see server log files for details.";
+				throw new DeploymentFailedException(codeMessage);
+			}
+
+			StringBuffer buffer = new StringBuffer();
+			for (int i = 0; i < datedFiles.length; i++) {
+				if (i > 0) {
+					buffer.append(", ");
+				}
+				buffer.append(datedFiles[i].getName());
+			}
+			Logger.info("Delployed the following DNA file(s): " + buffer.toString());
+
+		} catch (Exception ex) {
+			StringBuffer buffer = new StringBuffer(100);
+			buffer.append("[");
+			for (int i = 0; i < dnaDistNames.length; i++) {
+				if (i == dnaDistNames.length - 1) {
+					buffer.append(dnaDistNames[i] + "]");
+				} else {
+					buffer.append(dnaDistNames[i] + ", ");
+				}
+			}
+
+			throw new DeploymentFailedException("DNA deployment failed for one or more files: " + buffer.toString(),
+					ex);
+		} finally {
+
+			lock.delete();
+
+		}
+	}
+
+	/**
+	 * Deletes all of the old versions of files. A versioned file has the file
+	 * name format "&lt;prefix&gt;.v&lt;yyyymmddhhmm&gt;.&lt;fileExtension&gt;".
+	 * After this call, only the latest versioned files remain in the specified
+	 * directory.
+	 * 
+	 * @param dir
+	 *            Directory to search for all files
+	 * @param fileExtension
+	 *            File extension
+	 */
+	private void deleteOldVersionedFiles(File dir, final String fileExtension)
+	{
+		File[] files = dir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File pathname)
+			{
+				boolean keep = pathname.getName().endsWith(fileExtension);
+				return keep;
+			}
+
+		});
+
+		Arrays.sort(files, Collections.reverseOrder());
+		String filePrefix = "";
+		String prevFilePrefix = "";
+		for (File file : files) {
+			String split[] = file.getName().split("\\.");
+			if (split.length > 2) {
+				String version = split[split.length - 2];
+				if (version.startsWith("v2")) {
+					for (int i = 0; i < split.length - 2; i++) {
+						if (i == 0) {
+							filePrefix = split[i];
+						} else {
+							filePrefix += "." + split[i];
+						}
+					}
+					if (filePrefix.equals(prevFilePrefix)) {
+						// Delete
+						try {
+							file.delete();
+						} catch (Exception ex) {
+							// ignore
+						}
+					} else {
+						prevFilePrefix = filePrefix;
+					}
+				} else {
+					prevFilePrefix = "";
+				}
+			} else {
+				prevFilePrefix = "";
+			}
+		}
+	}
+
+	/**
+	 * Returns a new name with the version number extension.
+	 * 
+	 * @param dnaDistName
+	 *            DNA distribution name
+	 * @param date
+	 *            Date
+	 */
+	private static String getDatedZipName(String dnaDistName, Date date)
+	{
+		String nameNoExtension = dnaDistName.substring(0, dnaDistName.lastIndexOf(".zip"));
+		if (date != null) {
+			return nameNoExtension + ".v" + dateFormatter.format(date) + ".zip";
+		}
+		return nameNoExtension + ".v" + dateFormatter.format(new Date()) + ".zip";
+	}
+
+	/**
+	 * Returns the language of the specified zip file. The language is
+	 * determined by searching the zip file for the language specific file
+	 * extension as follows:
+	 * <ul>
+	 * <li>python - .py</li>
+	 * <li>java - .jar</li>
+	 * </ul>
+	 * 
+	 * @param zipFilePath
+	 * @return "python" or "java"
+	 * @throws IOException
+	 *             Thrown if unable to read the zip file
+	 */
+	private String getLang(String zipFilePath) throws IOException
+	{
+		ZipFile zipFile = null;
+		String lang = "java";
+		try {
+			zipFile = new ZipFile(zipFilePath);
+			Enumeration zipEntries = zipFile.entries();
+			String fname;
+
+			while (zipEntries.hasMoreElements()) {
+				fname = ((ZipEntry) zipEntries.nextElement()).getName();
+				if (fname.endsWith(".py")) {
+					lang = "python";
+					break;
+				} else if (fname.endsWith(".jar")) {
+					lang = "java";
+					break;
+				}
+			}
+		} finally {
+			if (zipFile != null) {
+				zipFile.close();
+			}
+		}
+		return lang;
+	}
+
+	/**
+	 * Extracts a zip file specified by the zipFilePath to a directory specified
+	 * by destDirectory (will be created if does not exists)
+	 * 
+	 * @param zipFilePath
+	 * @param destDirectory
+	 * @throws IOException
+	 */
+	private void unzip(String zipFilePath, String destDirectory) throws IOException
+	{
+		File destDir = new File(destDirectory);
+		if (!destDir.exists()) {
+			destDir.mkdir();
+		}
+		ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
+		ZipEntry entry = zipIn.getNextEntry();
+		// iterates over entries in the zip file
+		while (entry != null) {
+			String filePath = destDirectory + File.separator + entry.getName();
+			if (!entry.isDirectory()) {
+				// if the entry is a file, extracts it
+				extractFile(zipIn, filePath);
+			} else {
+				// if the entry is a directory, make the directory
+				File dir = new File(filePath);
+				dir.mkdir();
+			}
+			zipIn.closeEntry();
+			entry = zipIn.getNextEntry();
+		}
+		zipIn.close();
+	}
+
+	/**
+	 * Extracts a zip entry (file entry)
+	 * 
+	 * @param zipIn
+	 * @param filePath
+	 * @throws IOException
+	 */
+	private void extractFile(ZipInputStream zipIn, String filePath) throws IOException
+	{
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+		byte[] bytesIn = new byte[BUFFER_SIZE];
+		int read = 0;
+		while ((read = zipIn.read(bytesIn)) != -1) {
+			bos.write(bytesIn, 0, read);
+		}
+		bos.close();
 	}
 
 	@BizMethod

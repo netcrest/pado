@@ -171,11 +171,11 @@ public class PadoShell
 
 	private void postInit(String args[])
 	{
-		String iniFilePath = System.getProperty(PROPERTY_PADO_INIT_FILE, ".padorc");
+		String initFilePath = System.getProperty(PROPERTY_PADO_INIT_FILE, ".padorc");
 		try {
-			initFile(iniFilePath);
+			initFile(initFilePath);
 		} catch (IOException ex) {
-			printlnError("Reading file " + iniFilePath + " -- " + getCauseMessage(ex));
+			printlnError("Reading file " + initFilePath + " -- " + getCauseMessage(ex));
 			Logger.error(ex);
 		}
 	}

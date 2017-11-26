@@ -1,5 +1,6 @@
-<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 	<id>id.pado-assembly</id>
 	<formats>
 		<format>zip</format>
@@ -31,7 +32,7 @@
 			</excludes>
 			<outputDirectory>lib/</outputDirectory>
 		</dependencySet>
-		
+
 		<dependencySet>
 			<useProjectArtifact>false</useProjectArtifact>
 			<includes>
@@ -43,9 +44,9 @@
 			<outputDirectory>plugins</outputDirectory>
 		</dependencySet>
 	</dependencySets>
-	
+
 	<fileSets>
-		<!--  Collect all resources -->
+		<!-- Collect all resources -->
 		<fileSet>
 			<directory>src/main/resources</directory>
 			<excludes>
@@ -56,8 +57,8 @@
 			<outputDirectory>
 			</outputDirectory>
 		</fileSet>
-		
-		<!--  Collect all rpc resources -->
+
+		<!-- Collect all rpc resources -->
 		<fileSet>
 			<directory>../pado-rpc/src/resources/java</directory>
 			<outputDirectory>
@@ -76,16 +77,25 @@
 				<exclude>bin_sh/**</exclude>
 			</excludes>
 		</fileSet>
-		
+
 		<!-- Collect rpc language specifics -->
 		<fileSet>
 			<directory>target/assembly</directory>
 			<outputDirectory>lang/python/lib</outputDirectory>
 			<includes>
-				<include>pado-rpc-py-${pado.version}.zip</include>
+				<include>pado-rpc-py.zip</include>
 			</includes>
 		</fileSet>
-		
+
+		<!-- Place Python code in local-packages -->
+		<fileSet>
+			<directory>../pado-rpc/src/main/python</directory>
+			<outputDirectory>lang/python/local-packages</outputDirectory>
+			<excludes>
+				<exclude>**/__pycache__/**</exclude>
+			</excludes>
+		</fileSet>
+
 		<!-- Executable permissions -->
 		<fileSet>
 			<directory>../pado-rpc/src/resources/java/bin_sh</directory>
@@ -114,7 +124,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 		</fileSet>
-		
+
 
 		<fileSet>
 			<directory>..</directory>
@@ -156,5 +166,13 @@
 				<exclude>*/**</exclude>
 			</excludes>
 		</fileSet>
+		<fileSet>
+			<directory>./</directory>
+			<outputDirectory>lang/java/lib</outputDirectory>
+			<excludes>
+				<exclude>*/**</exclude>
+			</excludes>
+		</fileSet>
 	</fileSets>
+
 </assembly>

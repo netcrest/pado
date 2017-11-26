@@ -67,7 +67,8 @@ public class MqttJsonRpcOsClient implements ClientConstants
 	public String getWorkingDir(JsonLite request)
 	{
 		String lang = request.getString(RequestKey.lang.name(), "java");
-		return PadoUtil.getProperty(com.netcrest.pado.internal.Constants.PROP_HOME_DIR) + "/lang/" + lang + "/bin_sh";
+		String langDir = PadoUtil.getProperty(com.netcrest.pado.internal.Constants.PROP_LANG_DIR, com.netcrest.pado.internal.Constants.DEFAULT_LANG_DIR);
+		return langDir + "/" + lang + "/bin_sh";
 	}
 
 	/**
