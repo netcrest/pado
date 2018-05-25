@@ -21,15 +21,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import com.gemstone.gemfire.admin.AdminDistributedSystem;
-import com.gemstone.gemfire.admin.AdminDistributedSystemFactory;
-import com.gemstone.gemfire.admin.DistributedSystemConfig;
-import com.gemstone.gemfire.admin.SystemMembershipEvent;
-import com.gemstone.gemfire.admin.SystemMembershipListener;
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.distributed.DistributedMember;
+import com.gemstone.gemfire.management.ManagementService;
+import com.gemstone.gemfire.management.membership.MembershipEvent;
+import com.gemstone.gemfire.management.membership.MembershipListener;
 import com.netcrest.pado.info.ServerInfo;
 import com.netcrest.pado.info.message.GridStatusInfo;
 import com.netcrest.pado.info.message.GridStatusInfo.Status;
@@ -62,7 +60,7 @@ public class MasterServerLock
 
 	private String masterId = null;
 
-	private AdminDistributedSystem adminDS;
+	private ManagementService managementService;
 
 	/**
 	 * Do not use this member directly. Always use isMasterEnabled(), instead.
@@ -121,11 +119,8 @@ public class MasterServerLock
 
 		// Setup failover listener
 		try {
-			DistributedSystemConfig config = AdminDistributedSystemFactory.defineDistributedSystem(
-					cache.getDistributedSystem(), null);
-			adminDS = AdminDistributedSystemFactory.getDistributedSystem(config);
-			adminDS.connect();
-			adminDS.addMembershipListener(new SystemMembershipListenerImpl());
+			managementService = ManagementService.getManagementService(cache);
+			managementService.addMembershipListener(new SystemMembershipListenerImpl());
 		} catch (Exception ex) {
 			Logger.error(ex);
 		}
@@ -263,21 +258,24 @@ public class MasterServerLock
 		}
 	}
 
-	class SystemMembershipListenerImpl implements SystemMembershipListener
+	class SystemMembershipListenerImpl implements MembershipListener
 	{
-		public void memberJoined(SystemMembershipEvent event)
+		@Override
+		public void memberJoined(MembershipEvent event)
 		{
 			// TODO: newServerStarted() is not working properly
 			// Throws NPE when invoking gridBiz.getServerInfoList() in getServerInfo().	
 //			newServerStarted(event.getMemberId(), event.getDistributedMember());
 		}
 
-		public void memberCrashed(SystemMembershipEvent event)
+		@Override
+		public void memberCrashed(MembershipEvent event)
 		{
 			failover(event.getMemberId());
 		}
 
-		public void memberLeft(SystemMembershipEvent event)
+		@Override
+		public void memberLeft(MembershipEvent event)
 		{
 			failover(event.getMemberId());
 		}

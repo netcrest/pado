@@ -62,7 +62,7 @@ public class StringUtil
         int index = 0;
         while (index < len && str.charAt(index++) == c);
         index--;
-        if (index < 0) {
+        if (index <= 0) {
             return "";
         } else if (index < len) {
             return str.substring(index);
@@ -87,6 +87,8 @@ public class StringUtil
         index++;
         if (index > len - 1) {
             return str;
+        } else if (index == 0 && str.charAt(0) == c) {
+        	return "";
         } else if (index >= 0) {
             return str.substring(0, index + 1);
         } else  {
