@@ -42,4 +42,32 @@
 			<version>${pado.version}</version>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<plugins>
+		
+			<!-- Java Doc (exclude all) -->			 
+			<plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-jar-plugin</artifactId>
+	            <executions>
+	                <execution>
+	                    <id>empty-javadoc-jar</id>
+	                    <phase>package</phase>
+	                    <goals>
+	                        <goal>jar</goal>
+	                    </goals>
+	                    <configuration>
+		                    <finalName>${project.artifactId}-${project.version}</finalName>
+							<excludePackageNames>com.netcrest.pado.*</excludePackageNames>
+	                        <classifier>javadoc</classifier>
+	                        <classesDirectory>${basedir}/src/main/javadoc</classesDirectory>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	        </plugin>
+
+		</plugins>
+	</build>
+	
 </project>

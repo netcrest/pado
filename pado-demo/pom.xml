@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved.
- 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<!-- Copyright (c) 2013-2017 Netcrest Technologies, LLC. All rights reserved. 
+	Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+	use this file except in compliance with the License. You may obtain a copy 
+	of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -48,19 +42,40 @@
 		</dependency>
 	</dependencies>
 
-	<!-- <build>
+	<build>
 		<plugins>
+		
+			<!-- Java Doc (exclude all) -->			 
+			<plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-jar-plugin</artifactId>
+	            <executions>
+	                <execution>
+	                    <id>empty-javadoc-jar</id>
+	                    <phase>package</phase>
+	                    <goals>
+	                        <goal>jar</goal>
+	                    </goals>
+	                    <configuration>
+		                    <finalName>${project.artifactId}-${project.version}</finalName>
+							<excludePackageNames>com.netcrest.pado.demo.*</excludePackageNames>
+	                        <classifier>javadoc</classifier>
+	                        <classesDirectory>${basedir}/src/main/javadoc</classesDirectory>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	        </plugin>
+	        
+	        <!-- Do NOT deploy this module -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.3</version>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.7</version>
 				<configuration>
-					<aggregate>true</aggregate>
-					<excludePackageNames>
-						com.netcrest.pado.internal.*:com.netcrest.pado.biz.file.*:com.netcrest.pado.biz.gemfire.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.test.*:com.netcrest.pado.biz.impl.*:com.netcrest.pado.biz.mon.impl.*:com.netcrest.pado.biz.server.impl.*:com.netcrest.pado.tools.*:com.netcrest.pado.temporal.biz.impl.*:com.netcrest.pado.temporal.gemfire.*:com.netcrest.pado.temporal.test.*:com.netcrest.pado.data.jsonlite.internal.*:com.netcrest.pado.demo.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.gemfire.util.*:com.gemstone.gemfire.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.context.data.v.*:com.netcrest.pado.biz.server.*:com.netcrest.pado.index:com.netcrest.pado.index.exception:com.netcrest.pado.index.internal.*:com.netcrest.pado.index.gemfire.*:com.netcrest.pado.index.helper.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.index.result.*:com.netcrest.pado.index.service.impl.*
-					</excludePackageNames>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
+	        
 		</plugins>
-	</build> -->
+	</build>
 </project>

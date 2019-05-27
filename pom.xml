@@ -8,9 +8,46 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.netcrest.pado</groupId>
+	<artifactId>pado-parent</artifactId>
+	<packaging>pom</packaging>
+	<version>0.4.3-B1</version>
+
+	<name>pado-parent</name>
+	<description>
+		Pado is a comprehensive software platform for building, 
+		managing and servicing true cloud stores on top of data grid products 
+		while ensuring performance, linear scalability, 
+		data ubiquity, and ease of use.
+	</description>
+	<url>https://github.com/netcrest/pado</url>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Dae Song Park</name>
+			<email>dspark@netcrest.com</email>
+			<organization>Netcrest Technologies</organization>
+			<organizationUrl>http://www.netcrest.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/netcrest/pado.git</connection>
+		<developerConnection>scm:git:ssh://github.com:netcrest/pado.git</developerConnection>
+		<url>https://github.com/netcrest/pado/tree/master</url>
+	</scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,15 +55,6 @@
 		<lucene.version>4.7.2</lucene.version>
 		<gemfire.version>8.2.0</gemfire.version>
 	</properties>
-
-
-	<groupId>com.netcrest.pado</groupId>
-	<artifactId>pado-parent</artifactId>
-	<packaging>pom</packaging>
-	<version>0.4.3-B1</version>
-	<name>pado-parent</name>
-	<description>Pado</description>
-
 
 	<modules>
 		<module>gemfire-dqueue</module>
@@ -45,6 +73,13 @@
 		<module>pado-deployment</module>
 	</modules>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<repositories>
 		<repository>
 			<id>gemfire-repository</id>
@@ -62,9 +97,6 @@
 		</repository>
 	</repositories>
 
-	<scm>
-		<developerConnection>scm:svn:https://svn.mycompany.com/repos/myapplication/trunk/mycomponent/</developerConnection>
-	</scm>
 	<dependencies>
 		<!-- Lucene -->
 		<dependency>
@@ -137,6 +169,9 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
+						<configuration>
+							<finalName>${project.artifactId}-${project.version}</finalName>
+						</configuration>
 						<executions>
 							<execution>
 								<id>attach-sources</id>
@@ -156,19 +191,52 @@
 					</plugin>
 
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.10.3</version>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<extensions>true</extensions>
 						<configuration>
-							<finalName>pado_${project.version}</finalName>
-							<aggregate>true</aggregate>
-							<excludePackageNames>
-								com.netcrest.pado.internal.*:com.netcrest.pado.biz.file.*:com.netcrest.pado.biz.gemfire.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.test.*:com.netcrest.pado.biz.impl.*:com.netcrest.pado.biz.mon.impl.*:com.netcrest.pado.biz.server.impl.*:com.netcrest.pado.tools.*:com.netcrest.pado.temporal.biz.impl.*:com.netcrest.pado.temporal.gemfire.*:com.netcrest.pado.temporal.test.*:com.netcrest.pado.data.jsonlite.internal.*:com.netcrest.pado.demo.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.gemfire.util.*:com.gemstone.gemfire.*:com.netcrest.pado.gemfire.*:com.netcrest.pado.context.data.v.*:com.netcrest.pado.biz.server.*:com.netcrest.pado.index:com.netcrest.pado.index.exception:com.netcrest.pado.index.internal.*:com.netcrest.pado.index.gemfire.*:com.netcrest.pado.index.helper.*:com.netcrest.pado.index.provider.*:com.netcrest.pado.index.result.*:com.netcrest.pado.index.service.impl.*
-							</excludePackageNames>
-							<docfilessubdirs>true</docfilessubdirs>
-							<doctitle>Pado API (v${project.version})</doctitle>
-							<header>Pado</header>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
 						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.5</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- GnuPG plugin for signing artifacts -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<!--
+								<configuration>
+									<keyname>${gpg.keyname}</keyname>
+									<passphraseServerId>${gpg.keyname}</passphraseServerId>
+								</configuration>
+								-->
+							</execution>
+						</executions>
 					</plugin>
 
 				</plugins>

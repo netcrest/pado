@@ -51,4 +51,32 @@
 			<version>7.0.2</version>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<plugins>
+		
+			<!-- Java Doc -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<finalName>${project.artifactId}-${project.version}</finalName>
+					<excludePackageNames>com.gemstone.gemfire.addon.dq.internal.*</excludePackageNames>
+					<docfilessubdirs>true</docfilessubdirs>
+					<doctitle>GemFire Version 7 Patches (v${project.version})</doctitle>
+					<header>GemFire Version 7 Patches</header>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+		</plugins>
+	</build>
 </project>
