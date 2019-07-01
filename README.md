@@ -8,7 +8,7 @@ Pado is designed from the ground up to manage and service big data that can amou
 
 Pado achieves this by federating one or more grids into one logical grid, which can also further nested by another logical grid. The top-level grid becomes the single entry point to which applications connect and access data. Upon a successful login to the top-level grid, Pado automatically connects the application directly to all relevant grids based on application and user credentials. Applications can also optionally and independently connect directly to any of the grids.
 
-![Pado Login](/pado-javadoc/pado-login.png)
+![Pado Login](/pado-javadoc/resources/pado-login.png)
 
 ## Simple API
 
