@@ -412,8 +412,10 @@ public class VersionedPortableClassGenerator {
 		} else {
 			factoryStr = factoryStr.replaceAll("\\$\\{DOMAIN_PACKAGE\\}", keyTypePackageName);
 			factoryStr = factoryStr.replaceAll("\\$\\{CLASS_NAME\\}", keyTypeClassName);
-			factoryStr = factoryStr.replaceAll("\\$\\{FACTORY_ID\\}", Integer.toString(factoryId));
-			factoryStr = factoryStr.replaceAll("\\$\\{FIRST_CLASS_ID\\}", Integer.toString(classId));
+			String factoryIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.factoryId\", " + factoryId + ");";
+			factoryStr = factoryStr.replaceAll("\\$\\{FACTORY_ID\\}", factoryIdStr);
+			String classIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.firstClassId\", " + classId + ");";
+			factoryStr = factoryStr.replaceAll("\\$\\{FIRST_CLASS_ID\\}", classIdStr);
 		}
 
 		factoryStr = factoryStr.replaceAll("\\$\\{TIMESTAMP\\}", timestamp.toString());
