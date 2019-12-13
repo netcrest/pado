@@ -401,8 +401,8 @@ public class VersionedPortableClassGenerator {
 						factoryStr = factoryStr.replaceAll("static final int __LAST_CLASS_ID = " + lastClassId,
 								"static final int " + classId + " = " + lastClassId
 										+ " + 1;\n\tstatic final int __LAST_CLASS_ID = " + classId);
-						factoryStr = factoryStr.replaceAll("default:",
-								"case " + classId + ":\n\t\t\treturn new " + keyTypeClassName + "();\n\t\tdefault:");
+						factoryStr = factoryStr.replaceAll("} else {",
+								"} else if (classId == " + classId + ") {\n\t\t\treturn new " + keyTypeClassName + "();\n\t\t} else {");
 					} else {
 						factoryStr = factoryStr.replaceAll("static final int __LAST_CLASS_ID = " + lastClassId,
 								"static final int __LAST_CLASS_ID = " + classId);

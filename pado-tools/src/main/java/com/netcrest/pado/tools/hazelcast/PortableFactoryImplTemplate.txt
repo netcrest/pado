@@ -18,10 +18,9 @@ public class PortableFactoryImpl implements PortableFactory {
 	static final int __LAST_CLASS_ID = ${CLASS_NAME}_CLASS_ID;
 
 	public Portable create(int classId) {
-		switch (classId) {
-		case ${CLASS_NAME}_CLASS_ID:
+		if (classId == ${CLASS_NAME}_CLASS_ID) {
 			return new ${CLASS_NAME}();
-		default:
+		} else {
 			return null;
 		}
 	}
