@@ -401,8 +401,8 @@ public class VersionedPortableClassGenerator {
 						factoryStr = factoryStr.replaceAll("static final int __LAST_CLASS_ID = " + lastClassId,
 								"static final int " + classId + " = " + lastClassId
 										+ " + 1;\n\tstatic final int __LAST_CLASS_ID = " + classId);
-						factoryStr = factoryStr.replaceAll("} else {",
-								"} else if (classId == " + classId + ") {\n\t\t\treturn new " + keyTypeClassName + "();\n\t\t} else {");
+						factoryStr = factoryStr.replaceAll("\\} else \\{",
+								"} else if (classId == " + classId + ") \\{\n\t\t\treturn new " + keyTypeClassName + "();\n\t\t\\} else \\{");
 					} else {
 						factoryStr = factoryStr.replaceAll("static final int __LAST_CLASS_ID = " + lastClassId,
 								"static final int __LAST_CLASS_ID = " + classId);
@@ -412,9 +412,9 @@ public class VersionedPortableClassGenerator {
 		} else {
 			factoryStr = factoryStr.replaceAll("\\$\\{DOMAIN_PACKAGE\\}", keyTypePackageName);
 			factoryStr = factoryStr.replaceAll("\\$\\{CLASS_NAME\\}", keyTypeClassName);
-			String factoryIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.factoryId\", " + factoryId + ");";
+			String factoryIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.factoryId\", " + factoryId + ")";
 			factoryStr = factoryStr.replaceAll("\\$\\{FACTORY_ID\\}", factoryIdStr);
-			String classIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.firstClassId\", " + classId + ");";
+			String classIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.firstClassId\", " + classId + ")";
 			factoryStr = factoryStr.replaceAll("\\$\\{FIRST_CLASS_ID\\}", classIdStr);
 		}
 
