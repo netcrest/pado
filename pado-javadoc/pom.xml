@@ -20,7 +20,7 @@
 	<parent>
 		<groupId>com.netcrest.pado</groupId>
 		<artifactId>pado-parent</artifactId>
-		<version>0.4.2-B1</version>
+		<version>0.5.0-B1-SNAPSHOT</version>
 	</parent>
 	<artifactId>pado-javadoc</artifactId>
 	<packaging>jar</packaging>

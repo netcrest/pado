@@ -17,7 +17,7 @@ IsKeyAutoGen=${IS_KEY_AUTO_GEN}
 CompositeKeyDelimiter=.
 
 # RoutingKeyIndexes is a comma-separated list of routing key indexes
-# of the String compoisite key. For example, if a composite key is
+# of the String composite key. For example, if a composite key is
 # "newco.it.ct" and the routing indexes are "2,1" then the routing key
 # extracted is "ct.it". 2 is for "ct", 1 is for "it".
 # RoutingKeyIndexes always overrides PrimaryRouting defined in the field

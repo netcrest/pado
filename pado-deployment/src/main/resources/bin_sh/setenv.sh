@@ -94,7 +94,7 @@ JAVA_VERSION=8
 if [ "`uname`" == "Darwin" ]; then
    # Mac
    #export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
-   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home
+   export JAVA_HOME=`/usr/libexec/java_home -v 1.8`
 elif [ "`uname`" == "Linux" ]; then
    #export JAVA_HOME=/apps/products/ejdk1.8.0_121/linux_armv6_vfp_hflt/jre
    export JAVA_HOME=/apps/products/jdk1.8.0_131
@@ -212,10 +212,30 @@ function parseFileName
 }
 
 #
+# Create the dropins directory if it does not exist
+#
+DROPIN_DIR=$BASE_DIR/dropins
+if [ ! -d $DROPIN_DIR ]; then
+  mkdir -p $DROPIN_DIR
+fi
+
+#
+# dropins jars
+#
+pushd $BASE_DIR/dropins > /dev/null 2>&1
+DROPIN_JARS=
+for file in `ls *.jar | sort -r`
+do
+   DROPIN_JARS=$DROPIN_JARS:$BASE_DIR/dropins/$file
+done
+popd > /dev/null 2>&1
+
+#
 # plugins jars
 #
 PLUGIN_JARS=
 PREV_FILE_HEAD=
+FILE_HEAD=
 pushd $BASE_DIR/plugins > /dev/null 2>&1
 for file in `ls *.jar | sort -r`
 do
@@ -240,11 +260,17 @@ APP_JARS=$APP_JARS
 # 
 # class path
 #
+export CLASSPATH=$BASE_DIR/classes
 if [ "${APP_JARS}" ]; then
-   export CLASSPATH=$BASE_DIR/classes:$APP_JARS:$PLUGIN_JARS:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
-else
-   export CLASSPATH=$BASE_DIR/classes:$PLUGIN_JARS:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
+   CLASSPATH=${APP_JARS}:$CLASSPATH
 fi
+if [ "${DROPIN_JARS}" ]; then
+   export CLASSPATH=$DROPIN_JARS:$CLASSPATH
+fi
+if [ "${PLUGIN_JARS}" ]; then
+   CLASSPATH=${PLUGIN_JARS}:$CLASSPATH
+fi
+export CLASSPATH=$CLASSPATH:$GEMFIRE/lib/gemfire.jar:$GEMFIRE/lib/antlr.jar:$GEMFIRE/lib/gfsh-dependencies.jar
 
 #
 # Change the order of class path as necessary here

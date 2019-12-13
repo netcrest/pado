@@ -18,6 +18,8 @@ package com.netcrest.pado.index.gemfire.lucene;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,11 +83,12 @@ public class TemporalLuceneDynamicIndexing
 		if (file.exists() == false) {
 			file.mkdirs();
 		}
-		Analyzer analyzer = new StandardAnalyzer(LuceneSearch.LUCENE_VERSION);
-		IndexWriterConfig iwc = new IndexWriterConfig(LuceneSearch.LUCENE_VERSION, analyzer);
+		Analyzer analyzer = new StandardAnalyzer();
+		IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 		iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		try {
-			MMapDirectory directory = new MMapDirectory(file);
+			Path path = Paths.get(file.getPath());
+			MMapDirectory directory = new MMapDirectory(path);
 			writer = new IndexWriter(directory, iwc);
 			luceneSearch = LuceneSearch.getLuceneSearch(fullPath);
 			parser = luceneSearch.createParser();

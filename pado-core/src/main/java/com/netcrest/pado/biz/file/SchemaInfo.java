@@ -67,6 +67,7 @@ public class SchemaInfo
 	public final static String PROP_USER_NAME = "Username";
 	public final static String PROP_SKIP_COLUMNS = "SkipColumns";
 	public final static String PROP_ROUTING_KEY_INDEXES = "RoutingKeyIndexes";
+	public final static String PROP_COMPARABLE_INDEXES = "ComparableIndexes";
 	public final static String PROP_START_ROW = "StartRow";
 	public final static String PROP_END_ROW = "EndRow";
 	public final static String PROP_IS_SPLIT = "IsSplit";
@@ -108,6 +109,7 @@ public class SchemaInfo
 	private String[] pkIndexNames;
 	private String[] routingKeyIndexNames = new String[0];
 	private int[] routingKeyIndexes = new int[0];
+	private int[] comparableIndexes = new int[0];
 	private String[] valueColumnNames;
 	private Class<?>[] valueColumnTypes;
 	private String[] speicalColumnNames;
@@ -221,7 +223,11 @@ public class SchemaInfo
 						}
 					} else if (property.equalsIgnoreCase(PROP_VALUE_CLASS)) {
 						if (this.valueClass == null) {
-							this.valueClass = Class.forName(value);
+							try {
+								this.valueClass = Class.forName(value);
+							} catch (Exception ex) {
+								// ignore for the generator
+							}
 						}
 					} else if (property.equalsIgnoreCase(PROP_KEY_TYPE_CLASS)) {
 						if (this.keyType == null) {
@@ -291,6 +297,12 @@ public class SchemaInfo
 						routingKeyIndexes = new int[rkarray.length];
 						for (int i = 0; i < rkarray.length; i++) {
 							routingKeyIndexes[i] = Integer.parseInt(rkarray[i]);
+						}
+					} else if (property.equalsIgnoreCase(PROP_COMPARABLE_INDEXES)) {
+						String rkarray[] = getTokens(value, ',');
+						comparableIndexes = new int[rkarray.length];
+						for (int i = 0; i < rkarray.length; i++) {
+							comparableIndexes[i] = Integer.parseInt(rkarray[i]);
 						}
 					} else if (property.equalsIgnoreCase(PROP_START_ROW)) {
 						this.startRow = Integer.parseInt(value);
@@ -401,9 +413,12 @@ public class SchemaInfo
 				this.pkIndexNames = pkColumnItemListInReadOrder.toArray(new String[0]);
 			} else {
 				this.pkIndexNames = new String[pkColumnItemList.size()];
-				int i = 0;
+//				int i = 0;
 				for (ColumnItem item : pkColumnItemList) {
-					this.pkIndexNames[i++] = item.name;
+//					this.pkIndexNames[i++] = item.name;
+					if (0 <= item.primaryKeyIndex && item.primaryKeyIndex < this.pkIndexNames.length) {
+						this.pkIndexNames[item.primaryKeyIndex] = item.name;
+					}
 				}
 			}
 
@@ -565,13 +580,24 @@ public class SchemaInfo
 	}
 
 	/**
-	 * Returns routing key indexes. Always returns a non-null array. The array
-	 * length is zero undefined. Routing key indexes overrides routing key index
-	 * names.
+	 * Returns the routing key field indexes. Always returns a non-null array. If the array
+	 * length is zero then the routing key indexes are not undefined. Note that the routing
+	 * key indexes override routing key index names.
 	 */
 	public int[] getRoutingKeyIndexes()
 	{
 		return routingKeyIndexes;
+	}
+	
+	/**
+	 * Returns the comparable field indexes. Always returns a non-null array. If the
+	 * array length is zero then the comparable indexes are not defined. The comparable
+	 * indexes are introduced to support some IMDGs such as Hazelcast that rely on the
+	 * Comparable interface to perform result set pagination and "order by" queries.
+	 */
+	public int[] getComparableIndexes()
+	{
+		return comparableIndexes;
 	}
 
 	public String[] getValueColumnNames()
@@ -769,7 +795,9 @@ public class SchemaInfo
 				+ ", allColumnItems=" + Arrays.toString(allColumnItems) + ", skipColumnSet=" + skipColumnSet
 				+ ", pkColumnNames=" + Arrays.toString(pkColumnNames) + ", pkIndexNames="
 				+ Arrays.toString(pkIndexNames) + ", routingKeyIndexNames=" + Arrays.toString(routingKeyIndexNames)
-				+ ", routingKeyIndexes=" + Arrays.toString(routingKeyIndexes) + ", valueColumnNames="
+				+ ", routingKeyIndexes=" + Arrays.toString(routingKeyIndexes) 
+				+ ", comparableIndexes=" + Arrays.toString(comparableIndexes) 
+				+ ", valueColumnNames="
 				+ Arrays.toString(valueColumnNames) + ", valueColumnTypes=" + Arrays.toString(valueColumnTypes)
 				+ ", bulkLoaderClass=" + bulkLoaderClass + ", fileLoaderClass=" + fileLoaderClass + ", rowFilterClass="
 				+ rowFilterClass + ", entryFilterClass=" + entryFilterClass + ", batchSize=" + batchSize

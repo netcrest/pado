@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>com.netcrest.pado</groupId>
 		<artifactId>pado-parent</artifactId>
-		<version>0.4.2-B1</version>
+		<version>0.5.0-B1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>pado-core</artifactId>
@@ -25,14 +25,6 @@
 		<maven.build.timestamp.format>MM-dd-yyyy hh:mm:ss a Z</maven.build.timestamp.format>
 		<build.date>${maven.build.timestamp}</build.date>
 	</properties>
-
-	<repositories>
-		<!-- JNLP repository -->
-		<repository>
-			<id>freehep-releases</id>
-			<url>http://java.freehep.org/maven2/</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<!-- Pado modules -->
@@ -58,7 +50,7 @@
 		<dependency>
 			<groupId>javax.jnlp</groupId>
 			<artifactId>jnlp</artifactId>
-			<version>1.2</version>
+			<version>1.5.0</version>
 		</dependency>
 
 		<!-- Ant -->

@@ -1,0 +1,28 @@
+package ${DOMAIN_PACKAGE};
+
+import com.hazelcast.nio.serialization.Portable;
+import com.hazelcast.nio.serialization.PortableFactory;
+
+/**
+ * PortableFactoryImpl is generated code. To manually modified the code, make sure
+ * to follow the same naming conventions. Otherwise, the code generator may not work.
+ 
+ * @generator ${GENERATOR_NAME}
+ * @date ${TIMESTAMP}
+ */
+public class PortableFactoryImpl implements PortableFactory {
+	public static final int FACTORY_ID = ${FACTORY_ID};
+
+	static final int __FIRST_CLASS_ID = ${FIRST_CLASS_ID};
+	static final int ${CLASS_NAME}_CLASS_ID = __FIRST_CLASS_ID;
+	static final int __LAST_CLASS_ID = ${CLASS_NAME}_CLASS_ID;
+
+	public Portable create(int classId) {
+		switch (classId) {
+		case ${CLASS_NAME}_CLASS_ID:
+			return new ${CLASS_NAME}();
+		default:
+			return null;
+		}
+	}
+}

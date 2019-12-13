@@ -1,6 +1,7 @@
-# Maven build folders
+# Maven build folders and files
 target/
 deploy/
+pom.xml.versionsBackup
 
 # Ant build folders
 build/
@@ -59,3 +60,6 @@ archive
 /deploy_old2
 copyjar*
 /deploy_old
+/pado-tools/data
+/pado-tools/etc
+/pado-tools/security

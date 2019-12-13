@@ -56,7 +56,7 @@ import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalData;
 public class TopNLuceneSearch extends LuceneSearch
 
 {
-	public static final Version LUCENE_VERSION = Version.LUCENE_47;
+	public static final Version LUCENE_VERSION = Version.LUCENE_7_7_1;
 
 	/**
 	 * Contains all registered LuceneSearch objects. &gt;full-path,
@@ -129,7 +129,7 @@ public class TopNLuceneSearch extends LuceneSearch
 		Query query;
 		try {
 			StandardQueryParser parser = new StandardQueryParser(
-					new StandardAnalyzer(LUCENE_VERSION));
+					new StandardAnalyzer());
 			query = parser.parse(queryString.replaceAll("\\-", "\\\\-"),
 					"__doc");
 		} catch (Exception ex) {
@@ -141,7 +141,7 @@ public class TopNLuceneSearch extends LuceneSearch
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopDocs results;
 		try {
-			results = searcher.search(query, null, Integer.MAX_VALUE);
+			results = searcher.search(query, Integer.MAX_VALUE);
 			for (ScoreDoc hit : results.scoreDocs) {
 				Document doc;
 				try {
@@ -206,7 +206,7 @@ public class TopNLuceneSearch extends LuceneSearch
 		Query query;
 		try {
 			StandardQueryParser parser = new StandardQueryParser(
-					new StandardAnalyzer(LUCENE_VERSION));
+					new StandardAnalyzer());
 			query = parser.parse(queryString.replaceAll("\\-", "\\\\-"),
 					"__doc");
 		} catch (Exception ex) {
@@ -218,7 +218,7 @@ public class TopNLuceneSearch extends LuceneSearch
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopDocs results;
 		try {
-			results = searcher.search(query, null, Integer.MAX_VALUE);
+			results = searcher.search(query, Integer.MAX_VALUE);
 
 			for (ScoreDoc hit : results.scoreDocs) {
 				Document doc;

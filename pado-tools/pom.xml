@@ -21,7 +21,7 @@
 	<parent>
 		<groupId>com.netcrest.pado</groupId>
 		<artifactId>pado-parent</artifactId>
-		<version>0.4.2-B1</version>
+		<version>0.5.0-B1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>pado-tools</artifactId>
@@ -64,6 +64,33 @@
 			<groupId>jline</groupId>
 			<artifactId>jline</artifactId>
 			<version>2.13</version>
+		</dependency>
+		
+		<!-- Hazelcast -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>${hazelcast.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-all</artifactId>
+			<version>${hazelcast.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-enterprise</artifactId>
+			<version>${hazelcast.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-enterprise-all</artifactId>
+			<version>${hazelcast.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hazelcast.jet</groupId>
+			<artifactId>hazelcast-jet</artifactId>
+			<version>3.0</version>
 		</dependency>
 	</dependencies>
 

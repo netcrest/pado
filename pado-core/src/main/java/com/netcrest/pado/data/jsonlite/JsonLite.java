@@ -53,7 +53,6 @@ import com.netcrest.pado.data.KeyTypeManager;
 import com.netcrest.pado.data.jsonlite.JsonLiteSchemaManager.KeyInfo;
 import com.netcrest.pado.data.jsonlite.internal.JsonLiteHelper;
 import com.netcrest.pado.data.jsonlite.internal.JsonLiteSerializer;
-import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.gemfire.factory.GemfireVersionSpecifics;
 import com.netcrest.pado.gemfire.util.DataSerializerEx;
 

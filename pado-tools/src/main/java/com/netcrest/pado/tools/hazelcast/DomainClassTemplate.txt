@@ -1,0 +1,59 @@
+package ${DOMAIN_PACKAGE};
+
+import java.io.IOException;
+${IMPORT_PACKAGES}
+
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
+import com.hazelcast.nio.serialization.VersionedPortable;
+
+/**
+  * ${DOMAIN_CLASS_NAME} is generated code. To modify this class, you must follow the
+  * guidelines below.
+  * <ul>
+  * <li>Always add new fields and do NOT delete old fields.</li>
+  * <li>If new fields have been added, then make sure to increment the version number.</li>
+  * </ul>
+  *
+  * @generator ${GENERATOR_NAME}
+  * @schema ${SCHEMA_FILE_NAME}
+  * @date ${TIMESTAMP}
+**/
+public class ${DOMAIN_CLASS_NAME} implements VersionedPortable${COMPARABLE}
+{${PROPERTY_DECLARATION}
+
+	public ${DOMAIN_CLASS_NAME}()
+	{
+	}
+${PROPERTY_DEFINITION}
+
+	@Override
+	public int getClassId() 
+	{
+		return PortableFactoryImpl.${DOMAIN_CLASS_NAME}_CLASS_ID;
+	}
+
+	@Override
+	public int getFactoryId() {
+		return PortableFactoryImpl.FACTORY_ID;
+	}
+	
+	@Override
+	public int getClassVersion() {
+		return ${CLASS_VERSION};
+	}
+
+	@Override
+	public void writePortable(PortableWriter writer) throws IOException {${WRITE_PORTABLE}
+	}
+
+	@Override
+	public void readPortable(PortableReader reader) throws IOException {${READ_PORTABLE}
+	}
+    
+	@Override
+	public String toString()
+	{
+		return ${TO_STRING};
+	}${COMPARE_TO_METHOD}
+}

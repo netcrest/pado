@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
@@ -58,7 +59,7 @@ public class LuceneSearchRAMDirectory
 {
 	private static LuceneSearchRAMDirectory search = new LuceneSearchRAMDirectory();
 	
-	public static StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer(Version.LUCENE_47));
+	public static StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer());
 
 	private LuceneSearchRAMDirectory()
 	{
@@ -122,7 +123,7 @@ public class LuceneSearchRAMDirectory
 		List<Object> list = new ArrayList<Object>();
 		IndexReader reader;
 		try {
-			reader = IndexReader.open(dir); 
+			reader = DirectoryReader.open(dir);
 		} catch (CorruptIndexException e1) {
 			e1.printStackTrace();
 			throw new RuntimeException(e1); 
@@ -141,7 +142,7 @@ public class LuceneSearchRAMDirectory
 		}
 	    TopDocs results;
 		try {
-			results = searcher.search(query, null, Integer.MAX_VALUE);
+			results = searcher.search(query, Integer.MAX_VALUE);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			throw new RuntimeException(e1); 

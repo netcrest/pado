@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,7 +38,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.FieldType.NumericType;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -46,7 +47,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.NumberDateFormat;
-import org.apache.lucene.queryparser.flexible.standard.config.NumericConfig;
+import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
@@ -115,28 +116,28 @@ public class LuceneBuilder
 			NumberDateFormat numericDateFormat)
 	{
 		// build the numeric config
-		Map<String, NumericConfig> map = parser.getNumericConfigMap();
+		Map<String, PointsConfig> map = parser.getPointsConfigMap();
 		if (map == null) {
-			map = new HashMap<String, NumericConfig>();
-			parser.setNumericConfigMap(map);
+			map = new HashMap<String, PointsConfig>();
+			parser.setPointsConfigMap(map);
 		}
 
 		if (fieldType == Integer.class || fieldType.toString().equals("int")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.INT);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(), Integer.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Long.class || fieldType.toString().equals("long")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.LONG);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(), Long.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Float.class || fieldType.toString().equals("float")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-					NumericType.FLOAT);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(),
+					Float.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Double.class || fieldType.toString().equals("double")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-					NumericType.DOUBLE);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(),
+					Double.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Date.class) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, numericDateFormat, NumericType.LONG);
+			PointsConfig config = new PointsConfig(numericDateFormat, Long.class);
 			map.put(fieldName, config);
 		}
 	}
@@ -223,8 +224,8 @@ public class LuceneBuilder
 			IndexWriter writer = null;
 			IndexReader reader = null;
 			Directory directory = null;
-			Analyzer analyzer = new StandardAnalyzer(LuceneSearch.LUCENE_VERSION);
-			IndexWriterConfig iwc = new IndexWriterConfig(LuceneSearch.LUCENE_VERSION, analyzer);
+			Analyzer analyzer = new StandardAnalyzer();
+			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			iwc.setOpenMode(OpenMode.CREATE);
 			LuceneField luceneField = new LuceneField();
 
@@ -262,7 +263,8 @@ public class LuceneBuilder
 						FileUtils.forceDelete(file);
 					}
 					file.mkdirs();
-					directory = new MMapDirectory(file);
+					Path path = Paths.get(file.getPath());
+					directory = new MMapDirectory(path);
 				}
 
 				writer = new IndexWriter(directory, iwc);
@@ -310,13 +312,13 @@ public class LuceneBuilder
 				}
 
 				// build the numeric config
-				Map<String, NumericConfig> map = parser.getNumericConfigMap();
+				Map<String, PointsConfig> map = parser.getPointsConfigMap();
 				if (map == null) {
-					map = new HashMap<String, NumericConfig>();
-					parser.setNumericConfigMap(map);
+					map = new HashMap<String, PointsConfig>();
+					parser.setPointsConfigMap(map);
 				}
 
-				NumericConfig config;
+				PointsConfig config;
 				if (keyType != null) {
 
 					// Create documents for KeyType objects
@@ -458,24 +460,24 @@ public class LuceneBuilder
 							Class fieldType = method.getReturnType();
 							String fieldName = method.getName().substring(3);
 							if (fieldType == Integer.class || fieldType == int.class) {
-								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-										NumericType.INT);
+								config = new PointsConfig(NumberFormat.getNumberInstance(),
+										Integer.class);
 								map.put(fieldName, config);
 							} else if (fieldType == Long.class || fieldType == long.class) {
-								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-										NumericType.LONG);
+								config = new PointsConfig(NumberFormat.getNumberInstance(),
+										Long.class);
 								map.put(fieldName, config);
 							} else if (fieldType == Float.class || fieldType == float.class) {
-								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-										NumericType.FLOAT);
+								config = new PointsConfig(NumberFormat.getNumberInstance(),
+										Float.class);
 								map.put(fieldName, config);
 							} else if (fieldType == Double.class || fieldType == double.class) {
-								config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-										NumericType.DOUBLE);
+								config = new PointsConfig(NumberFormat.getNumberInstance(),
+										Double.class);
 								map.put(fieldName, config);
 							} else if (fieldType == Date.class) {
-								config = new NumericConfig(PRECISION_STEP, DateTool.Resolution.DAY.numericFormat,
-										NumericType.LONG);
+								config = new PointsConfig(DateTool.Resolution.DAY.numericFormat,
+										Long.class);
 								map.put(fieldName, config);
 							}
 						}
@@ -565,18 +567,19 @@ public class LuceneBuilder
 				
 				// Close all resources.
 				if (writer != null) {
-					try {
+//					try {
 						writer.close();
-					} finally {
-						if (directory != null && IndexWriter.isLocked(directory)) {
-							try {
-								IndexWriter.unlock(directory);
-								directory.close();
-							} catch (IOException ex) {
-								// ignore
-							}
-						}
-					}
+//					} finally {
+//						if (directory != null && IndexWriter.isLocked(directory)) {
+//							try {
+//								
+////								IndexWriter.unlock(directory);
+//								directory.close();
+//							} catch (IOException ex) {
+//								// ignore
+//							}
+//						}
+//					}
 				}
 				if (reader != null) {
 					try {
@@ -592,19 +595,19 @@ public class LuceneBuilder
 
 	}
 
-	private NumericConfig createNumericMap(String fieldName, Class<?> fieldType)
+	private PointsConfig createNumericMap(String fieldName, Class<?> fieldType)
 	{
-		NumericConfig config = null;
+		PointsConfig config = null;
 		if (fieldType == Integer.class || fieldType == int.class) {
-			config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.INT);
+			config = new PointsConfig(NumberFormat.getNumberInstance(), Integer.class);
 		} else if (fieldType == Long.class || fieldType == long.class) {
-			config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.LONG);
+			config = new PointsConfig(NumberFormat.getNumberInstance(), Long.class);
 		} else if (fieldType == Float.class || fieldType == float.class) {
-			config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.FLOAT);
-		} else if (fieldType == Double.class || fieldType == double.class) {
-			config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.DOUBLE);
+			config = new PointsConfig(NumberFormat.getNumberInstance(), Float.class);
+		} else if (fieldType == PointsConfig.class || fieldType == double.class) {
+			config = new PointsConfig(NumberFormat.getNumberInstance(), Double.class);
 		} else if (fieldType == Date.class) {
-			config = new NumericConfig(PRECISION_STEP, DateTool.Resolution.DAY.numericFormat, NumericType.LONG);
+			config = new PointsConfig(DateTool.Resolution.DAY.numericFormat, Long.class);
 		}
 		return config;
 	}

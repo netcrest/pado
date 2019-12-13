@@ -147,6 +147,7 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 			throw new PathUndefinedException();
 		}
 		region.remove(key);
+		map.remove(key);
 	}
 
 	@Override

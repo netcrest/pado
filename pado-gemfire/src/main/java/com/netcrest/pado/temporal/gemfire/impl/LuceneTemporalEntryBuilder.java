@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,14 +33,13 @@ import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.FieldType.NumericType;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.NumberDateFormat;
-import org.apache.lucene.queryparser.flexible.standard.config.NumericConfig;
+import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.store.MMapDirectory;
 
 import com.gemstone.gemfire.internal.util.BlobHelper;
@@ -80,18 +81,19 @@ public class LuceneTemporalEntryBuilder
 			if (file.exists() == false) {
 				file.mkdirs();
 			}
-			Analyzer analyzer = new StandardAnalyzer(LuceneSearch.LUCENE_VERSION);
-			IndexWriterConfig iwc = new IndexWriterConfig(LuceneSearch.LUCENE_VERSION, analyzer);
+			Analyzer analyzer = new StandardAnalyzer();
+			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			iwc.setOpenMode(OpenMode.CREATE);
-			directory = new MMapDirectory(file);
+			Path path = Paths.get(file.getPath());
+			directory = new MMapDirectory(path);
 			writer = new IndexWriter(directory, iwc);
 			tm = TemporalManager.getTemporalManager(fullPath);
 			writer.commit();
 			parser = LuceneSearch.getLuceneSearch(fullPath).createParser();
-			configNumericType("StartValidTime", Date.class);
-			configNumericType("EndValidTime", Date.class);
-			configNumericType("StartWrittenTime", Date.class);
-			configNumericType("EndWrittenTime", Date.class);
+			configLegacyNumericType("StartValidTime", Date.class);
+			configLegacyNumericType("EndValidTime", Date.class);
+			configLegacyNumericType("StartWrittenTime", Date.class);
+			configLegacyNumericType("EndWrittenTime", Date.class);
 		} catch (IOException ex) {
 			Logger.error(ex);
 		}
@@ -109,7 +111,11 @@ public class LuceneTemporalEntryBuilder
 			}
 		}
 		if (directory != null) {
-			directory.close();
+			try {
+				directory.close();
+			} catch (IOException e) {
+				Logger.error(e);
+			}
 		}
 	}
 	
@@ -126,7 +132,7 @@ public class LuceneTemporalEntryBuilder
 				tkGetters = ReflectionHelper.getPublicGetters(identityKey.getClass());
 			}
 			isIdentityKeyPrimitive = tkKeyType != null;
-			configNumericType("IdentityKey", tkKeyType);
+			configLegacyNumericType("IdentityKey", tkKeyType);
 			isInitialized = true;
 		}
 	}
@@ -146,29 +152,29 @@ public class LuceneTemporalEntryBuilder
 		}
 	}
 
-	private void configNumericType(String fieldName, Class<?> fieldType)
+	private void configLegacyNumericType(String fieldName, Class<?> fieldType)
 	{
 		// build the numeric config
-		Map<String, NumericConfig> map = parser.getNumericConfigMap();
+		Map<String, PointsConfig> map = parser.getPointsConfigMap();
 		if (map == null) {
-			map = new HashMap<String, NumericConfig>();
-			parser.setNumericConfigMap(map);
+			map = new HashMap<String, PointsConfig>();
+			parser.setPointsConfigMap(map);
 		}
 
 		if (fieldType == Integer.class || fieldType.toString().equals("int")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.INT);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(), Integer.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Long.class || fieldType.toString().equals("long")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.LONG);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(), Long.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Float.class || fieldType.toString().equals("float")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.FLOAT);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(), Float.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Double.class || fieldType.toString().equals("double")) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(), NumericType.DOUBLE);
+			PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(), Double.class);
 			map.put(fieldName, config);
 		} else if (fieldType == Date.class) {
-			NumericConfig config = new NumericConfig(PRECISION_STEP, DATE_FORMAT, NumericType.LONG);
+			PointsConfig config = new PointsConfig(DATE_FORMAT, Long.class);
 			map.put(fieldName, config);
 		}
 	}
@@ -186,10 +192,10 @@ public class LuceneTemporalEntryBuilder
 	private boolean buildTemporalKeys(ITemporalKey tk)
 	{
 		// build the numeric config
-		Map<String, NumericConfig> numericConfigMap = parser.getNumericConfigMap();
+		Map<String, PointsConfig> numericConfigMap = parser.getPointsConfigMap();
 		if (numericConfigMap == null) {
-			numericConfigMap = new HashMap<String, NumericConfig>();
-			parser.setNumericConfigMap(numericConfigMap);
+			numericConfigMap = new HashMap<String, PointsConfig>();
+			parser.setPointsConfigMap(numericConfigMap);
 		}
 		
 		Object key = tk.getIdentityKey();
@@ -218,7 +224,7 @@ public class LuceneTemporalEntryBuilder
 
 					// configure numeric types
 					for (Field field : tkFields) {
-						configNumericType(field.getName(), field.getType());
+						configLegacyNumericType(field.getName(), field.getType());
 					}
 
 					for (Field field : tkFields) {
@@ -315,10 +321,10 @@ public class LuceneTemporalEntryBuilder
 				}
 
 				// build the numeric config
-				Map<String, NumericConfig> numericConfigMap = parser.getNumericConfigMap();
+				Map<String, PointsConfig> numericConfigMap = parser.getPointsConfigMap();
 				if (numericConfigMap == null) {
-					numericConfigMap = new HashMap<String, NumericConfig>();
-					parser.setNumericConfigMap(numericConfigMap);
+					numericConfigMap = new HashMap<String, PointsConfig>();
+					parser.setPointsConfigMap(numericConfigMap);
 				}
 				List<Document> docList = new ArrayList<Document>();
 
@@ -336,23 +342,23 @@ public class LuceneTemporalEntryBuilder
 							Class<?> fieldType = kt2.getType();
 
 							if (fieldType == Integer.class || fieldType == int.class) {
-								NumericConfig config = new NumericConfig(PRECISION_STEP,
-										NumberFormat.getNumberInstance(), NumericType.INT);
+								PointsConfig config = new PointsConfig(
+										NumberFormat.getNumberInstance(), Integer.class);
 								numericConfigMap.put(fieldName, config);
 							} else if (fieldType == Long.class || fieldType == long.class) {
-								NumericConfig config = new NumericConfig(PRECISION_STEP,
-										NumberFormat.getNumberInstance(), NumericType.LONG);
+								PointsConfig config = new PointsConfig(
+										NumberFormat.getNumberInstance(), Long.class);
 								numericConfigMap.put(fieldName, config);
 							} else if (fieldType == Float.class || fieldType == float.class) {
-								NumericConfig config = new NumericConfig(PRECISION_STEP,
-										NumberFormat.getNumberInstance(), NumericType.FLOAT);
+								PointsConfig config = new PointsConfig(
+										NumberFormat.getNumberInstance(), Float.class);
 								numericConfigMap.put(fieldName, config);
 							} else if (fieldType == Double.class || fieldType == double.class) {
-								NumericConfig config = new NumericConfig(PRECISION_STEP,
-										NumberFormat.getNumberInstance(), NumericType.DOUBLE);
+								PointsConfig config = new PointsConfig(
+										NumberFormat.getNumberInstance(), Double.class);
 								numericConfigMap.put(fieldName, config);
 							} else if (fieldType == Date.class) {
-								NumericConfig config = new NumericConfig(PRECISION_STEP, DATE_FORMAT, NumericType.LONG);
+								PointsConfig config = new PointsConfig(DATE_FORMAT, Long.class);
 								numericConfigMap.put(fieldName, config);
 							}
 						}
@@ -412,23 +418,23 @@ public class LuceneTemporalEntryBuilder
 						Class fieldType = method.getReturnType();
 						String fieldName = method.getName().substring(3);
 						if (fieldType == Integer.class || fieldType == int.class) {
-							NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.INT);
+							PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(),
+									Integer.class);
 							numericConfigMap.put(fieldName, config);
 						} else if (fieldType == Long.class || fieldType == long.class) {
-							NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.LONG);
+							PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(),
+									Long.class);
 							numericConfigMap.put(fieldName, config);
 						} else if (fieldType == Float.class || fieldType == float.class) {
-							NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.FLOAT);
+							PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(),
+									Float.class);
 							numericConfigMap.put(fieldName, config);
 						} else if (fieldType == Double.class || fieldType == double.class) {
-							NumericConfig config = new NumericConfig(PRECISION_STEP, NumberFormat.getNumberInstance(),
-									NumericType.DOUBLE);
+							PointsConfig config = new PointsConfig(NumberFormat.getNumberInstance(),
+									Double.class);
 							numericConfigMap.put(fieldName, config);
 						} else if (fieldType == Date.class) {
-							NumericConfig config = new NumericConfig(PRECISION_STEP, DATE_FORMAT, NumericType.LONG);
+							PointsConfig config = new PointsConfig(DATE_FORMAT, Long.class);
 							numericConfigMap.put(fieldName, config);
 						}
 					}

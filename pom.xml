@@ -8,22 +8,24 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<pado.version>0.4.2-B1</pado.version>
-		<lucene.version>4.7.2</lucene.version>
+		<pado.version>0.5.0-B1-SNAPSHOT</pado.version>
+		<lucene.version>8.0.0</lucene.version>
 		<gemfire.version>8.2.0</gemfire.version>
+		<hazelcast.version>3.12</hazelcast.version>
 	</properties>
 
 
 	<groupId>com.netcrest.pado</groupId>
 	<artifactId>pado-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.4.2-B1</version>
+	<version>0.5.0-B1-SNAPSHOT</version>
 	<name>pado-parent</name>
 	<description>Pado</description>
 
@@ -51,14 +53,40 @@
 			<name>Gemfire Repository</name>
 			<url>http://dist.gemstone.com/maven/release</url>
 		</repository>
-		<repository>
-			<id>freehep-releases</id>
-			<url>http://java.freehep.org/maven2/</url>
-		</repository>
 		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-beaninfo -->
 		<repository>
 			<id>mvn-repository</id>
 			<url>https://mvnrepository.com/artifact/</url>
+		</repository>
+		
+		<!-- jnlp.jar -->
+		<repository>
+			<id>opennms-repository</id>
+			<url>http://repo.opennms.org/maven2/</url>
+		</repository>
+		
+		<repository>
+			<id>snapshot-repository</id>
+			<name>Maven2 Snapshot Repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>backup-repo</id>
+			<url>http://repo2.maven.org/maven2/</url>
+		</repository>
+		
+		<!-- Hazelcast private repo -->
+		<repository>
+			<id>Hazelcast Private Snapshot Repository</id>
+			<url>https://repository.hazelcast.com/snapshot/</url>
+		</repository>
+		<repository>
+			<id>Hazelcast Private Release Repository</id>
+			<url>https://repository.hazelcast.com/release/</url>
 		</repository>
 	</repositories>
 
@@ -176,5 +204,20 @@
 		</profile>
 
 	</profiles>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.0.0-M3</version>
+					<!-- To ignore org.apache.maven.surefire.booter.SurefireBooterForkException on Mac -->
+					<configuration>
+						<testFailureIgnore>true</testFailureIgnore>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>
 

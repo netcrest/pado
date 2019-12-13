@@ -197,4 +197,5 @@ StartRow=3
 CategoryID, String, Primary
 CategoryName
 Description
+Tag
 Picture

@@ -17,6 +17,8 @@ package com.netcrest.pado.index.provider.lucene;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +69,7 @@ import com.netcrest.pado.util.GridUtil;
 public class LuceneSearch implements ITextSearchProvider
 
 {
-	public static final Version LUCENE_VERSION = Version.LUCENE_47;
+	public static final Version LUCENE_VERSION = Version.LUCENE_7_7_1;
 
 	/**
 	 * Contains all registered LuceneSearch objects. &gt;full-path,
@@ -137,7 +139,7 @@ public class LuceneSearch implements ITextSearchProvider
 	 */
 	public StandardQueryParser createParser()
 	{
-		StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer(LUCENE_VERSION));
+		StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer());
 		return parser;
 	}
 
@@ -230,7 +232,8 @@ public class LuceneSearch implements ITextSearchProvider
 				return Collections.emptySet();
 			}
 			try {
-				directory = new MMapDirectory(file);
+				Path path = Paths.get(file.getPath());
+				directory = new MMapDirectory(path);
 				identityKeySet = getIdentityKeySet(queryString, directory, limit);
 			} catch (IOException e) {
 				throw new IndexMatrixException("Lucene index directory error. [query=" + queryString + ", fullPath="
@@ -266,7 +269,7 @@ public class LuceneSearch implements ITextSearchProvider
 
 		Query query;
 		try {
-			StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer(LUCENE_VERSION));
+			StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer());
 			query = parser.parse(queryString.replaceAll("\\-", "\\\\-"), "__doc");
 		} catch (Exception ex) {
 			// Lucene bug. Unable to serialize exception. Log the message and
@@ -280,7 +283,7 @@ public class LuceneSearch implements ITextSearchProvider
 			if (limit < 0) {
 				limit = Integer.MAX_VALUE;
 			}
-			results = searcher.search(query, null, Integer.MAX_VALUE);
+			results = searcher.search(query, Integer.MAX_VALUE);
 
 			for (ScoreDoc hit : results.scoreDocs) {
 				Document doc;
@@ -370,7 +373,8 @@ public class LuceneSearch implements ITextSearchProvider
 				return Collections.emptySet();
 			}
 			try {
-				directory = new MMapDirectory(file);
+				Path path = Paths.get(file.getPath());
+				directory = new MMapDirectory(path);
 				temporalKeySet = getTemporalKeyCollection(queryString, directory, limit, isSet);
 			} catch (IOException e) {
 				throw new IndexMatrixException("Lucene index directory error. [query=" + queryString + ", fullPath="
@@ -412,7 +416,7 @@ public class LuceneSearch implements ITextSearchProvider
 		}
 		Query query;
 		try {
-			StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer(LUCENE_VERSION));
+			StandardQueryParser parser = new StandardQueryParser(new StandardAnalyzer());
 			query = parser.parse(queryString.replaceAll("\\-", "\\\\-"), "__doc");
 		} catch (Exception ex) {
 			// Lucene 4.7 bug, internal message not serializable
@@ -426,7 +430,7 @@ public class LuceneSearch implements ITextSearchProvider
 			if (limit < 0) {
 				limit = Integer.MAX_VALUE;
 			}
-			results = searcher.search(query, null, limit);
+			results = searcher.search(query, limit);
 
 			for (ScoreDoc hit : results.scoreDocs) {
 				Document doc;

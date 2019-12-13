@@ -26,6 +26,9 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import com.univocity.parsers.csv.CsvParser;
+import com.univocity.parsers.csv.CsvParserSettings;
+
 /**
  * SchemaUtil provides utility methods for generating schema files for the
  * import_csv command.
@@ -62,6 +65,26 @@ public class SchemaUtil
 		String delimiter = ",";
 		String headerLine = "";
 
+		// CSV parser from uniVocity
+		CsvParserSettings commaSettings = new CsvParserSettings();
+		commaSettings.getFormat().setLineSeparator("\n");
+		commaSettings.getFormat().setDelimiter(',');
+		commaSettings.getFormat().setQuoteEscape('\\');
+		commaSettings.setMaxCharsPerColumn(10000);
+		commaSettings.setMaxColumns(1000);
+		CsvParser commaParser = new CsvParser(commaSettings);
+//		commaParser.beginParsing(reader);
+		
+		CsvParserSettings tabSettings = new CsvParserSettings();
+		tabSettings.getFormat().setLineSeparator("\n");
+		tabSettings.getFormat().setDelimiter('\t');
+		tabSettings.getFormat().setQuoteEscape('\\');
+		tabSettings.setMaxCharsPerColumn(10000);
+		tabSettings.setMaxColumns(1000);
+		CsvParser tabParser = new CsvParser(tabSettings);
+//		tabParser.beginParsing(reader);
+		
+		
 		if (headerRow > 0) {
 			while ((line = readLine(reader)) != null && lineNum < headerRow) {
 				lineNum++;
@@ -75,8 +98,10 @@ public class SchemaUtil
 								+ headerRow);
 			}
 
-			String tabTokens[] = getTokens(line, (char) 29); // tab
-			String commaTokens[] = getTokens(line, ',');
+//			String tabTokens[] = getTokens(line, (char) 29); // tab
+//			String commaTokens[] = getTokens(line, ',');
+			String tabTokens[] = tabParser.parseLine(line);
+			String commaTokens[] = commaParser.parseLine(line);
 			int numColumns;
 			if (tabTokens.length > commaTokens.length) {
 				numColumns = tabTokens.length;
@@ -91,8 +116,10 @@ public class SchemaUtil
 		} else {
 			while ((line = readLine(reader)) != null && lineNum < 10) {
 				lineNum++;
-				String tabTokens[] = getTokens(line, '\t'); // tab
-				String commaTokens[] = getTokens(line, ',');
+//				String tabTokens[] = getTokens(line, '\t'); // tab
+//				String commaTokens[] = getTokens(line, ',');
+				String tabTokens[] = tabParser.parseLine(line);
+				String commaTokens[] = commaParser.parseLine(line);
 				int numColumns;
 				if (tabTokens.length > commaTokens.length) {
 					numColumns = tabTokens.length;
