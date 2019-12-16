@@ -187,7 +187,7 @@ public class SchemaUtil
 			tokens = parser.parseNext();
 		}
 		String fieldTypeNames[] = null;
-		while ((tokens = parser.parseNext()) != null && lineNum < 10) {
+		while ((tokens = parser.parseNext()) != null && lineNum < 1000) {
 			lineNum++;
 			if (fieldTypeNames == null) {
 				fieldTypeNames= new String[tokens.length];

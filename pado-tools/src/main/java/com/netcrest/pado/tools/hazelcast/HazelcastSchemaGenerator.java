@@ -31,8 +31,6 @@ import com.netcrest.pado.exception.PadoException;
 import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.util.SchemaUtil;
 import com.netcrest.pado.internal.util.SchemaUtil.SchemaProp;
-import com.netcrest.pado.log.ILogger;
-import com.netcrest.pado.log.Logger;
 
 /**
  * HazelcastSchemaGenerator is a client program that generates schema files for
