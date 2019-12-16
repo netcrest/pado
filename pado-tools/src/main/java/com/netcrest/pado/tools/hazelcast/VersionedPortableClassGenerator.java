@@ -12,7 +12,9 @@ import java.util.Date;
 import java.util.TreeSet;
 
 import com.netcrest.pado.biz.file.SchemaInfo;
+import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.util.SchemaUtil;
+import com.netcrest.pado.log.Logger;
 
 public class VersionedPortableClassGenerator {
 	Date timestamp = new Date();
@@ -36,6 +38,12 @@ public class VersionedPortableClassGenerator {
 		this.factoryId = factoryId;
 		this.classId = classId;
 		this.classVersion = classVersion;
+		initLog();
+	}
+	
+	private void initLog()
+	{
+		System.setProperty("pado." + Constants.PROP_CLASS_LOGGER, "com.netcrest.pado.hazelcast.util.HazelcastLogger");
 	}
 
 	public File generateDomainClass(SchemaInfo schemaInfo, File schemaFile, File srcDir)
@@ -344,20 +352,36 @@ public class VersionedPortableClassGenerator {
 
 		return domainClassFile;
 	}
-
+	
+	class FactoryClassInfo
+	{
+		String keyTypeFullClassName;
+		String keyTypePackageName;
+		String keyTypeClassName;
+		String factoryFullClassName;
+		
+		FactoryClassInfo(SchemaInfo schemaInfo) 
+		{
+			keyTypeFullClassName = schemaInfo.getKeyTypeClassName();
+			if (keyTypeFullClassName == null) {
+				return;
+			}
+			int index = keyTypeFullClassName.lastIndexOf(".");
+			keyTypePackageName = keyTypeFullClassName.substring(0, index);
+			keyTypeClassName = keyTypeFullClassName.substring(index + 1);
+			factoryFullClassName = keyTypePackageName + "." + factoryClassName;
+		}
+	}
+	
 	public File generateFactoryClass(SchemaInfo schemaInfo, File schemaFile, File srcDir)
-			throws IOException, URISyntaxException {
-
-		String keyTypeFullClassName = schemaInfo.getKeyTypeClassName();
-		if (keyTypeFullClassName == null) {
+			throws IOException, URISyntaxException 
+	{
+		FactoryClassInfo info = new FactoryClassInfo(schemaInfo);
+		if (info.keyTypeFullClassName == null) {
 			return null;
 		}
-		int index = keyTypeFullClassName.lastIndexOf(".");
-		String keyTypePackageName = keyTypeFullClassName.substring(0, index);
-		String keyTypeClassName = keyTypeFullClassName.substring(index + 1);
-		String factoryFullClassName = keyTypePackageName + "." + factoryClassName;
 
-		String factoryClassFilePath = factoryFullClassName.replaceAll("\\.", "/") + ".java";
+		String factoryClassFilePath = info.factoryFullClassName.replaceAll("\\.", "/") + ".java";
 		File factoryClassFile = new File(srcDir, factoryClassFilePath);
 		InputStream is;
 		String factoryStr;
@@ -371,10 +395,10 @@ public class VersionedPortableClassGenerator {
 		is.close();
 
 		if (factoryClassFile.exists()) {
-			String classId = keyTypeClassName + "_CLASS_ID";
+			String classId = info.keyTypeClassName + "_CLASS_ID";
 
 			// See if this class ID already exists
-			index = factoryStr.indexOf(classId);
+			int index = factoryStr.indexOf(classId);
 			boolean classIdExists = index != -1 && Character.isWhitespace(factoryStr.charAt(index - 1));
 			if (classIdExists) {
 				writeLine("   Ignored: " + classId
@@ -402,7 +426,7 @@ public class VersionedPortableClassGenerator {
 								"static final int " + classId + " = " + lastClassId
 										+ " + 1;\n\tstatic final int __LAST_CLASS_ID = " + classId);
 						factoryStr = factoryStr.replaceAll("\\} else \\{",
-								"} else if (classId == " + classId + ") \\{\n\t\t\treturn new " + keyTypeClassName + "();\n\t\t\\} else \\{");
+								"} else if (classId == " + classId + ") \\{\n\t\t\treturn new " + info.keyTypeClassName + "();\n\t\t\\} else \\{");
 					} else {
 						factoryStr = factoryStr.replaceAll("static final int __LAST_CLASS_ID = " + lastClassId,
 								"static final int __LAST_CLASS_ID = " + classId);
@@ -410,11 +434,11 @@ public class VersionedPortableClassGenerator {
 				}
 			}
 		} else {
-			factoryStr = factoryStr.replaceAll("\\$\\{DOMAIN_PACKAGE\\}", keyTypePackageName);
-			factoryStr = factoryStr.replaceAll("\\$\\{CLASS_NAME\\}", keyTypeClassName);
-			String factoryIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.factoryId\", " + factoryId + ")";
+			factoryStr = factoryStr.replaceAll("\\$\\{DOMAIN_PACKAGE\\}", info.keyTypePackageName);
+			factoryStr = factoryStr.replaceAll("\\$\\{CLASS_NAME\\}", info.keyTypeClassName);
+			String factoryIdStr = "Integer.getInteger(\"" + info.keyTypePackageName + ".PortableFactoryImpl.factoryId\", " + factoryId + ")";
 			factoryStr = factoryStr.replaceAll("\\$\\{FACTORY_ID\\}", factoryIdStr);
-			String classIdStr = "Integer.getInteger(\"" + keyTypePackageName + ".PortableFactoryImpl.firstClassId\", " + classId + ")";
+			String classIdStr = "Integer.getInteger(\"" + info.keyTypePackageName + ".PortableFactoryImpl.firstClassId\", " + classId + ")";
 			factoryStr = factoryStr.replaceAll("\\$\\{FIRST_CLASS_ID\\}", classIdStr);
 		}
 
@@ -477,12 +501,14 @@ public class VersionedPortableClassGenerator {
 			writeLine("Schema files not found in directory " + schemaDir.getAbsolutePath());
 			writeLine();
 		} else {
+			FactoryClassInfo factoryInfo = null;
 			srcDir.mkdirs();
 			writeLine();
 			for (int i = 0; i < schemaFiles.length; i++) {
 				writeLine((i + 1) + ". " + schemaFiles[i].getAbsolutePath());
 
 				SchemaInfo schemaInfo = new SchemaInfo("csv", schemaFiles[i]);
+				factoryInfo = new FactoryClassInfo(schemaInfo);
 				try {
 					File domainClassFile = generateDomainClass(schemaInfo, schemaFiles[i], srcDir);
 					if (domainClassFile != null) {
@@ -494,9 +520,44 @@ public class VersionedPortableClassGenerator {
 					}
 				} catch (Exception e) {
 					writeLine("   Error: " + e.getMessage());
-					e.printStackTrace();
+					Logger.error(e);
 				}
 			}
+			
+			writeLine();
+			writeLine("DESCRIPTION");
+			writeLine("          The generated classes are set to the default values shown below. The");
+			writeLine("          class IDs are incremented starting from first class ID.");
+			writeLine();
+			writeLine("DEFAULT");
+			writeLine("              Factory ID: " + factoryId);
+			writeLine("          First Class ID: " + classId);
+			writeLine();
+			writeLine("SYSTEM PROPERTIES");
+			writeLine("          You can change the default IDs using the following system properties.");
+			writeLine("          If you change the factory ID then you must also set the same value in");
+			writeLine("          the configuration files.");
+			writeLine();
+			writeLine("          Factory ID");
+			writeLine("                    -D" + factoryInfo.factoryFullClassName + ".factoryId=" + factoryId);
+			writeLine();
+			writeLine("          First Class ID");
+			writeLine("                    -D" + factoryInfo.factoryFullClassName + ".firstClassId=" + classId);
+			writeLine();
+			writeLine("CONFIGURATION");
+			writeLine("          If you will be executing queries then the Portable factory class must");
+			writeLine("          be registered by Hazelcast members and clients as follows:");
+			writeLine();
+			writeLine("          hazelcast.xml/hazelcast-client.xml");
+			writeLine();
+			writeLine(
+					"             <serialization>\n" + 
+					"                 <portable-factories>\n" + 
+					"                     <portable-factory factory-id=\"" + factoryId + "\">\n" + 
+					"                          " + factoryInfo.factoryFullClassName + "\n" + 
+					"                     </portable-factory>\n" + 
+					"                 </portable-factories>\n" + 
+					"             </serialization>");
 			writeLine();
 			writeLine("Source code generation complete.");
 			writeLine();
@@ -520,31 +581,49 @@ public class VersionedPortableClassGenerator {
 		if (padoHome == null) {
 			padoHome = "$PADO_HOME";
 		}
+		String executable = System.getenv("EXECUTABLE");
+		if (executable == null) {
+			executable = VersionedPortableClassGenerator.class.getSimpleName();
+		}
 		writeLine();
-		writeLine("Usage:");
-		writeLine(
-				"   VersionedPortableClassGenerator [-schemaDir <schema-directory] [-srcDir <output-directory] [-v [<version number>]] [-?]");
+		writeLine("NAME");
+		writeLine("   " + executable + " - Generate VersionedPortable classes based on schema files");
 		writeLine();
-		writeLine("   IMPORTANT: This command overwrites the existing source code. Make sure");
-		writeLine("              to back up the output source directory first before running");
-		writeLine("              this program in case if you need to revert to the existing code.");
+		writeLine("SNOPSIS");
+		writeLine("   " + executable +" [-schemaDir schema_directory] [-srcDir output_directory] [-v version_number] [-?]");
 		writeLine();
+		writeLine("IMPORTANT");
+		writeLine("   This command overwrites the existing source code. Make sure to back up the");
+		writeLine("   output source directory first before running this command in case if you need");
+		writeLine("   to revert to the existing code.");
+		writeLine();
+		writeLine("DESCRIPTION");
 		writeLine("   Generates the key type classes declared in all of the CSV schema");
 		writeLine("   files found in the schema directory. The directory paths can be");
-		writeLine("   absolute or relative to the " + padoHome + " directory.");
+		writeLine("   absolute or relative to the following directory.");
 		writeLine();
-		writeLine("      -schemaDir  Import directory path that contains *.schema files");
-		writeLine("      -srcDir     Source directory path where the key type classes are to be generated");
-		writeLine("      -fid        PortableFactory ID. If the portable factory ID is not specified");
-		writeLine("                  then it defaults to 1.");
-		writeLine("      -cid        Class ID. If the class ID is not specified then it defaults to 100.");
-		writeLine("      -v          Versions the generated KeyType class. If version number is not specified");
-		writeLine("                  then it defaults to 1.");
-
+		writeLine("   " + padoHome);
 		writeLine();
+		writeLine("OPTIONS");
+		writeLine("   -schemaDir schema_directory");
+		writeLine("             Import directory path that contains *.schema files");
 		writeLine();
-		writeLine(
-				"   Default: VersionedPortableClassGenerator -schemaDir data/schema -srcDir src/generated -fid 1 -cid 100 -v 1");
+		writeLine("   -srcDir output_directory");
+		writeLine("             Source directory path where the key type classes are to be generated");
+		writeLine();
+		writeLine("   -fid");
+		writeLine("             PortableFactory ID. If the portable factory ID is not specified");
+		writeLine("             then it defaults to 1.");
+		writeLine();
+		writeLine("   -cid");
+		writeLine("             Class ID. If the class ID is not specified then it defaults to 100.");
+		writeLine();
+		writeLine("   -v version_number");
+		writeLine("             Versions the generated KeyType class. If version number is not specified");
+		writeLine("             then it defaults to 1.");
+		writeLine();
+		writeLine("DEFAULT");
+		writeLine("   " + executable + " -schemaDir data/schema -srcDir src/generated -fid 1 -cid 100 -v 1");
 		writeLine();
 		System.exit(0);
 	}

@@ -18,6 +18,33 @@
 
 . ./setenv.sh > /dev/null 2>&1
 
+export EXECUTABLE=$0
+
+if [ "$HELP" == "true" ]; then
+cat << EOF
+
+NAME
+   $EXECUTABLE - Compile the generated source code
+
+SYNOPSIS
+   $EXECUTABLE [-jar jar_name] [-?]
+
+DESCRIPTION
+   Compiles the generated source code and creates a jar file in the following directory:
+
+   $DROPIN_DIR/
+
+OPTIONS
+   -jar jar_name
+             The name of the jar to be generated. Default: generated.jar
+
+DEFAULT
+   $EXECUTABLE -jar generated.jar
+
+EOF
+exit
+fi
+
 GENERATED_DIR=$PADO_HOME/src/generated
 if [ ! -d $GENERATED_DIR ]; then
   mkdir -p $GENERATED_DIR
@@ -28,7 +55,12 @@ pushd $GENERATED_DIR > /dev/null 2>&1
 JAVA_FILES=`find $GENERATED_DIR -name *.java`
 
 javac -cp $CLASSPATH $JAVA_FILES
-jar cvf $DROPIN_DIR/generated.jar .
-echo "Jar created: $DROPIN_DIR/generated.jar"
+if [ "$JAR_OPT" != "" ]; then
+   JAR_NAME="$JAR_OPT"
+else
+   JAR_NAME="generated.jar"
+fi
+jar cvf $DROPIN_DIR/$JAR_NAME .
+echo "Jar created: $DROPIN_DIR/$JAR_NAME"
 
 popd > /dev/null 2>&1

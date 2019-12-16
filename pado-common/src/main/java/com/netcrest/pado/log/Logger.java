@@ -318,4 +318,12 @@ public class Logger
 	{
 		logger.log(message);
 	}
+	
+	/**
+	 * Returns the underlying logger that logs messages.
+	 */
+	public static ILogger getLogger()
+	{
+		return logger;
+	}
 }

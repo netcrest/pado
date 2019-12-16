@@ -42,14 +42,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
 import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.netcrest.pado.biz.file.FileUtilUnix;
 import com.netcrest.pado.biz.file.SchemaInfo;
 import com.netcrest.pado.exception.PadoLoginException;
+import com.netcrest.pado.internal.Constants;
 import com.netcrest.pado.internal.security.AESCipher;
 import com.netcrest.pado.internal.util.SchemaUtil;
 import com.netcrest.pado.internal.util.SchemaUtil.SchemaProp;
+import com.netcrest.pado.log.ILogger;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.tools.hazelcast.file.HazelcastCsvFileLoader;
 
@@ -62,20 +63,33 @@ public class HazelcastCsvFileImporter
 	{
 		init();
 		login();
+		initLog();
 	}
 
 	public HazelcastCsvFileImporter(Properties csvProperties)
 	{
 		this.csvProperties = csvProperties;
 		login();
+		initLog();
 	}
 
 	public HazelcastCsvFileImporter(HazelcastInstance hzInstance) throws IOException
 	{
 		this.hzInstance = hzInstance;
 		init();
+		initLog();
 	}
 
+	private void initLog()
+	{
+		System.setProperty("pado." + Constants.PROP_CLASS_LOGGER, "com.netcrest.pado.hazelcast.util.HazelcastLogger");
+		ILogger logger = Logger.getLogger();
+		if (logger != null && logger instanceof com.netcrest.pado.hazelcast.util.HazelcastLogger) {
+			((com.netcrest.pado.hazelcast.util.HazelcastLogger)logger).setHazelcastInstance(hzInstance);
+		}
+		Logger.log("hello");
+	}
+	
 	private void init() throws IOException
 	{
 		String csvPropertiesPath = System.getProperty("pado.csv.properties");
@@ -421,6 +435,7 @@ public class HazelcastCsvFileImporter
 						is = future.get();
 					} catch (Exception ex) {
 						writeLineError("   Error: " + ex.getMessage());
+						Logger.error(ex);
 						isError = true;
 					} finally {
 						if (is != null) {
@@ -633,29 +648,48 @@ public class HazelcastCsvFileImporter
 
 	private static void usage()
 	{
+		String executable = System.getenv("EXECUTABLE");
+		if (executable == null) {
+			executable = HazelcastCsvFileImporter.class.getSimpleName();
+		}
 		writeLine();
-		writeLine("Usage:");
-		writeLine("   CsvFileImporter [-temporal] [-verbose] [-?]");
+		writeLine("NAME");
+		writeLine("   " + executable + " - Import all CSV files found in the import directory");
 		writeLine();
+		writeLine("SYNOPSIS");
+//		writeLine("   " + executable + " [-temporal] [-verbose] [-?]");
+		writeLine("   " + executable + " [-verbose] [-?]");
+		writeLine();
+		writeLine("DESCRIPTION");
 		writeLine("   Imports all CSV files found in the import directory. Each CSV file");
 		writeLine("   must be paired with the schema file with the same name in the import");
 		writeLine("   directory. For example, 'foo.csv' must be paired with 'foo.schema'.");
 		writeLine();
-		writeLine("      -temporal  Keep temporal indexing enabled while importing data.");
-		writeLine("                 Default: temporal indexing is turned off while importing data in order to");
-		writeLine("                          reduce the load time. Upon completion, it re-enables temporal");
-		writeLine("                          which in turn rebuilds temporal indexes.");
-		writeLine("      -schema    Generates schema files in the schema directory if the corresponding schema files");
-		writeLine("                 do not exist.");
-		writeLine("      -headerRow Column header row number in the data file. If -1 or unspecified then");
-		writeLine("                 it is automatically determined. This option is only meaningful if -schema");
-		writeLine("                 is specified.  Default: -1");
-		writeLine("      -startRow  Start row number in the data file. If -1 or unspecified then the row");
-		writeLine("                 immediately after the header row is assigned. This option is only meaningful");
-		writeLine("                 if -schema is specified. Default: -1");
-		writeLine("      -verbose   Prints additional import status.");
+		writeLine("OPTIONS");
+//		writeLine("   -temporal");
+//		writeLine("             Keep temporal indexing enabled while importing data.");
+//		writeLine("             Default: temporal indexing is turned off while importing data in order to");
+//		writeLine("                      reduce the load time. Upon completion, it re-enables temporal");
+//		writeLine("                      which in turn rebuilds temporal indexes.");
+//		writeLine("   -schema");
+//		writeLine("             Generates schema files in the schema directory if the corresponding schema files");
+//		writeLine("             do not exist.");
+//		writeLine();
+//		writeLine("   -headerRow");
+//		writeLine("             Column header row number in the data file. If -1 or unspecified then");
+//		writeLine("             it is automatically determined. This option is only meaningful if -schema");
+//		writeLine("             is specified.  Default: -1");
+//		writeLine();
+//		writeLine("   -startRow");
+//		writeLine("             Start row number in the data file. If -1 or unspecified then the row");
+//		writeLine("             immediately after the header row is assigned. This option is only meaningful");
+//		writeLine("             if -schema is specified. Default: -1");
+//		writeLine();
+		writeLine("   -verbose");
+		writeLine("             Prints additional import status.");
 		writeLine();
-		writeLine("   Default: CsvFileImporter");
+		writeLine("DEFAULT");
+		writeLine("   " + executable);
 		writeLine();
 		System.exit(0);
 	}

@@ -20,17 +20,28 @@
 . ./all_env.sh > /dev/null 2>&1
 . ./argenv.sh > /dev/null 2>&1
 
+export EXECUTABLE=$0
+
 GENERATED_SOURCE_DIR=$PADO_HOME/src/generated
 
 if [ "$HELP" == "true" ]; then
-   echo "Usage:"
-   echo "Removes generated code from the following source directory:"
-   echo "   $GENERATED_SOURCE_DIR"
-   echo ""
-   echo "   clean_generated_code [-?]"
-   echo ""
-   echo "   Default: clean_generated_code"
-   echo ""
+cat <<EOF
+
+NAME
+   $EXECUTABLE - Remove all generated source code
+
+SNOPSIS
+   $EXECUTABLE [-?]
+
+DESCRIPTION
+   Removes generated code from the following source directory:
+
+   $GENERATED_SOURCE_DIR
+
+DEFAULT
+   $EXECUTABLE
+
+EOF
    exit
 fi
 

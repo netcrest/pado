@@ -18,6 +18,8 @@
 
 . ./setenv.sh > /dev/null 2>&1
 
+export EXECUTABLE=$0
+
 PADO_PROPERTIES="-Dpado.home.dir=$PADO_HOME $PADO_PROPERTIES"
 
 pushd $PADO_HOME > /dev/null 2>&1 

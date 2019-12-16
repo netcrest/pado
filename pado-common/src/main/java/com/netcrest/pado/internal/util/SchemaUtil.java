@@ -84,6 +84,17 @@ public class SchemaUtil
 		CsvParser tabParser = new CsvParser(tabSettings);
 //		tabParser.beginParsing(reader);
 		
+		CsvParserSettings barSettings = new CsvParserSettings();
+		barSettings.getFormat().setLineSeparator("\n");
+		barSettings.getFormat().setDelimiter('|');
+		barSettings.getFormat().setQuoteEscape('\\');
+		barSettings.setMaxCharsPerColumn(10000);
+		barSettings.setMaxColumns(1000);
+		CsvParser barParser = new CsvParser(barSettings);
+		
+		CsvParser parser = commaParser;
+		
+		String[] fieldNames = null;
 		
 		if (headerRow > 0) {
 			while ((line = readLine(reader)) != null && lineNum < headerRow) {
@@ -94,7 +105,7 @@ public class SchemaUtil
 			}
 			if (lineNum > headerRow) {
 				throw new IOException(
-						"Secified headerRow is greater than the total number of lines in the data file. startRow="
+						"Specified headerRow is greater than the total number of lines in the data file. startRow="
 								+ headerRow);
 			}
 
@@ -102,13 +113,23 @@ public class SchemaUtil
 //			String commaTokens[] = getTokens(line, ',');
 			String tabTokens[] = tabParser.parseLine(line);
 			String commaTokens[] = commaParser.parseLine(line);
+			String barTokens[] = barParser.parseLine(line);
 			int numColumns;
-			if (tabTokens.length > commaTokens.length) {
+			if (tabTokens.length > commaTokens.length && tabTokens.length > barTokens.length) {
 				numColumns = tabTokens.length;
-				delimiter = "\\t";
+				delimiter = "	"; // tab
+				parser = tabParser;
+				fieldNames = tabTokens;
+			} else if (barTokens.length > commaTokens.length) {
+				numColumns = barTokens.length;
+				delimiter = "|";
+				parser = barParser;
+				fieldNames = barTokens;
 			} else {
 				numColumns = commaTokens.length;
 				delimiter = ",";
+				parser = commaParser;
+				fieldNames = commaTokens;
 			}
 			headerLineNum = lineNum;
 			headerNumColumns = numColumns;
@@ -120,31 +141,93 @@ public class SchemaUtil
 //				String commaTokens[] = getTokens(line, ',');
 				String tabTokens[] = tabParser.parseLine(line);
 				String commaTokens[] = commaParser.parseLine(line);
+				String barTokens[] = barParser.parseLine(line);
 				int numColumns;
-				if (tabTokens.length > commaTokens.length) {
+				if (tabTokens.length > commaTokens.length && tabTokens.length > barTokens.length) {
 					numColumns = tabTokens.length;
-					delimiter = "\\t";
+					delimiter = "	"; // tab
+					parser = tabParser;
+				} else if (barTokens.length > commaTokens.length) {
+					numColumns = barTokens.length;
+					delimiter = "|";
+					parser = barParser;
 				} else {
 					numColumns = commaTokens.length;
 					delimiter = ",";
+					parser = commaParser;
 				}
 				if (numColumns > headerNumColumns) {
 					headerLineNum = lineNum;
 					headerNumColumns = numColumns;
 					headerLine = line;
+					fieldNames = parser.parseLine(line);
 				}
 			}
 		}
-		reader.close();
-
+		reader.close();	
+		
 		SchemaProp sp = new SchemaProp();
-		sp.headerLineNum = headerLineNum;
-		sp.startRow = headerLineNum + 1;
 		sp.delimiter = delimiter;
-		sp.fieldNames = "";
-
+		if (headerRow == 0) {
+			sp.headerLineNum = 0;
+			sp.startRow = 1;
+		} else {
+			sp.headerLineNum = headerLineNum;
+			sp.startRow = headerLineNum + 1;
+		}
+		
+		// 2nd pass - determine the field types
+		inputStream = new FileInputStream(csvFile);
+		reader = new InputStreamReader(inputStream, Charset.forName("US-ASCII"));
+		parser.beginParsing(reader);
+		lineNum = 0;
+		String[] tokens;
+		// skip the rows before the start row
+		for (int i = 1; i < sp.startRow; i++) {
+			tokens = parser.parseNext();
+		}
+		String fieldTypeNames[] = null;
+		while ((tokens = parser.parseNext()) != null && lineNum < 10) {
+			lineNum++;
+			if (fieldTypeNames == null) {
+				fieldTypeNames= new String[tokens.length];
+			} else if (fieldTypeNames.length < tokens.length) {
+				String[] newFieldTypeNames = new String[tokens.length];
+				System.arraycopy(fieldTypeNames, 0, newFieldTypeNames, 0, fieldTypeNames.length);
+				fieldTypeNames = newFieldTypeNames;
+			}
+			for (int i = 0; i < tokens.length; i++) {
+				String token = tokens[i];
+				String fieldTypeName = null;
+				try {
+					long longVal = Long.parseLong(token);
+					fieldTypeName = "long";
+				} catch (Exception ex) {
+				}
+				if (fieldTypeName == null) {
+					try {
+						double doubleVal = Double.parseDouble(token);
+						fieldTypeName = "double";
+					} catch (Exception ex) {
+					} 
+				}
+				
+				// All failed. Set it to String
+				if (fieldTypeName == null) {
+					fieldTypeNames[i] = "String";
+				} else if (fieldTypeNames[i] == null) {
+					fieldTypeNames[i] = fieldTypeName;
+				} else if (fieldTypeNames[i].equals("long") && fieldTypeName.equals("double")) {
+					fieldTypeNames[i] = fieldTypeName;
+				} else if (fieldTypeNames[i].equals("String")) {
+					// pass
+				}
+			}
+		}
+		
 		// Parse the line to get all columns
-		String fieldNames[] = headerLine.split(delimiter);
+		sp.fieldNames = "";
+//		String fieldNames[] = parser.parseLine(headerLine);
 		String camelCaseNames[] = new String[fieldNames.length];
 		for (int i = 0; i < fieldNames.length; i++) {
 			camelCaseNames[i] = toCamelCase(fieldNames[i]);
@@ -164,11 +247,30 @@ public class SchemaUtil
 			}
 		}
 		StringBuffer buffer = new StringBuffer(fieldNameList.size() * 20);
-		for (String fieldName : fieldNameList) {
-			buffer.append(fieldName);
-			buffer.append("\n");
+		if (headerRow == 0) {
+			for (int i = 0; i < fieldNameList.size(); i++) {
+				buffer.append("C");
+				buffer.append(i);
+				if (i < fieldTypeNames.length) {
+					buffer.append(", ");
+					buffer.append(fieldTypeNames[i++]);
+				}
+				buffer.append("\n");
+			}
+		} else {
+			int i = 0;
+			for (String fieldName : fieldNameList) {
+				buffer.append(fieldName);
+				if (i < fieldTypeNames.length) {
+					buffer.append(", ");
+					buffer.append(fieldTypeNames[i++]);
+				}
+				buffer.append("\n");
+			}
 		}
 		sp.fieldNames = buffer.toString();
+		
+		reader.close();	
 		return sp;
 	}
 

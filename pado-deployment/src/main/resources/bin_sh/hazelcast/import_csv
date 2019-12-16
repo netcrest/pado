@@ -18,32 +18,7 @@
 
 . ./setenv.sh > /dev/null 2>&1
 
-if [ "$1" == "-?" ]; then
-   echo "Usage:"
-   echo "   import_csv [-verbose] [-grid $GRIDS_OPT] [-site $SITES_OPT] [-?]"
-   echo ""
-   echo "  Imports all CSV files found in the data/import directory. The name of each"
-   echo "  CSV file in data/import must begin with the name of the machtching schema"
-   echo "  file in the data/schema directory. For example, 'data/import/foo_v3.csv'"
-   echo "  must be paired with 'data/schema/foo.schema'."
-   echo ""
-   echo "  IMPORTANT: If login is required then you must include appId, user name, and password"
-   echo "             $ETC_DIR/client/csv.properties."
-   echo "             Note that locators are automatically picked up by import_csv and not required"
-   echo "             in csv.properties."
-   echo ""
-   echo "      -temporal If specified then temporal indexing is not disabled while importing data."
-   echo "                Default: The importer first disables temporal indexing if it is enabled"
-   echo "                in order to speed up the load time. Upon completion, it re-enables temporal"
-   echo "                which in turn rebuilds temporal indexes."
-   echo "      -verbose  If specified then prints additional import status information."
-   echo "      -grid     Imports the data files in the specified grid. Default: ${GRID_DEFAULT}"
-   echo "      -site     Imports the data files in the specified site. Default: ${SITE_DEFAULT}"
-   echo ""
-   echo "   Default: import_csv -grid $GRID_DEFAULT -site $SITE_DEFAULT"
-   echo ""
-   exit
-fi
+export EXECUTABLE=$0
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
 

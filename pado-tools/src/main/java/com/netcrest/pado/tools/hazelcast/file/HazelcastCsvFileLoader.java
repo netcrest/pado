@@ -407,10 +407,10 @@ public class HazelcastCsvFileLoader implements IFileLoader
 
 		int lineNumber = 0;
 		int count = 0;
-		BufferedReader reader = null;
+//		BufferedReader reader = null;
 		String[] tokens = null;
 		try {
-			reader = new BufferedReader(textReader);
+//			reader = new BufferedReader(textReader);
 			// skip the rows before the start row
 			for (int i = 1; i < schemaInfo.getStartRow(); i++) {
 				tokens = parser.parseNext();
@@ -542,13 +542,13 @@ public class HazelcastCsvFileLoader implements IFileLoader
 			if (parser != null) {
 				parser.stopParsing();
 			}
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// ignore
-				}
-			}
+//			if (reader != null) {
+//				try {
+//					reader.close();
+//				} catch (IOException e) {
+//					// ignore
+//				}
+//			}
 		}
 
 		return entryCountListener.getTotalCount();

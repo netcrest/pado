@@ -28,7 +28,7 @@ CompositeKeyDelimiter=.
 # included in the Hazelcast generated domain class code which implements
 # Comparable.compareTo(). The field index number begins from 0. The order
 # of indexes defines the "order by" clause.
-ComparableIndexes=${COMPARABLE_INDEXES}
+#ComparableIndexes=${COMPARABLE_INDEXES}
 
 # KeyClass defines the class of the key objects that are inserted
 # in the underlying data grid path. If temporal, then this class
@@ -44,10 +44,10 @@ KeyClass=String
 # ValueClass defines the class of the value objects that are inserted
 # in the underlying data grid path. If temporal, then this class is
 # wrapped in ITemporalData.
-ValueClass=hazelcast.data.${CLASS_NAME}
+ValueClass=${PACKAGE_NAME}${CLASS_NAME}
 
 # KeyTypeClass defines the schema class for JsonLite. 
-KeyTypeClass=hazelcast.data.${CLASS_NAME}
+KeyTypeClass=${PACKAGE_NAME}${CLASS_NAME}
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
@@ -76,7 +76,6 @@ IsSplit=true
 #   UTF-16LE   Sixteen-bit UCS Transformation Format, little-endian byte order
 #   UTF-16     Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark
 Charset=US-ASCII
-
 # LineSeparator is the new-line character(s). For example, \r\n for CR-LF.
 # Default: \n
 #LineSeparator=
