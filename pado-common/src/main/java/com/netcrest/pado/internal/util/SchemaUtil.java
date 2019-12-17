@@ -54,7 +54,7 @@ public class SchemaUtil
 		return buffer.toString();
 	}
 
-	public static SchemaProp determineSchemaProp(File csvFile, int headerRow) throws IOException
+	public static SchemaProp determineSchemaProp(File csvFile, int headerRow, int startRow) throws IOException
 	{
 		InputStream inputStream = new FileInputStream(csvFile);
 		Reader reader = new InputStreamReader(inputStream, Charset.forName("US-ASCII"));
@@ -135,10 +135,12 @@ public class SchemaUtil
 			headerNumColumns = numColumns;
 			headerLine = line;
 		} else {
-			while ((line = readLine(reader)) != null && lineNum < 10) {
+			while ((line = readLine(reader)) != null && lineNum < 20) {
 				lineNum++;
-//				String tabTokens[] = getTokens(line, '\t'); // tab
-//				String commaTokens[] = getTokens(line, ',');
+				// If header row is to be skipped then begin from the start row.
+				if (headerRow == 0 && lineNum < startRow) {
+					continue;
+				}
 				String tabTokens[] = tabParser.parseLine(line);
 				String commaTokens[] = commaParser.parseLine(line);
 				String barTokens[] = barParser.parseLine(line);
@@ -153,7 +155,7 @@ public class SchemaUtil
 					parser = barParser;
 				} else {
 					numColumns = commaTokens.length;
-					delimiter = ",";
+					delimiter = ","; 
 					parser = commaParser;
 				}
 				if (numColumns > headerNumColumns) {
@@ -164,6 +166,7 @@ public class SchemaUtil
 				}
 			}
 		}
+		parser.stopParsing();
 		reader.close();	
 		
 		SchemaProp sp = new SchemaProp();
@@ -189,6 +192,10 @@ public class SchemaUtil
 		String fieldTypeNames[] = null;
 		while ((tokens = parser.parseNext()) != null && lineNum < 1000) {
 			lineNum++;
+			// If header row is to be skipped then begin from the start row.
+			if (headerRow == 0 && lineNum < startRow) {
+				continue;
+			}
 			if (fieldTypeNames == null) {
 				fieldTypeNames= new String[tokens.length];
 			} else if (fieldTypeNames.length < tokens.length) {
@@ -253,7 +260,7 @@ public class SchemaUtil
 				buffer.append(i);
 				if (i < fieldTypeNames.length) {
 					buffer.append(", ");
-					buffer.append(fieldTypeNames[i++]);
+					buffer.append(fieldTypeNames[i]);
 				}
 				buffer.append("\n");
 			}
@@ -269,7 +276,7 @@ public class SchemaUtil
 			}
 		}
 		sp.fieldNames = buffer.toString();
-		
+		parser.stopParsing();
 		reader.close();	
 		return sp;
 	}

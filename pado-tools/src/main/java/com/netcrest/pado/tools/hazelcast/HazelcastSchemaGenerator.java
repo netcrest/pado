@@ -104,6 +104,8 @@ public class HazelcastSchemaGenerator {
 					gridPath = parentPath + "/" + gridPath;
 				}
 				String className = Character.toUpperCase(filePrefix.charAt(0)) + filePrefix.substring(1);
+				// Replace invalid characters
+				className = className.replaceAll("[\\- =!@#\\$%()\\+\\?\\<\\>\\.\"]", "_");
 				generatedSchemaFileName = filePrefix + ".schema";
 				File schemaFilePath = new File(schemaDir, generatedSchemaFileName);
 				InputStream is = this.getClass().getClassLoader()
@@ -114,7 +116,7 @@ public class HazelcastSchemaGenerator {
 				}
 				try {
 					String schemaStr = SchemaUtil.readFile(is);
-					SchemaProp sp = SchemaUtil.determineSchemaProp(csvFile, headerRow);
+					SchemaProp sp = SchemaUtil.determineSchemaProp(csvFile, headerRow, startRow);
 					if (startRow > 0) {
 						sp.startRow = startRow;
 					}

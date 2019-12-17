@@ -279,7 +279,7 @@ public class HazelcastCsvFileImporter
 					}
 					try {
 						String schemaStr = SchemaUtil.readFile(is);
-						SchemaProp sp = SchemaUtil.determineSchemaProp(csvFile, headerRow);
+						SchemaProp sp = SchemaUtil.determineSchemaProp(csvFile, headerRow, startRow);
 						if (startRow > 0) {
 							sp.startRow = startRow;
 						}
