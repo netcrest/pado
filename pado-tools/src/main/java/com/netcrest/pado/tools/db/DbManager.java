@@ -56,6 +56,7 @@ import com.netcrest.pado.internal.security.AESCipher;
 import com.netcrest.pado.internal.util.PadoUtil;
 import com.netcrest.pado.log.Logger;
 import com.netcrest.pado.tools.CsvFileImporter;
+import com.netcrest.pado.tools.hazelcast.HazelcastCsvFileImporter;
 
 public class DbManager
 {
@@ -97,9 +98,11 @@ public class DbManager
 	private Map<String, Map<String, DbConfigPathEx>> configMap = new HashMap<String, Map<String, DbConfigPathEx>>(10);
 	private int threadPoolSize;
 	private Properties csvProperties;
+	private ImportType importType;
 
-	private DbManager() throws InvalidAttributeException, DbManagerException, IOException
+	private DbManager(ImportType importType) throws InvalidAttributeException, DbManagerException, IOException
 	{
+		this.importType = importType;
 		init();
 	}
 
@@ -108,10 +111,10 @@ public class DbManager
 		return dbManager;
 	}
 
-	public static synchronized DbManager initialize() throws InvalidAttributeException, DbManagerException, IOException
+	public static synchronized DbManager initialize(ImportType importType) throws InvalidAttributeException, DbManagerException, IOException
 	{
 		if (dbManager == null) {
-			dbManager = new DbManager();
+			dbManager = new DbManager(importType);
 		}
 		return dbManager;
 	}
@@ -666,9 +669,17 @@ public class DbManager
 
 	private void importCsv() throws IOException, InterruptedException
 	{
-		CsvFileImporter csvImporter = new CsvFileImporter(csvProperties);
-		csvImporter.importData(false, false, -1, -1, false);
-		csvImporter.close();
+		boolean isHazelcast = Boolean.getBoolean("pado.hazelcast.enabled");
+		
+		if (isHazelcast) {
+			HazelcastCsvFileImporter csvImporter = new HazelcastCsvFileImporter(csvProperties);
+			csvImporter.importData(false, false, -1, -1, false);
+			csvImporter.close();
+		} else {
+			CsvFileImporter csvImporter = new CsvFileImporter(csvProperties);
+			csvImporter.importData(false, false, -1, -1, false);
+			csvImporter.close();
+		}
 	}
 
 	private Properties loadSchedulerProperties() throws IOException
@@ -938,13 +949,14 @@ public class DbManager
 				throw new InvalidAttributeException("ValueClass cannot be created: " + configFile.getAbsolutePath(), e);
 			}
 
-			String gridPath = (String) configPath.get("Path");
-			String schemaFileName = gridId + "-" + gridPath.replaceAll("/", "-") + ".schema";
-			File schemaFileDir = new File(outputDirFile, "schema");
-			schemaFile = new File(schemaFileDir, schemaFileName);
-
-			if (schemaFile.exists() == false) {
-				throw new InvalidAttributeException("Schema file does not exist: " + schemaFile.getAbsolutePath());
+			if (importType != ImportType.IMPORT_NOW_THEN_TERMINATE) {
+				String gridPath = (String) configPath.get("Path");
+				String schemaFileName = gridId + "." + gridPath.replaceAll("/", "-") + ".schema";
+				File schemaFileDir = new File(outputDirFile, "schema");
+				schemaFile = new File(schemaFileDir, schemaFileName);
+				if (schemaFile.exists() == false) {
+					throw new InvalidAttributeException("Schema file does not exist: " + schemaFile.getAbsolutePath());
+				}
 			}
 		}
 
@@ -992,7 +1004,7 @@ public class DbManager
 			File file = null;
 			if (filePath != null) {
 				filePath = filePath.replaceAll("/", "-");
-				file = new File(importDirFile, gridId + "-" + filePath + ".v" + suffix + ".csv");
+				file = new File(importDirFile, gridId + "." + filePath + ".v" + suffix + ".csv");
 			}
 			return file;
 		}

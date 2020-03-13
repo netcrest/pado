@@ -49,12 +49,12 @@ public class ImportScheduler
 	
 	private void importData(boolean isSched, boolean isNow, boolean isImport) throws InvalidAttributeException, DbManagerException, IOException, InterruptedException
 	{	
-		DbManager dbManager = DbManager.initialize();
+		DbManager.ImportType importType;
 		
 		if (isSched == false && isNow == false) {
 			if (isImport) {
 				// Import files only
-				dbManager.importData(DbManager.ImportType.IMPORT_THEN_TERMINATE, isImport, false);
+				importType = DbManager.ImportType.IMPORT_THEN_TERMINATE;
 			} else {
 				// One of the options must be true
 				return;
@@ -63,15 +63,19 @@ public class ImportScheduler
 		
 		if (isSched) {
 			if (isNow) {
-				dbManager.importData(DbManager.ImportType.IMPORT_NOW_THEN_ON_SCHEDULE, isImport, false);
+				importType = DbManager.ImportType.IMPORT_NOW_THEN_ON_SCHEDULE;
 			} else {
-				dbManager.importData(DbManager.ImportType.IMPORT_ON_SCHEDULE, isImport, false);
+				importType = DbManager.ImportType.IMPORT_ON_SCHEDULE;
 			}
 		} else {
 			if (isNow) {
-				dbManager.importData(DbManager.ImportType.IMPORT_NOW_THEN_TERMINATE, isImport, false);
+				importType = DbManager.ImportType.IMPORT_NOW_THEN_TERMINATE;
+			} else {
+				return;
 			}
 		}
+		
+		DbManager dbManager = DbManager.initialize(importType);
 	}
 
 	private static void writeLine()

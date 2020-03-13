@@ -96,17 +96,38 @@ public class HazelcastSchemaGenerator {
 				} else {
 					filePrefix = fileName;
 				}
-
+				
+				// "myhz.nw-customers.v20200310115916"
+				
+				// Remove version - "myhz.nw-customers
+				String gridPath = fileName.replaceAll("\\.v(?:.(?!\\.v))+$", "");
+				
+				// Remove grid ID - "nw-customers"
+				gridPath = gridPath.replaceAll(".*\\.", "");
+				
+				// Replace '-' with '/' - nw/customers
+				gridPath = gridPath.replaceAll("\\-", "/");
+				
 				// Replace '-' and space with underscore
-				String gridPath = filePrefix.replaceAll("[\\- ]", "_");
+				gridPath = gridPath.replaceAll("[\\- ]", "_");
 				gridPath = gridPath.toLowerCase();
 				if (parentPath != null) {
 					gridPath = parentPath + "/" + gridPath;
 				}
-				String className = Character.toUpperCase(filePrefix.charAt(0)) + filePrefix.substring(1);
+				
+				// Get class name - "customers"
+				String name = gridPath.replaceAll(".*/+", "");
+				// Remove trailing "s" - "customer"
+				if (name.endsWith("s")) {
+					name = name.substring(0, name.length()-1);
+				}
+				// Capitalize first letter - "Customers"
+				String className = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+
 				// Replace invalid characters
 				className = className.replaceAll("[\\- =!@#\\$%()\\+\\?\\<\\>\\.\"]", "_");
-				generatedSchemaFileName = filePrefix + ".schema";
+				String gridId = filePrefix.replaceAll("\\..*", "");
+				generatedSchemaFileName = gridId + "." + gridPath.replaceAll("/", "-") + ".schema";
 				File schemaFilePath = new File(schemaDir, generatedSchemaFileName);
 				InputStream is = this.getClass().getClassLoader()
 						.getResourceAsStream("com/netcrest/pado/tools/hazelcast/HazelcastSchemaTemplate.txt");
