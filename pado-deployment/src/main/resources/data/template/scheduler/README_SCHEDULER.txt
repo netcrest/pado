@@ -37,7 +37,7 @@ Schema (schema/)
 
 All schema files must be placed in the schema/ directory. The schema file name must be of the following naming conventions:
 
-   <grid ID>-<hyphen separated grid path>.schema
+   <grid ID>.<hyphen separated grid path>.schema
 
 where <grid ID> is the grid ID defined in the configuration file.
       <hypyen separated grid path> is the grid path name. Nested
@@ -47,7 +47,7 @@ where <grid ID> is the grid ID defined in the configuration file.
 Example: 
    Given the grid ID, "mygrid" and the grid path "product/inventory", the
    file name must be:
-      mygrid-product-inventory.schema
+      mygrid.product-inventory.schema
 
 Note that in Pado, hyphens are now allowed in grid paths.
 
