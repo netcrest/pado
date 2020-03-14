@@ -70,6 +70,5 @@ pushd $PADO_HOME > /dev/null 2>&1
 nohup $GF_JAVA -Xms512m -Xmx512m -Djava.awt.headless=true $GEMFIRE_PROPERTIES $SECURITY_PROPERTIES $PADO_PROPERTIES com.netcrest.pado.tools.hazelcast.HazelcastImportScheduler $* > $LOG_DIR/$0.log 2>&1&
 echo "$0 started. Please see the following log files for status:"
 echo "   $LOG_DIR/$0.log"
-echo "   $LOG_DIR/$0-gemfire.log"
 echo ""
 popd > /dev/null 2>&1
