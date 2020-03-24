@@ -140,9 +140,12 @@ public class HazelcastSchemaGenerator {
 				
 				// Make the class name singular.
 				// Replace "sses" with "ss": Addresses -> Address
+				// Or replace "ies" with "y": Categories -> Category
 				// Or remove trailing "s": Customers -> Customer
 				if (className.endsWith("sses")) {
 					className = className.substring(0, className.length()-2);
+				} else if (className.endsWith("ies")) {
+					className = className.substring(0, className.length()-3) + "y";
 				} else if (className.endsWith("s")) {
 					className = className.substring(0, className.length()-1);
 				}
