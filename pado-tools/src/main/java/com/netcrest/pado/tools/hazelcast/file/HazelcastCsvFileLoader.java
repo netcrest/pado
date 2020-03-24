@@ -731,7 +731,7 @@ public class HazelcastCsvFileLoader implements IFileLoader
 	 *            Setters of the specified class that may be mixed with public
 	 *            fields and methods
 	 * @param keyNames
-	 *            Key names in KeyMap. The order this array must match the order
+	 *            Key names in KeyMap. The order of this array must match the order
 	 *            of clazzSetter.
 	 * @param keyMap
 	 *            KeyMap object containing values to be extracted and assigned
