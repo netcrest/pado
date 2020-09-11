@@ -19,6 +19,7 @@
 				<exclude>com.netcrest.pado:pado-biz-gemfire</exclude>
 				<exclude>com.netcrest.pado:pado-test</exclude>
 				<exclude>com.netcrest.pado:pado-rpc-biz</exclude>
+				<exclude>com.netcrest.pado:pado-tools-hazelcast-*</exclude>
 				<exclude>com.gemstone.gemfire:gemfire</exclude>
 				<exclude>antlr:antlr</exclude>
 				<exclude>commons-io*</exclude>
@@ -45,6 +46,19 @@
 		</dependencySet>
 	</dependencySets>
 
+	<files>
+		<!-- Collect Hazelcast version specifics -->
+		<file>
+			<outputDirectory>lib/hazelcast/v3</outputDirectory>
+			<source>../pado-tools-hazelcast-3/target/pado-tools-hazelcast-3.jar</source>
+			<destName>pado-tools-hazelcast-3-${project.version}.jar</destName>
+		</file>
+		<file>
+			<outputDirectory>lib/hazelcast/v4</outputDirectory>
+			<source>../pado-tools-hazelcast-4/target/pado-tools-hazelcast-4.jar</source>
+			<destName>pado-tools-hazelcast-4-${project.version}.jar</destName>
+		</file>
+	</files>
 	<fileSets>
 		<!-- Collect all resources -->
 		<fileSet>

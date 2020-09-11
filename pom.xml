@@ -18,7 +18,7 @@
 		<pado.version>0.5.0-B1-SNAPSHOT</pado.version>
 		<lucene.version>8.0.0</lucene.version>
 		<gemfire.version>8.2.0</gemfire.version>
-		<hazelcast.version>3.12</hazelcast.version>
+		<hazelcast.version>4.0.2</hazelcast.version>
 	</properties>
 
 
@@ -41,6 +41,8 @@
 		<module>pado-rpc</module>
 		<module>pado-rpc-biz</module>
 		<module>pado-test</module>
+		<module>pado-tools-hazelcast-3</module>
+		<module>pado-tools-hazelcast-4</module>
 		<module>pado-tools</module>
 		<module>pado-demo</module>
 		<module>pado-javadoc</module>

@@ -24,10 +24,15 @@
 		<artifactId>pado-parent</artifactId>
 		<version>0.5.0-B1-SNAPSHOT</version>
 	</parent>
+	
+	<properties>
+		<hazelcast.version>4.0.2</hazelcast.version>
+	</properties>
+	
 
-	<artifactId>pado-tools</artifactId>
+	<artifactId>pado-tools-hazelcast-4</artifactId>
 	<packaging>jar</packaging>
-	<name>pado-tools</name>
+	<name>${project.artifactId}</name>
 	<description>Pado tools </description>
 
 	<dependencies>
@@ -54,11 +59,6 @@
 		<dependency>
 			<groupId>com.netcrest.pado</groupId>
 			<artifactId>pado-test</artifactId>
-			<version>${pado.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.netcrest.pado</groupId>
-			<artifactId>pado-tools-hazelcast-4</artifactId>
 			<version>${pado.version}</version>
 		</dependency>
 		<dependency>
@@ -92,11 +92,6 @@
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast-enterprise-all</artifactId>
 			<version>${hazelcast.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.hazelcast.jet</groupId>
-			<artifactId>hazelcast-jet</artifactId>
-			<version>3.0</version>
 		</dependency>
 	</dependencies>
 

@@ -23,6 +23,15 @@ pushd .. > /dev/null 2>&1
 popd > /dev/null 2>&1
 
 #
+# Set Hazelcast major version number (3 or 4)
+#
+if [ "$HAZELCAST_MAJOR_VERSION_NUMBER" == "" ]; then
+   HAZELCAST_MAJOR_VERSION_NUMBER=4
+fi
+
+CLASSPATH=$CLASSPATH:$BASE_DIR/lib/hazelcast/v$HAZELCAST_MAJOR_VERSION_NUMBER/*
+
+#
 # Append all jar files found in the $BASE_DIR/plugins directory and
 # its subdirectories in the class path. 
 #
