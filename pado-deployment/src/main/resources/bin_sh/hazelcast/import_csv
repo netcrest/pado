@@ -22,11 +22,7 @@ export EXECUTABLE=$0
 
 . ${GRIDS_DIR}/${GRID}/site_${SITE}.sh > /dev/null 2>&1
 
-# locators
-LOCATORS=`getPadoLocators`
-
-GEMFIRE_PROPERTIES="-DgemfirePropertyFile=$ETC_DIR/client/client.properties -Dgemfire.log-file=$LOG_DIR/$0.log"
-PADO_PROPERTIES="-Dpado.home.dir=$PADO_HOME -Dpado.locators=$LOCATORS -Dpado.server=false -Dpado.properties=$ETC_DIR/client/pado.properties -Dpado.csv.properties=$ETC_DIR/client/csv.properties"
+PADO_PROPERTIES="-Dpado.home.dir=$PADO_HOME -Dpado.server=false -Dpado.properties=$ETC_DIR/client/pado.properties -Dpado.csv.properties=$ETC_DIR/client/csv.properties"
 pushd $PADO_HOME > /dev/null 2>&1 
-$GF_JAVA -Xms1024m -Xmx1024m -Djava.awt.headless=true $GEMFIRE_PROPERTIES $SECURITY_PROPERTIES $PADO_PROPERTIES com.netcrest.pado.tools.hazelcast.HazelcastCsvFileImporter $*
+$GF_JAVA -Xms1024m -Xmx1024m $JAVA_OPTS -Djava.awt.headless=true $SECURITY_PROPERTIES $PADO_PROPERTIES com.netcrest.pado.tools.hazelcast.HazelcastCsvFileImporter $*
 popd > /dev/null 2>&1
