@@ -30,6 +30,8 @@
                 <jitter>0.2</jitter>
            </connection-retry>
         </connection-strategy>
+
+	<!-- Requies PadoGrid in CLASSPATH
         <serialization>
                 <portable-factories>
                         <portable-factory factory-id="10000">
@@ -37,5 +39,6 @@
                         </portable-factory>
                 </portable-factories>
         </serialization>
+	-->
 
 </hazelcast-client>
