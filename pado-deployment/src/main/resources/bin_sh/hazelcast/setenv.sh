@@ -53,3 +53,11 @@ if [ "$SECURITY_ENABLED" == "true" ]; then
 else
    SECURITY_PROPERTIES=-Dpado.security.enabled=false
 fi
+if [ "$PADOGRID_WORKSPACE" != "" ]; then
+   CLASSPATH="${CLASSPATH}:${PADOGRID_WORKSPACE}/plugins:${PADOGRID_WORKSPACE}/lib/*"
+fi
+
+HAZELCAST_CLIENT_CONFIG_FILE=$BASE_DIR/etc/hazelcast/hazelcast-client.xml
+
+JAVA_OPTS="-Dhazelcast.logging.type=none"
+JAVA_OPTS="$JAVA_OPTS -Dhazelcast.client.config=$HAZELCAST_CLIENT_CONFIG_FILE"
