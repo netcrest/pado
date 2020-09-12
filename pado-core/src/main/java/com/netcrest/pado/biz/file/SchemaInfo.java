@@ -46,6 +46,7 @@ public class SchemaInfo
 {
 	public final static String PROP_IS_KEY_COLUMNS = "IsKeyColumns";
 	public final static String PROP_IS_KEY_AUTO_GEN = "IsKeyAutoGen";
+	public final static String PROP_IS_REPLICATED_MAP = "IsReplicatedMap";
 	public final static String PROP_DELIMITER = "Delimiter";
 	public final static String PROP_KEY_CLASS = "KeyClass";
 	public final static String PROP_VALUE_CLASS = "ValueClass";
@@ -93,6 +94,8 @@ public class SchemaInfo
 	private boolean isKeyColumns;
 	private boolean isKeyAutoGen = false;
 	private String gridPath;
+	// isReplicatedMap is for Hazelcast only. Hazelcast has a separate API for replicated maps.
+	private boolean isReplicatedMap = false;
 	private char delimiter = 29; // default is ASCII ALT (029)
 	private char quoteEscape = '"';
 	private String lineSeparator = "\n";
@@ -209,6 +212,8 @@ public class SchemaInfo
 						this.isKeyColumns = value.equalsIgnoreCase("true");
 					} else if (property.equalsIgnoreCase(PROP_IS_KEY_AUTO_GEN)) {
 						this.isKeyAutoGen = value.equalsIgnoreCase("true");
+					} else if (property.equalsIgnoreCase(PROP_IS_REPLICATED_MAP)) {
+						this.isReplicatedMap = value.equalsIgnoreCase("true");
 					} else if (property.equalsIgnoreCase(PROP_DELIMITER)) {
 						char[] carray = value.toCharArray();
 						if (carray != null && carray.length > 0) {
@@ -654,6 +659,11 @@ public class SchemaInfo
 	{
 		return isKeyAutoGen;
 	}
+	
+	public boolean isReplicatedMap()
+	{
+		return isReplicatedMap;
+	}
 
 	public boolean isColumnNamesCaseSensitive()
 	{
@@ -788,27 +798,25 @@ public class SchemaInfo
 	public String toString()
 	{
 		return "SchemaInfo [schemaFileDelimiter=" + schemaFileDelimiter + ", schemaType=" + schemaType
-				+ ", isKeyColumns=" + isKeyColumns + ", isKeyAutoGen=" + isKeyAutoGen + ", gridPath=" + gridPath
-				+ ", delimiter=" + delimiter + ", quoteEscape=" + quoteEscape + ", lineSeparator=" + lineSeparator
-				+ ", keyClass=" + keyClass + ", valueClass=" + valueClass + ", keyType=" + keyType
-				+ ", keyTypeClassName=" + keyTypeClassName + ", routingKeyClass=" + routingKeyClass
-				+ ", allColumnItems=" + Arrays.toString(allColumnItems) + ", skipColumnSet=" + skipColumnSet
-				+ ", pkColumnNames=" + Arrays.toString(pkColumnNames) + ", pkIndexNames="
+				+ ", isKeyColumns=" + isKeyColumns + ", isKeyAutoGen=" + isKeyAutoGen + ", isReplicatedMap="
+				+ isReplicatedMap + ", gridPath=" + gridPath + ", delimiter=" + delimiter + ", quoteEscape="
+				+ quoteEscape + ", lineSeparator=" + lineSeparator + ", keyClass=" + keyClass + ", valueClass="
+				+ valueClass + ", keyType=" + keyType + ", keyTypeClassName=" + keyTypeClassName + ", routingKeyClass="
+				+ routingKeyClass + ", allColumnItems=" + Arrays.toString(allColumnItems) + ", skipColumnSet="
+				+ skipColumnSet + ", pkColumnNames=" + Arrays.toString(pkColumnNames) + ", pkIndexNames="
 				+ Arrays.toString(pkIndexNames) + ", routingKeyIndexNames=" + Arrays.toString(routingKeyIndexNames)
-				+ ", routingKeyIndexes=" + Arrays.toString(routingKeyIndexes) 
-				+ ", comparableIndexes=" + Arrays.toString(comparableIndexes) 
-				+ ", valueColumnNames="
-				+ Arrays.toString(valueColumnNames) + ", valueColumnTypes=" + Arrays.toString(valueColumnTypes)
-				+ ", bulkLoaderClass=" + bulkLoaderClass + ", fileLoaderClass=" + fileLoaderClass + ", rowFilterClass="
-				+ rowFilterClass + ", entryFilterClass=" + entryFilterClass + ", batchSize=" + batchSize
-				+ ", dateFormat=" + dateFormat + ", columnNamesCaseSensitive=" + columnNamesCaseSensitive + ", isSplit="
-				+ isSplit + ", charset=" + charset + ", compositeKeyDelimiter=" + compositeKeyDelimiter
-				+ ", isTemporal=" + isTemporal + ", temporalType=" + temporalType + ", temporalStartTime="
-				+ temporalStartTime + ", temporalEndTime=" + temporalEndTime + ", temporalWrittenTime="
-				+ temporalWrittenTime + ", temporalTimeResolution=" + temporalTimeResolution + ", username=" + username
-				+ ", startRow=" + startRow + ", endRow=" + endRow + ", isHistory=" + isHistory + ", keyStartIndex="
-				+ keyStartIndex + ", temporalStartIndex=" + temporalStartIndex + ", valueStartIndex=" + valueStartIndex
-				+ "]";
+				+ ", routingKeyIndexes=" + Arrays.toString(routingKeyIndexes) + ", comparableIndexes="
+				+ Arrays.toString(comparableIndexes) + ", valueColumnNames=" + Arrays.toString(valueColumnNames)
+				+ ", valueColumnTypes=" + Arrays.toString(valueColumnTypes) + ", bulkLoaderClass=" + bulkLoaderClass
+				+ ", fileLoaderClass=" + fileLoaderClass + ", rowFilterClass=" + rowFilterClass + ", entryFilterClass="
+				+ entryFilterClass + ", batchSize=" + batchSize + ", dateFormat=" + dateFormat
+				+ ", columnNamesCaseSensitive=" + columnNamesCaseSensitive + ", isSplit=" + isSplit + ", charset="
+				+ charset + ", compositeKeyDelimiter=" + compositeKeyDelimiter + ", isTemporal=" + isTemporal
+				+ ", temporalType=" + temporalType + ", temporalStartTime=" + temporalStartTime + ", temporalEndTime="
+				+ temporalEndTime + ", temporalWrittenTime=" + temporalWrittenTime + ", temporalTimeResolution="
+				+ temporalTimeResolution + ", username=" + username + ", startRow=" + startRow + ", endRow=" + endRow
+				+ ", isHistory=" + isHistory + ", keyStartIndex=" + keyStartIndex + ", temporalStartIndex="
+				+ temporalStartIndex + ", valueStartIndex=" + valueStartIndex + "]";
 	}
 
 	private static String[] getTokens(String line, char delimiter)

@@ -1,4 +1,9 @@
+# GridPath is the map name. Supported map types are ReplicatedMap and IMap.
 GridPath=${GRID_PATH}
+
+# If IsReplicatedMap is true then the data is imported into a ReplicatedMap,
+# otherwise, the data is imported into an IMap, partitioned map.
+IsReplicatedMap=false
 
 # If IsKeyColumns is true then the CSV file contains key columns in addition
 # to value columns. If false, then the CSV file contains only the value columns.
@@ -48,7 +53,7 @@ ValueClass=${PACKAGE_NAME}${CLASS_NAME}
 
 # KeyTypeClass defines the schema class for JsonLite. For non-JsonLite, set
 # this property to the same value as the ValueClass property.
-KeyTypeClass=${PACKAGE_NAME}${CLASS_NAME}
+#KeyTypeClass=${PACKAGE_NAME}${CLASS_NAME}
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
@@ -87,7 +92,7 @@ Charset=US-ASCII
 
 # --- Temporal spec ---
 # If IsTemporal is false then all other temporal properties except
-# IdentityKey are ignored and non-temporal objects are created. 
+# IdentityKey are ignored and non-temporal objects are created.
 IsTemporal=${IS_TEMPORAL}
 
 # TemporalType must be one of eternal, forever, mortal
@@ -96,10 +101,10 @@ IsTemporal=${IS_TEMPORAL}
 # In Pado, the beginning of time is 1970-01-01T00:00:00.000Z
 # and the end of time is 2099-12-31'T'23:59:59.999Z. These
 # times are used to represent eternal and forever temporal objects.
-TemporalType=eternal
-TemporalStartTime=19700101
-TemporalEndTime=20991231
-TemporalWrittenTime=19700101
+#TemporalType=eternal
+#TemporalStartTime=19700101
+#TemporalEndTime=20991231
+#TemporalWrittenTime=19700101
 
 # Username is optional. If specified then it overrides the Pado login user name.
 #Username=

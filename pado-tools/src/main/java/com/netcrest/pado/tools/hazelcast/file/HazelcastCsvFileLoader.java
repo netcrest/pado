@@ -15,7 +15,6 @@
  */
 package com.netcrest.pado.tools.hazelcast.file;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -59,6 +58,7 @@ import com.netcrest.pado.temporal.ITemporalKey;
 import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalData;
 import com.netcrest.pado.temporal.gemfire.impl.GemfireTemporalKey;
 import com.netcrest.pado.tools.hazelcast.HazelcastBulkLoader;
+import com.netcrest.pado.tools.hazelcast.HazelcastReplicatedMapBulkLoader;
 import com.netcrest.pado.util.IBulkLoader;
 import com.netcrest.pado.util.IBulkLoaderListener;
 import com.netcrest.pado.util.ObjectUtil;
@@ -280,7 +280,11 @@ public class HazelcastCsvFileLoader implements IFileLoader
 //				bulkLoader = gridMapBiz.getBulkLoader(schemaInfo.getBatchSize());
 //			}
 //		}
-		bulkLoader = new HazelcastBulkLoader(hzInstance.getMap(schemaInfo.getGridPath()));
+		if (schemaInfo.isReplicatedMap()) {
+			bulkLoader = new HazelcastReplicatedMapBulkLoader(hzInstance.getReplicatedMap(schemaInfo.getGridPath()));
+		} else {
+			bulkLoader = new HazelcastBulkLoader(hzInstance.getMap(schemaInfo.getGridPath()));
+		}
 		bulkLoader.setBatchSize(schemaInfo.getBatchSize());
 		EntryCountListener entryCountListener = new EntryCountListener();
 		bulkLoader.addBulkLoaderListener(entryCountListener);
