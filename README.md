@@ -61,7 +61,7 @@ ITemporalBiz temporalBiz = pado.getCatalog().newInstance(ITemporalBiz.class, "gr
 
 ## Supported JDK Versions
 
-Pado requires JDK 1.7 to compile and runs on JDK 1.7 and 1.8.
+:exclamation: Pado requires JDK 1.7 or 1.8 to compile and runs on JDK 1.7 and 1.8.
 
 ## Building Pado
 
@@ -72,7 +72,14 @@ Pado requires JDK 1.7 to compile and runs on JDK 1.7 and 1.8.
 ```
 git clone http://github.com/netcrest/pado
 cd pado
-mvn install -DskipTests
+
+# Windows
+./setenv_build.bat
+
+# Unix
+. ./setenv_build.sh
+
+mvn install
 ```
 
 The above Maven command (#3) compiles all of Pado Maven modules and creates zip and tar distribution files in the `pado-deployment/assembly` directory. It also inflates the tar distribution file in the `deploy/` directory for running and testing the Pado build. 
@@ -82,7 +89,6 @@ The above Maven command (#3) compiles all of Pado Maven modules and creates zip 
 ## Building Pado-Web
 
 Pado-web is a web container that provides the Pado RESTful API for accessing IBiz objects. To build the `pado-web-<version>.war` file, follow the instructions in the pado-web repository:  http://github.com/netcrest/pado-web
-
 
 ## Installing Pivotal GemFire
 
