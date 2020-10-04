@@ -4,6 +4,13 @@
 ©2013-2016 Netcrest Technologies, LLC. All rights reserved.
 https://github.com/netcrest/pado
 
+Release: Version 0.4.3-B1
+Release Date: 10/04/2020
+
+- Versioned for oss.sontype.org.
+
+*************************************************************************
+
 Release: Version 0.4.1-B1
 Release Date: 06/17/2016
 
