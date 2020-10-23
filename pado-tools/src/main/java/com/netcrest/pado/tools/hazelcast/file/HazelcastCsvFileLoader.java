@@ -94,6 +94,7 @@ import com.univocity.parsers.csv.CsvParserSettings;
 public class HazelcastCsvFileLoader implements IFileLoader
 {
 	private HazelcastInstance hzInstance;
+	private long delayInMsec;
 
 	private SchemaInfo schemaInfo;
 	private SimpleDateFormat dateFormatter;
@@ -107,6 +108,14 @@ public class HazelcastCsvFileLoader implements IFileLoader
 	public HazelcastCsvFileLoader(HazelcastInstance hzInstance)
 	{
 		this.hzInstance = hzInstance;
+	}
+	
+	public void setDelayInMsec(long delayInMsec) {
+		this.delayInMsec = delayInMsec;
+	}
+	
+	public long getDelayInMsec() {
+		return delayInMsec;
 	}
 
 	public void setVerbose(boolean verbose)
@@ -285,6 +294,7 @@ public class HazelcastCsvFileLoader implements IFileLoader
 		} else {
 			bulkLoader = new HazelcastBulkLoader(hzInstance.getMap(schemaInfo.getGridPath()));
 		}
+		bulkLoader.setBatchDelayInMsec(schemaInfo.getBatchInMsec());
 		bulkLoader.setBatchSize(schemaInfo.getBatchSize());
 		EntryCountListener entryCountListener = new EntryCountListener();
 		bulkLoader.addBulkLoaderListener(entryCountListener);

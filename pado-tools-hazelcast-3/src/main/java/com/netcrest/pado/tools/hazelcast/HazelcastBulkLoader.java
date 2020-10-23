@@ -15,6 +15,7 @@ public class HazelcastBulkLoader <K, V> implements IBulkLoader<K, V>
 	protected IMap<K, V> hzMap;
 	protected String gridPath;
 	protected int batchSize = 1000;
+	protected long delayInMsec;
 	protected HashMap<K, V> map = new HashMap<K, V>(batchSize, 1f);
 	protected Set<IBulkLoaderListener> bulkLoaderListenerSet = new HashSet<IBulkLoaderListener>(3);
 
@@ -49,6 +50,16 @@ public class HazelcastBulkLoader <K, V> implements IBulkLoader<K, V>
 	public int getBatchSize() {
 		return batchSize;
 	}
+	
+	@Override
+	public void setBatchDelayInMsec(long delayInMsec) {
+		this.delayInMsec = delayInMsec;
+	}
+
+	@Override
+	public long getBatchDelayInMsec() {
+		return delayInMsec;
+	}
 
 	@Override
 	public void put(K key, V value) throws PathUndefinedException {
@@ -67,6 +78,12 @@ public class HazelcastBulkLoader <K, V> implements IBulkLoader<K, V>
 	public void flush() {
 		int count = map.size();
 		if (count > 0 && hzMap != null) {
+			if (delayInMsec > 0) {
+				try {
+					Thread.sleep(delayInMsec);
+				} catch (InterruptedException e) {
+				}
+			}
 			hzMap.putAll(map);
 			map.clear();
 			synchronized (bulkLoaderListenerSet) {

@@ -42,8 +42,7 @@ import com.netcrest.pado.util.IBulkLoader;
  * @author dpark
  * 
  */
-public class SchemaInfo
-{
+public class SchemaInfo {
 	public final static String PROP_IS_KEY_COLUMNS = "IsKeyColumns";
 	public final static String PROP_IS_KEY_AUTO_GEN = "IsKeyAutoGen";
 	public final static String PROP_IS_REPLICATED_MAP = "IsReplicatedMap";
@@ -56,6 +55,7 @@ public class SchemaInfo
 	public final static String PROP_BULK_LAODER_CLASS = "BulkLoaderClass";
 	public final static String PROP_FILE_LOADER_CLASS = "FileLoaderClass";
 	public final static String PROP_BATCH_SIZE = "BatchSize";
+	public final static String PROP_BATCH_DELAY_IN_MSEC = "BatchDelayInMsec";
 	public final static String PROP_DATE_FORMAT = "DateFormat";
 	public final static String PROP_IS_CASE_SENSITIVE = "IsCaseSensitive";
 	public final static String PROP_IS_TEMPORAL = "IsTemporal";
@@ -94,7 +94,8 @@ public class SchemaInfo
 	private boolean isKeyColumns;
 	private boolean isKeyAutoGen = false;
 	private String gridPath;
-	// isReplicatedMap is for Hazelcast only. Hazelcast has a separate API for replicated maps.
+	// isReplicatedMap is for Hazelcast only. Hazelcast has a separate API for
+	// replicated maps.
 	private boolean isReplicatedMap = false;
 	private char delimiter = 29; // default is ASCII ALT (029)
 	private char quoteEscape = '"';
@@ -124,6 +125,7 @@ public class SchemaInfo
 	private Class<?> entryFilterClass;
 	private int batchSize = Integer
 			.parseInt(PadoUtil.getProperty(Constants.PROP_LOADER_DATA_BULK_LOAD_BATCH_SIZE, "5000"));
+	private int batchDelayInMsec;
 	private String dateFormat = "MM/dd/yyyy HH:mm:ss";
 	private boolean columnNamesCaseSensitive = true;
 	private boolean isSplit = true;
@@ -144,13 +146,11 @@ public class SchemaInfo
 	private int temporalStartIndex = -1;
 	private int valueStartIndex;
 
-	public SchemaInfo(String schemaType, File schemaFile) throws FileLoaderException
-	{
+	public SchemaInfo(String schemaType, File schemaFile) throws FileLoaderException {
 		this(schemaType, schemaFile, ',');
 	}
 
-	public SchemaInfo(String schemaType, File schemaFile, char schemaFileDelimiter) throws FileLoaderException
-	{
+	public SchemaInfo(String schemaType, File schemaFile, char schemaFileDelimiter) throws FileLoaderException {
 		if (schemaFile == null) {
 			throw new FileLoaderException("Schema file not found. schema-type=" + schemaType);
 		}
@@ -162,8 +162,7 @@ public class SchemaInfo
 		loadCsvSchema(schemaFile);
 	}
 
-	private void loadCsvSchema(File schemaFile)
-	{
+	private void loadCsvSchema(File schemaFile) {
 		BufferedReader reader = null;
 		int lineCount = 0;
 		String temporalStartTimeStr = null;
@@ -269,6 +268,8 @@ public class SchemaInfo
 						this.fileLoaderClass = Class.forName(value);
 					} else if (property.equalsIgnoreCase(PROP_BATCH_SIZE)) {
 						this.batchSize = Integer.parseInt(value);
+					} else if (property.equalsIgnoreCase(PROP_BATCH_DELAY_IN_MSEC)) {
+						this.batchDelayInMsec = Integer.parseInt(value);
 					} else if (property.equalsIgnoreCase(PROP_DATE_FORMAT)) {
 						this.dateFormat = value;
 					} else if (property.equalsIgnoreCase(PROP_IS_CASE_SENSITIVE)) {
@@ -432,7 +433,8 @@ public class SchemaInfo
 			this.valueColumnTypes = valueColumnTypeList.toArray(new Class[valueColumnTypeList.size()]);
 			this.speicalColumnNames = specialValueColumnNameList.toArray(new String[specialValueColumnNameList.size()]);
 			this.specialColumnTypes = specialValueColumnTypeList.toArray(new Class[specialValueColumnTypeList.size()]);
-			this.speicalColumnValues = specialValueColumnValueList.toArray(new String[specialValueColumnValueList.size()]);
+			this.speicalColumnValues = specialValueColumnValueList
+					.toArray(new String[specialValueColumnValueList.size()]);
 			if (this.bulkLoaderClass == null) {
 				this.bulkLoaderClass = Class.forName(DEFAULT_BULK_LOADER_CLASS_NAME);
 			}
@@ -492,266 +494,223 @@ public class SchemaInfo
 	}
 
 	@SuppressWarnings("rawtypes")
-	public IBulkLoader createBulkLoader() throws InstantiationException, IllegalAccessException
-	{
+	public IBulkLoader createBulkLoader() throws InstantiationException, IllegalAccessException {
 		IBulkLoader bulkLoader = (IBulkLoader) bulkLoaderClass.newInstance();
 		bulkLoader.setPath(gridPath);
 		return bulkLoader;
 	}
 
-	public IFileLoader createFileLoader() throws InstantiationException, IllegalAccessException
-	{
+	public IFileLoader createFileLoader() throws InstantiationException, IllegalAccessException {
 		return (IFileLoader) fileLoaderClass.newInstance();
 	}
 
 	/**
-	 * Returns the schema file delimiter (separator). The default is ','. The
-	 * schema file delimiter applies only for delimited files. It does not apply
-	 * to XML files.
+	 * Returns the schema file delimiter (separator). The default is ','. The schema
+	 * file delimiter applies only for delimited files. It does not apply to XML
+	 * files.
 	 */
-	public char getSchemaFileDelimiter()
-	{
+	public char getSchemaFileDelimiter() {
 		return schemaFileDelimiter;
 	}
 
-	public String getSchemaType()
-	{
+	public String getSchemaType() {
 		return schemaType;
 	}
 
-	public String getGridPath()
-	{
+	public String getGridPath() {
 		return gridPath;
 	}
 
-	public char getDelimiter()
-	{
+	public char getDelimiter() {
 		return delimiter;
 	}
 
-	public String getLineSeparator()
-	{
+	public String getLineSeparator() {
 		return lineSeparator;
 	}
 
-	public char getQuoteEscape()
-	{
+	public char getQuoteEscape() {
 		return quoteEscape;
 	}
 
-	public int getMaxCharsPerColumn()
-	{
+	public int getMaxCharsPerColumn() {
 		return maxCharsPerColumn;
 	}
 
-	public int getMaxColumns()
-	{
+	public int getMaxColumns() {
 		return maxColumns;
 	}
 
-	public String getCompositeKeyDelimiter()
-	{
+	public String getCompositeKeyDelimiter() {
 		return compositeKeyDelimiter;
 	}
 
-	public Class<?> getKeyClass()
-	{
+	public Class<?> getKeyClass() {
 		return keyClass;
 	}
 
-	public ColumnItem[] getAllColumnItems()
-	{
+	public ColumnItem[] getAllColumnItems() {
 		return allColumnItems;
 	}
 
-	public String[] getPkColumnNames()
-	{
+	public String[] getPkColumnNames() {
 		return pkColumnNames;
 	}
 
-	public String[] getPkIndexNames()
-	{
+	public String[] getPkIndexNames() {
 		return pkIndexNames;
 	}
 
 	/**
-	 * Returns routing key index names. Always returns a non-null array. The
-	 * array length is zero if undefined. Routing key indexes overrides routing
-	 * key index names.
+	 * Returns routing key index names. Always returns a non-null array. The array
+	 * length is zero if undefined. Routing key indexes overrides routing key index
+	 * names.
 	 */
-	public String[] getRoutingKeyIndexNames()
-	{
+	public String[] getRoutingKeyIndexNames() {
 		return routingKeyIndexNames;
 	}
 
 	/**
-	 * Returns the routing key field indexes. Always returns a non-null array. If the array
-	 * length is zero then the routing key indexes are not undefined. Note that the routing
-	 * key indexes override routing key index names.
+	 * Returns the routing key field indexes. Always returns a non-null array. If
+	 * the array length is zero then the routing key indexes are not undefined. Note
+	 * that the routing key indexes override routing key index names.
 	 */
-	public int[] getRoutingKeyIndexes()
-	{
+	public int[] getRoutingKeyIndexes() {
 		return routingKeyIndexes;
 	}
-	
+
 	/**
 	 * Returns the comparable field indexes. Always returns a non-null array. If the
-	 * array length is zero then the comparable indexes are not defined. The comparable
-	 * indexes are introduced to support some IMDGs such as Hazelcast that rely on the
-	 * Comparable interface to perform result set pagination and "order by" queries.
+	 * array length is zero then the comparable indexes are not defined. The
+	 * comparable indexes are introduced to support some IMDGs such as Hazelcast
+	 * that rely on the Comparable interface to perform result set pagination and
+	 * "order by" queries.
 	 */
-	public int[] getComparableIndexes()
-	{
+	public int[] getComparableIndexes() {
 		return comparableIndexes;
 	}
 
-	public String[] getValueColumnNames()
-	{
+	public String[] getValueColumnNames() {
 		return valueColumnNames;
 	}
 
-	public Class<?>[] getValueColumnTypes()
-	{
+	public Class<?>[] getValueColumnTypes() {
 		return valueColumnTypes;
 	}
 
-	public String[] getSpeicalColumnNames()
-	{
+	public String[] getSpeicalColumnNames() {
 		return speicalColumnNames;
 	}
 
-	public Class<?>[] getSpeicalColumnTypes()
-	{
+	public Class<?>[] getSpeicalColumnTypes() {
 		return specialColumnTypes;
 	}
-	
-	public String[] getSpecialColumnValues()
-	{
+
+	public String[] getSpecialColumnValues() {
 		return speicalColumnValues;
 	}
 
-	public Class<?> getBulkLoaderClass()
-	{
+	public Class<?> getBulkLoaderClass() {
 		return bulkLoaderClass;
 	}
 
-	public Class<?> getFileLoaderClass()
-	{
+	public Class<?> getFileLoaderClass() {
 		return fileLoaderClass;
 	}
 
-	public int getBatchSize()
-	{
+	public int getBatchSize() {
 		return batchSize;
 	}
 
-	public String getDateFormat()
-	{
+	public int getBatchInMsec() {
+		return batchDelayInMsec;
+	}
+
+	public String getDateFormat() {
 		return dateFormat;
 	}
 
-	public boolean isKeyColumns()
-	{
+	public boolean isKeyColumns() {
 		return isKeyColumns;
 	}
 
-	public boolean isKeyAutoGen()
-	{
+	public boolean isKeyAutoGen() {
 		return isKeyAutoGen;
 	}
-	
-	public boolean isReplicatedMap()
-	{
+
+	public boolean isReplicatedMap() {
 		return isReplicatedMap;
 	}
 
-	public boolean isColumnNamesCaseSensitive()
-	{
+	public boolean isColumnNamesCaseSensitive() {
 		return columnNamesCaseSensitive;
 	}
 
-	public Class<?> getValueClass()
-	{
+	public Class<?> getValueClass() {
 		return valueClass;
 	}
 
-	public Class<?> getRowFilterClass()
-	{
+	public Class<?> getRowFilterClass() {
 		return rowFilterClass;
 	}
 
-	public Class<?> getEntryFilterClass()
-	{
+	public Class<?> getEntryFilterClass() {
 		return entryFilterClass;
 	}
 
-	public KeyType getKeyType()
-	{
+	public KeyType getKeyType() {
 		return keyType;
 	}
 
-	public String getKeyTypeClassName()
-	{
+	public String getKeyTypeClassName() {
 		return keyTypeClassName;
 	}
 
-	public Class<?> getRoutingKeyClass()
-	{
+	public Class<?> getRoutingKeyClass() {
 		return routingKeyClass;
 	}
 
-	public boolean isSkipColumn(String columnName)
-	{
+	public boolean isSkipColumn(String columnName) {
 		return skipColumnSet.contains(columnName);
 	}
 
-	public Set<String> getSkipColumnSet()
-	{
+	public Set<String> getSkipColumnSet() {
 		return skipColumnSet;
 	}
 
-	public boolean isTemporal()
-	{
+	public boolean isTemporal() {
 		return isTemporal;
 	}
 
-	public String getTemporalType()
-	{
+	public String getTemporalType() {
 		return temporalType;
 	}
 
-	public Date getTemporalStartTime()
-	{
+	public Date getTemporalStartTime() {
 		return temporalStartTime;
 	}
 
-	public Date getTemporalEndTime()
-	{
+	public Date getTemporalEndTime() {
 		return temporalEndTime;
 	}
 
-	public Date getTemporalWrittenTime()
-	{
+	public Date getTemporalWrittenTime() {
 		return temporalWrittenTime;
 	}
 
-	public DateTool.Resolution getTemporalTimeResolution()
-	{
+	public DateTool.Resolution getTemporalTimeResolution() {
 		return temporalTimeResolution;
 	}
 
-	public String getUsername()
-	{
+	public String getUsername() {
 		return username;
 	}
 
-	public int getStartRow()
-	{
+	public int getStartRow() {
 		return startRow;
 	}
 
-	public void setStartRow(int startRow)
-	{
+	public void setStartRow(int startRow) {
 		if (startRow <= 0) {
 			this.startRow = 0;
 		} else {
@@ -759,44 +718,36 @@ public class SchemaInfo
 		}
 	}
 
-	public int getEndRow()
-	{
+	public int getEndRow() {
 		return endRow;
 	}
 
-	public boolean isHistory()
-	{
+	public boolean isHistory() {
 		return isHistory;
 	}
 
-	public int getKeyStartIndex()
-	{
+	public int getKeyStartIndex() {
 		return keyStartIndex;
 	}
 
-	public int getTemporalStartIndex()
-	{
+	public int getTemporalStartIndex() {
 		return temporalStartIndex;
 	}
 
-	public int getValueStartIndex()
-	{
+	public int getValueStartIndex() {
 		return valueStartIndex;
 	}
 
-	public boolean isSplit()
-	{
+	public boolean isSplit() {
 		return isSplit;
 	}
 
-	public String getCharset()
-	{
+	public String getCharset() {
 		return charset;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "SchemaInfo [schemaFileDelimiter=" + schemaFileDelimiter + ", schemaType=" + schemaType
 				+ ", isKeyColumns=" + isKeyColumns + ", isKeyAutoGen=" + isKeyAutoGen + ", isReplicatedMap="
 				+ isReplicatedMap + ", gridPath=" + gridPath + ", delimiter=" + delimiter + ", quoteEscape="
@@ -809,18 +760,18 @@ public class SchemaInfo
 				+ Arrays.toString(comparableIndexes) + ", valueColumnNames=" + Arrays.toString(valueColumnNames)
 				+ ", valueColumnTypes=" + Arrays.toString(valueColumnTypes) + ", bulkLoaderClass=" + bulkLoaderClass
 				+ ", fileLoaderClass=" + fileLoaderClass + ", rowFilterClass=" + rowFilterClass + ", entryFilterClass="
-				+ entryFilterClass + ", batchSize=" + batchSize + ", dateFormat=" + dateFormat
-				+ ", columnNamesCaseSensitive=" + columnNamesCaseSensitive + ", isSplit=" + isSplit + ", charset="
-				+ charset + ", compositeKeyDelimiter=" + compositeKeyDelimiter + ", isTemporal=" + isTemporal
-				+ ", temporalType=" + temporalType + ", temporalStartTime=" + temporalStartTime + ", temporalEndTime="
-				+ temporalEndTime + ", temporalWrittenTime=" + temporalWrittenTime + ", temporalTimeResolution="
-				+ temporalTimeResolution + ", username=" + username + ", startRow=" + startRow + ", endRow=" + endRow
-				+ ", isHistory=" + isHistory + ", keyStartIndex=" + keyStartIndex + ", temporalStartIndex="
-				+ temporalStartIndex + ", valueStartIndex=" + valueStartIndex + "]";
+				+ entryFilterClass + ", batchSize=" + batchSize + ", batchDelayInMsec=" + batchDelayInMsec
+				+ ", dateFormat=" + dateFormat + ", columnNamesCaseSensitive=" + columnNamesCaseSensitive + ", isSplit="
+				+ isSplit + ", charset=" + charset + ", compositeKeyDelimiter=" + compositeKeyDelimiter
+				+ ", isTemporal=" + isTemporal + ", temporalType=" + temporalType + ", temporalStartTime="
+				+ temporalStartTime + ", temporalEndTime=" + temporalEndTime + ", temporalWrittenTime="
+				+ temporalWrittenTime + ", temporalTimeResolution=" + temporalTimeResolution + ", username=" + username
+				+ ", startRow=" + startRow + ", endRow=" + endRow + ", isHistory=" + isHistory + ", keyStartIndex="
+				+ keyStartIndex + ", temporalStartIndex=" + temporalStartIndex + ", valueStartIndex=" + valueStartIndex
+				+ "]";
 	}
 
-	private static String[] getTokens(String line, char delimiter)
-	{
+	private static String[] getTokens(String line, char delimiter) {
 		if (line.length() == 0) {
 			return null;
 		}
@@ -855,13 +806,11 @@ public class SchemaInfo
 		return (String[]) list.toArray(new String[0]);
 	}
 
-	enum ColumnCategory
-	{
+	enum ColumnCategory {
 		Primary, PrimaryRouting, Temporal, Value
 	}
 
-	class ColumnItem
-	{
+	class ColumnItem {
 		private String name;
 		private Class<?> type;
 		private ColumnCategory category = ColumnCategory.Value;
@@ -870,45 +819,38 @@ public class SchemaInfo
 		private boolean isSpecialColumn = false;
 		private String specialColumnValue;
 
-		public String getName()
-		{
+		public String getName() {
 			return name;
 		}
 
-		public Class<?> getType()
-		{
+		public Class<?> getType() {
 			return type;
 		}
 
-		public ColumnCategory getCategory()
-		{
+		public ColumnCategory getCategory() {
 			return category;
 		}
 
-		public boolean isRoutingKey()
-		{
+		public boolean isRoutingKey() {
 			return isRoutingKey;
 		}
 
-		public int getPrimaryKeyIndex()
-		{
+		public int getPrimaryKeyIndex() {
 			return primaryKeyIndex;
 		}
-		
-		public boolean isSpecialColumn()
-		{
+
+		public boolean isSpecialColumn() {
 			return isSpecialColumn;
 		}
-		
-		public String getSpecialColumnValue()
-		{
+
+		public String getSpecialColumnValue() {
 			return specialColumnValue;
 		}
 
 		@Override
-		public String toString()
-		{
-			return "ColumnItem [name=" + name + ", type=" + type + ", category=" + category + ", isSpecialColumn=" + isSpecialColumn + "]";
+		public String toString() {
+			return "ColumnItem [name=" + name + ", type=" + type + ", category=" + category + ", isSpecialColumn="
+					+ isSpecialColumn + "]";
 		}
 	}
 }

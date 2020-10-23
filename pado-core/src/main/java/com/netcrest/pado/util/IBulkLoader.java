@@ -17,31 +17,26 @@ package com.netcrest.pado.util;
 
 import com.netcrest.pado.exception.PathUndefinedException;
 
-
 /**
  * IBulkLoader loads data into the grid in batches. Loading data in batches is
  * generally faster than individual "put" operations.
  * 
  * @author dpark
  * 
- * @param <K>
- *            Key
- * @param <V>
- *            Value
+ * @param <K> Key
+ * @param <V> Value
  */
-public interface IBulkLoader<K, V>
-{
+public interface IBulkLoader<K, V> {
 	/**
-	 * Sets the grid path to which the file content to be loaded. Note that
-	 * invoking this method while the bulk loader already has a grid path set
-	 * will first flush the bulk loader before assigning the specified grid
-	 * path.
+	 * Sets the grid path to which the file content to be loaded. Note that invoking
+	 * this method while the bulk loader already has a grid path set will first
+	 * flush the bulk loader before assigning the specified grid path.
 	 * 
 	 * @param gridPath
-	 * @throws PathUndefinedException
-	 *             Thrown if the specified path is not found. If this error
-	 *             occurs then the bulk loader will not have the path set and
-	 *             therefore the put operation will fail.
+	 * @throws PathUndefinedException Thrown if the specified path is not found. If
+	 *                                this error occurs then the bulk loader will
+	 *                                not have the path set and therefore the put
+	 *                                operation will fail.
 	 */
 	void setPath(String gridPath) throws PathUndefinedException;
 
@@ -53,8 +48,7 @@ public interface IBulkLoader<K, V>
 	/**
 	 * Sets the batch size. The default size is 1000.
 	 * 
-	 * @param batchSize
-	 *            Batch size
+	 * @param batchSize Batch size
 	 */
 	void setBatchSize(int batchSize);
 
@@ -64,39 +58,47 @@ public interface IBulkLoader<K, V>
 	int getBatchSize();
 
 	/**
-	 * Puts data into the underlying container. A bulk-put is done when it
-	 * reaches the batch size.
+	 * Sets the delay between batch (putAll) calls. This is useful for simulating data
+	 * playback. Default is 0, i.e., no delay.
 	 * 
-	 * @param key
-	 *            The key that maps the specified value.
-	 * @param value
-	 *            The value to put into the container along with the key.
-	 * @throws PathUndefinedException
-	 *             Thrown if the grid path is not defined.
+	 * @param delayInMsec
+	 */
+	void setBatchDelayInMsec(long delayInMsec);
+
+	/**
+	 * Returns the delay between batch (putAll) calls. Default is 0, i.e., no delay.
+	 */
+	long getBatchDelayInMsec();
+
+	/**
+	 * Puts data into the underlying container. A bulk-put is done when it reaches
+	 * the batch size.
+	 * 
+	 * @param key   The key that maps the specified value.
+	 * @param value The value to put into the container along with the key.
+	 * @throws PathUndefinedException Thrown if the grid path is not defined.
 	 */
 	void put(K key, V value) throws PathUndefinedException;
 
 	/**
 	 * Removes the specified key and the mapped value from the grid.
 	 * 
-	 * @param key
-	 *            Key to delete
-	 * @throws PathUndefinedException
-	 *             Thrown if the grid path is not defined.
+	 * @param key Key to delete
+	 * @throws PathUndefinedException Thrown if the grid path is not defined.
 	 */
 	void remove(K key) throws PathUndefinedException;
 
 	/**
-	 * Flushes the remaining batch. This method must be invoked at the end of
-	 * the load.
+	 * Flushes the remaining batch. This method must be invoked at the end of the
+	 * load.
 	 */
 	void flush();
-	
+
 	/**
 	 * Adds a bulk loader listener that is invoked per flush() call.
 	 */
 	void addBulkLoaderListener(IBulkLoaderListener listener);
-	
+
 	/**
 	 * Removes the specified bulk loader listener.
 	 */

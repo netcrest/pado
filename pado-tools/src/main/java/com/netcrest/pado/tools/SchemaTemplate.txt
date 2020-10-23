@@ -50,7 +50,15 @@ ValueClass=com.netcrest.pado.data.jsonlite.JsonLite
 # Delimiter is ${DELIMITER_COMMENT}
 Delimiter=${DELIMITER}
 FileLoaderClass=com.netcrest.pado.biz.file.CsvFileLoader
+
+# putAll batch size
 BatchSize=5000
+
+# BatchDelayInMsec is for a delay between batch (putAll) calls to simulate data playback.
+# Default is 0 msec.
+BatchDelayInMsec=0
+
+# Date format
 DateFormat=yyyyMMdd
 
 # If IsSplit is true then the data file is split into multiple smaller files
