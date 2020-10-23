@@ -294,7 +294,7 @@ public class HazelcastCsvFileLoader implements IFileLoader
 		} else {
 			bulkLoader = new HazelcastBulkLoader(hzInstance.getMap(schemaInfo.getGridPath()));
 		}
-		bulkLoader.setBatchDelayInMsec(schemaInfo.getBatchInMsec());
+		bulkLoader.setBatchDelayInMsec(schemaInfo.getBatchDelayInMsec());
 		bulkLoader.setBatchSize(schemaInfo.getBatchSize());
 		EntryCountListener entryCountListener = new EntryCountListener();
 		bulkLoader.addBulkLoaderListener(entryCountListener);

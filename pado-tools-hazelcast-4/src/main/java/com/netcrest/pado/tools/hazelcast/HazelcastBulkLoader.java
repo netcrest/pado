@@ -63,6 +63,9 @@ public class HazelcastBulkLoader <K, V> implements IBulkLoader<K, V>
 	@Override
 	public void put(K key, V value) throws PathUndefinedException {
 		map.put(key, value);
+		if (map.size() >= batchSize) {
+			flush();
+		}
 	}
 
 	@Override

@@ -367,6 +367,9 @@ public class HazelcastCsvFileImporter
 				continue;
 			}
 			schemaInfo2.setStartRow(0);
+			if (schemaInfo1.getBatchDelayInMsec() > 0) {
+				writeLine("   BatchDelayInMsec=" + schemaInfo1.getBatchDelayInMsec());
+			}
 
 			// Load CSV files
 			long startTime = System.currentTimeMillis();
@@ -550,7 +553,6 @@ public class HazelcastCsvFileImporter
 			this.isVerbose = isVerbose;
 		}
 
-		@SuppressWarnings("rawtypes")
 		@Override
 		public ImportStatus call() throws Exception
 		{

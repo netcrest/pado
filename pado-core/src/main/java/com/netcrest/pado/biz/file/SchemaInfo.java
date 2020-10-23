@@ -622,7 +622,7 @@ public class SchemaInfo {
 		return batchSize;
 	}
 
-	public int getBatchInMsec() {
+	public int getBatchDelayInMsec() {
 		return batchDelayInMsec;
 	}
 
