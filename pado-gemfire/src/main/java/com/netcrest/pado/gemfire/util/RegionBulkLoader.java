@@ -32,6 +32,7 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 	protected Region<K, V> region;
 	protected HashMap<K, V> map;
 	protected int batchSize = 1000;
+	protected long delayInMsec;
 	protected Set<IBulkLoaderListener> bulkLoaderListenerSet = new HashSet<IBulkLoaderListener>(3);
 
 	public RegionBulkLoader()
@@ -91,6 +92,16 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 	{
 		this.batchSize = batchSize;
 	}
+	
+	@Override
+	public void setBatchDelayInMsec(long delayInMsec) {
+		this.delayInMsec = delayInMsec;
+	}
+
+	@Override
+	public long getBatchDelayInMsec() {
+		return delayInMsec;
+	}
 
 	@Override
 	public void setPath(String gridPath) throws PathUndefinedException
@@ -128,6 +139,12 @@ public class RegionBulkLoader<K, V> implements IBulkLoader<K, V>
 	{
 		int count = map.size();
 		if (count > 0 && region != null) {
+			if (delayInMsec > 0) {
+				try {
+					Thread.sleep(delayInMsec);
+				} catch (InterruptedException e) {
+				}
+			}
 			region.putAll(map);
 			map.clear();
 			synchronized (bulkLoaderListenerSet) {

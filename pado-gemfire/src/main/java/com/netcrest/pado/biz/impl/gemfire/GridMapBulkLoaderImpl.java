@@ -31,6 +31,7 @@ public class GridMapBulkLoaderImpl<K, V> implements IBulkLoader<K, V>
 {
 	protected IGridMapBizLink gridMapBiz;
 	protected int batchSize = 1000;
+	protected long delayInMsec;
 	protected HashMap map;
 	protected Set<IBulkLoaderListener> bulkLoaderListenerSet = new HashSet<IBulkLoaderListener>(3);
 
@@ -64,7 +65,17 @@ public class GridMapBulkLoaderImpl<K, V> implements IBulkLoader<K, V>
 	{
 		this.batchSize = batchSize;
 	}
+	
+	@Override
+	public void setBatchDelayInMsec(long delayInMsec) {
+		this.delayInMsec = delayInMsec;
+	}
 
+	@Override
+	public long getBatchDelayInMsec() {
+		return delayInMsec;
+	}
+	
 	@Override
 	public void setPath(String gridPath) throws PathUndefinedException
 	{
@@ -92,6 +103,12 @@ public class GridMapBulkLoaderImpl<K, V> implements IBulkLoader<K, V>
 	{
 		int count = map.size();
 		if (count > 0) {
+			if (delayInMsec > 0) {
+				try {
+					Thread.sleep(delayInMsec);
+				} catch (InterruptedException e) {
+				}
+			}
 			gridMapBiz.putAll(map);
 			map.clear();
 		}
