@@ -23,7 +23,7 @@ DNA offers several benefits with some tradeoffs as described below.
 
 ### Tradeoffs
 - Pado RPC relies on IPC for communications between DNA and the data node. There is a slight IPC overhead that may be significant for low latency applications. If your application has end-to-end sub-millisecond latency requirements then you should use Pado's IBiz instead.
-- Because it runs as a separate process, the DNA API must be built from scratch. The initial DNA API may not be as rich as you wish but the goal is to provide a complete set of API in the near future.
+- Because it runs as a separate process, the DNA API must be built from scratch. The Python DNA API is not as rich as Java. 
 
 ## Use Cases
 
