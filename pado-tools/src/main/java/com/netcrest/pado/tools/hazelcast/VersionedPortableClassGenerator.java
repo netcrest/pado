@@ -590,7 +590,7 @@ public class VersionedPortableClassGenerator {
 		writeLine("   " + executable + " - Generate VersionedPortable classes based on schema files");
 		writeLine();
 		writeLine("SNOPSIS");
-		writeLine("   " + executable +" [-schemaDir schema_directory] [-srcDir output_directory] [-v version_number] [-?]");
+		writeLine("   " + executable +" [-schemaDir schema_directory] [-srcDir output_directory] [-fid portable_factory_class_id] [-cid data_class_id] [-v version_number] [-?]");
 		writeLine();
 		writeLine("IMPORTANT");
 		writeLine("   This command overwrites the existing source code. Make sure to back up the");
@@ -619,7 +619,7 @@ public class VersionedPortableClassGenerator {
 		writeLine("             Class ID. If the class ID is not specified then it defaults to 100.");
 		writeLine();
 		writeLine("   -v version_number");
-		writeLine("             Versions the generated KeyType class. If version number is not specified");
+		writeLine("             Versions the generated KeyType (data) class. If version number is not specified");
 		writeLine("             then it defaults to 1.");
 		writeLine();
 		writeLine("DEFAULT");

@@ -53,7 +53,7 @@ ValueClass=${PACKAGE_NAME}${CLASS_NAME}
 
 # KeyTypeClass defines the schema class for JsonLite. For non-JsonLite, set
 # this property to the same value as the ValueClass property.
-#KeyTypeClass=${PACKAGE_NAME}${CLASS_NAME}
+KeyTypeClass=${PACKAGE_NAME}${CLASS_NAME}
 
 # EntryFilterClass filters each key/value pair created by
 # the file importer.
