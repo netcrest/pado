@@ -1,3 +1,9 @@
+---
+
+![PadoGrid](https://raw.githubusercontent.com/padogrid/padogrid/develop/images/padogrid-3d-16x16.png?raw=true "PadoGrid") *Pado2 is now available in a binary form as part of [PadoGrid](https://github.com/padogrid). Pado2 tightly integrates with PadoGrid and supports GemFire 9.x and Geode 1.x.*
+
+---
+
 ## What is Pado?
 
 Pado is a comprehensive software platform for building, managing and servicing true cloud stores on top of data grid products while ensuring performance, linear scalability, data ubiquity, and ease of use.
