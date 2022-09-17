@@ -1,6 +1,6 @@
 ---
 
-![PadoGrid](https://raw.githubusercontent.com/padogrid/padogrid/develop/images/padogrid-3d-16x16.png?raw=true "PadoGrid") *Pado2 is now available in a binary form as part of [PadoGrid](https://github.com/padogrid). Pado2 tightly integrates with PadoGrid and supports GemFire 9.x and Geode 1.x. See the [Pado Overview](https://github.com/padogrid/padogrid/wiki/Pado-Overview) section of [PadoGrid Manual](https://github.com/padogrid/padogrid/wiki/) for an overview and installation instructions.*
+![PadoGrid](https://raw.githubusercontent.com/padogrid/padogrid/develop/images/padogrid-3d-16x16.png?raw=true "PadoGrid") *Pado2 is now available in binary forms as part of [PadoGrid](https://github.com/padogrid). Pado2 tightly integrates with PadoGrid and supports GemFire 9.x and Geode 1.x. See the [Pado Overview](https://github.com/padogrid/padogrid/wiki/Pado-Overview) section of [PadoGrid Manual](https://github.com/padogrid/padogrid/wiki/) for an overview and installation instructions.*
 
 ---
 
