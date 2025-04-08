@@ -52,7 +52,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<pado.version>0.4.3-B1</pado.version>
-		<lucene.version>4.7.2</lucene.version>
+		<lucene.version>8.6.2</lucene.version>
 		<gemfire.version>8.2.0</gemfire.version>
 	</properties>
 
